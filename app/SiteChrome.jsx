@@ -1,13 +1,49 @@
 'use client'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import NavAuth from './NavAuth'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { useI18n } from '@/lib/i18n'
 
+// Rubriques principales, puis celles regroupées sous « Plus » — la barre ne
+// tient pas les sept d'un seul tenant.
+const PRIMARY = [
+  { href: '/',              key: 'nav.now' },
+  { href: '/prochainement', key: 'nav.soon' },
+  { href: '/programme',     key: 'nav.programme' },
+  { href: '/nos-offres',    key: 'nav.offers' },
+]
+
+const SECONDARY = [
+  { href: '/a-propos',             key: 'nav.about' },
+  { href: '/contact',              key: 'nav.contact' },
+  { href: '/termes-et-conditions', key: 'nav.terms' },
+]
+
 export function Navbar() {
   const { t } = useI18n()
   const pathname = usePathname()
+  const [moreOpen, setMoreOpen] = useState(false)
+  const moreRef = useRef(null)
+
+  // Referme « Plus » au changement de page et sur clic extérieur / Échap.
+  useEffect(() => { setMoreOpen(false) }, [pathname])
+
+  useEffect(() => {
+    if (!moreOpen) return
+    function onDown(e) { if (!moreRef.current?.contains(e.target)) setMoreOpen(false) }
+    function onKey(e) { if (e.key === 'Escape') setMoreOpen(false) }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [moreOpen])
+
+  const inMore = SECONDARY.some(l => l.href === pathname)
+
   return (
     <nav className="navbar">
       <div className="navbar-inner">
@@ -17,18 +53,59 @@ export function Navbar() {
         <div className="navbar-right">
           <div className="navbar-links">
             <div className="navbar-sections">
-            <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`}>
-              <svg className="nav-icon" viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
-                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-              </svg>
-              {t('nav.now')}
-            </Link>
-            <Link href="/prochainement" className={`nav-link ${pathname === '/prochainement' ? 'active' : ''}`}>
-              <svg className="nav-icon" viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
-                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-              </svg>
-              {t('nav.soon')}
-            </Link>
+              {PRIMARY.map(link => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`nav-link ${pathname === link.href ? 'active' : ''}`}
+                >
+                  {t(link.key)}
+                </Link>
+              ))}
+
+              <div className="nav-more" ref={moreRef}>
+                <button
+                  type="button"
+                  className={`nav-link nav-more-btn ${inMore ? 'active' : ''}`}
+                  onClick={() => setMoreOpen(o => !o)}
+                  aria-expanded={moreOpen}
+                  aria-haspopup="true"
+                >
+                  {t('nav.more')}
+                  <svg viewBox="0 0 20 20" fill="currentColor" width="11" height="11" className={`chevron ${moreOpen ? 'up' : ''}`}>
+                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+
+                {moreOpen && (
+                  <div className="nav-more-menu">
+                    {SECONDARY.map(link => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className={`nav-more-item ${pathname === link.href ? 'active' : ''}`}
+                      >
+                        {t(link.key)}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Sur mobile la rangée défile horizontalement : un menu déroulant
+                  y serait rogné, donc les rubriques secondaires s'affichent
+                  en ligne. Masqué au-delà, où « Plus » les regroupe. */}
+              <div className="navbar-sections-inline">
+                {SECONDARY.map(link => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`nav-link ${pathname === link.href ? 'active' : ''}`}
+                  >
+                    {t(link.key)}
+                  </Link>
+                ))}
+              </div>
             </div>
             <NavAuth />
             <div className="poc-badge">
@@ -70,14 +147,14 @@ export function Footer() {
         <div className="footer-links">
           <div className="footer-col">
             <Link href="/">{t('footer.colNow')}</Link>
-            <a href="#">{t('footer.colTerms')}</a>
-            <a href="#">{t('footer.colSchedule')}</a>
-            <a href="#">{t('footer.colOffers')}</a>
+            <Link href="/termes-et-conditions">{t('footer.colTerms')}</Link>
+            <Link href="/programme">{t('footer.colSchedule')}</Link>
+            <Link href="/nos-offres">{t('footer.colOffers')}</Link>
           </div>
           <div className="footer-col">
             <Link href="/prochainement">{t('footer.colSoon')}</Link>
-            <a href="#">{t('footer.colAbout')}</a>
-            <a href="#">{t('footer.colContact')}</a>
+            <Link href="/a-propos">{t('footer.colAbout')}</Link>
+            <Link href="/contact">{t('footer.colContact')}</Link>
           </div>
         </div>
       </div>

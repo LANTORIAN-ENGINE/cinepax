@@ -13,8 +13,62 @@ export const LOCALES = {
 //   - un objet { one, other } sélectionné par la variable count
 const DICT = {
   fr: {
-    nav: { now: 'ACTUELLEMENT', soon: 'PROCHAINEMENT' },
+    nav: {
+      now: 'ACTUELLEMENT',
+      soon: 'PROCHAINEMENT',
+      programme: 'PROGRAMME',
+      offers: 'NOS OFFRES',
+      about: 'À PROPOS DE NOUS',
+      contact: 'CONTACTEZ NOUS',
+      terms: 'TERMES ET CONDITIONS',
+      more: 'PLUS',
+    },
     lang: { label: 'Langue', fr: 'Français', en: 'Anglais' },
+
+    about: {
+      title: 'À propos de nous',
+      screens: 'Salles',
+      seats: 'Places',
+      sound: 'Son',
+      ourScreens: 'Nos salles',
+      seatCount: { one: '{n} place', other: '{n} places' },
+    },
+
+    contact: {
+      title: 'Contactez-nous',
+      address: 'Adresse',
+      reach: 'Nous joindre',
+      phone: 'Téléphone',
+      email: 'E-mail',
+      sales: 'Commercial',
+      hours: "Horaires d'ouverture",
+      follow: 'Nous suivre',
+      mapTitle: 'Plan d’accès à Cinepax Madagascar',
+    },
+
+    offers: {
+      title: 'Nos offres',
+      rates: 'Nos tarifs',
+      ratesLead: 'Grilles appliquées aux séances des deux prochaines semaines, relevées automatiquement sur la programmation.',
+      rateName: 'Grille',
+      rateDays: 'Jours',
+      rateTimes: 'Plage horaire',
+      rateSessions: 'Séances',
+      ratePrice: 'Tarif',
+      posterAlt: 'Grille tarifaire Cinepax Madagascar',
+      posterCaption: 'Tarifs hors avant-première et événements spéciaux.',
+      events: 'Événements et services',
+    },
+
+    terms: { title: 'Termes et conditions' },
+
+    programme: {
+      title: 'Programme de la semaine',
+      summary: '{sessions} séances sur {days} jours',
+      empty: 'Aucune séance programmée pour le moment.',
+      filmCount: { one: '{n} film', other: '{n} films' },
+      jumpLabel: 'Aller à un jour',
+    },
 
     comingSoon: {
       title: 'Prochainement',
@@ -488,7 +542,61 @@ const DICT = {
   },
 
   en: {
-    nav: { now: 'NOW SHOWING', soon: 'COMING SOON' },
+    nav: {
+      now: 'NOW SHOWING',
+      soon: 'COMING SOON',
+      programme: 'SCHEDULE',
+      offers: 'OUR OFFERS',
+      about: 'ABOUT US',
+      contact: 'CONTACT US',
+      terms: 'TERMS & CONDITIONS',
+      more: 'MORE',
+    },
+
+    about: {
+      title: 'About us',
+      screens: 'Screens',
+      seats: 'Seats',
+      sound: 'Sound',
+      ourScreens: 'Our screens',
+      seatCount: { one: '{n} seat', other: '{n} seats' },
+    },
+
+    contact: {
+      title: 'Contact us',
+      address: 'Address',
+      reach: 'Get in touch',
+      phone: 'Phone',
+      email: 'Email',
+      sales: 'Sales',
+      hours: 'Opening hours',
+      follow: 'Follow us',
+      mapTitle: 'Map to Cinepax Madagascar',
+    },
+
+    offers: {
+      title: 'Our offers',
+      rates: 'Our rates',
+      ratesLead: 'Rate cards applied to showtimes over the next two weeks, read automatically from the schedule.',
+      rateName: 'Rate card',
+      rateDays: 'Days',
+      rateTimes: 'Time range',
+      rateSessions: 'Showtimes',
+      ratePrice: 'Price',
+      posterAlt: 'Cinepax Madagascar rate card',
+      posterCaption: 'Rates exclude previews and special events.',
+      events: 'Events and services',
+    },
+
+    terms: { title: 'Terms & conditions' },
+
+    programme: {
+      title: 'This week’s schedule',
+      summary: '{sessions} showtimes across {days} days',
+      empty: 'No showtimes scheduled yet.',
+      filmCount: { one: '{n} film', other: '{n} films' },
+      jumpLabel: 'Jump to a day',
+    },
 
     comingSoon: {
       title: 'Coming soon',
