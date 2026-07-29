@@ -282,7 +282,7 @@ export default function Home() {
   const [loadingSeats, setLoadingSeats] = useState(false)
   const [selectedSeats, setSelectedSeats] = useState([])
 
-  const [paymentMethod, setPaymentMethod] = useState('orange')
+  const [paymentMethod, setPaymentMethod] = useState('card')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [orderResult, setOrderResult] = useState(null)
   const [loadingOrder, setLoadingOrder] = useState(false)

@@ -27,7 +27,7 @@ export default function PaymentForm({
   const [guestName,    setGuestName]    = useState('')
   const [guestEmail,   setGuestEmail]   = useState('')
   const [guestPhone,   setGuestPhone]   = useState('')
-  const [payMethod,    setPayMethod]    = useState('orange')
+  const [payMethod,    setPayMethod]    = useState('card')
   const [phoneNum,     setPhoneNum]     = useState('')
   const [bniIframeHtml, setBniIframeHtml] = useState(null)
   const [bniLoading,   setBniLoading]   = useState(false)
@@ -577,18 +577,24 @@ export default function PaymentForm({
 
                 <div className="pay-methods-grid">
                   {[
-                    { id: 'orange', label: 'Orange Money',        logo: '/orange.png',          color: '#ff6600' },
-                    { id: 'mvola',  label: 'MVola',               logo: '/mvola.png',           color: '#e30613' },
                     { id: 'card',   label: t('payment.cardMethod'), logo: '/visa-mastercard.jpg', color: '#1a56db' },
+                    { id: 'orange', label: 'Orange Money',        logo: '/orange.png',          color: '#ff6600', soon: true },
+                    { id: 'mvola',  label: 'MVola',               logo: '/mvola.png',           color: '#e30613', soon: true },
                   ].map(m => (
                     <button key={m.id} type="button"
-                      className={`pay-method-btn ${payMethod === m.id ? 'active' : ''}`}
+                      className={`pay-method-btn ${payMethod === m.id ? 'active' : ''} ${m.soon ? 'soon' : ''}`}
                       style={{ '--mc': m.color }}
-                      onClick={() => setPayMethod(m.id)}
+                      disabled={m.soon}
+                      aria-disabled={m.soon || undefined}
+                      title={m.soon ? t('payment.mobileMoneySoon') : undefined}
+                      onClick={() => { if (!m.soon) setPayMethod(m.id) }}
                     >
                       <img src={m.logo} alt={m.label} className="pay-method-logo" />
                       <span className="pay-method-label">{m.label}</span>
-                      {payMethod === m.id && (
+                      {m.soon && (
+                        <span className="pay-method-soon">{t('payment.soonBadge')}</span>
+                      )}
+                      {payMethod === m.id && !m.soon && (
                         <span className="pay-method-check" aria-hidden>
                           <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" width="10" height="10">
                             <path d="M2 6L5 9L10 3" strokeLinecap="round" strokeLinejoin="round"/>
@@ -598,6 +604,13 @@ export default function PaymentForm({
                     </button>
                   ))}
                 </div>
+
+                <p className="pay-methods-note">
+                  <svg viewBox="0 0 20 20" fill="currentColor" width="12" height="12" aria-hidden>
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  {t('payment.mobileMoneySoon')}
+                </p>
 
                 {/* Mobile money form */}
                 {(payMethod === 'orange' || payMethod === 'mvola') && (

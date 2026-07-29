@@ -2970,6 +2970,27 @@ body {
   display: flex; align-items: center; justify-content: center;
 }
 
+/* Payment methods — temporarily unavailable (mobile money) */
+.pay-method-btn.soon {
+  cursor: not-allowed;
+  background: #0f0f0f; border-style: dashed; border-color: #262626;
+}
+.pay-method-btn.soon:hover { border-color: #262626; background: #0f0f0f; }
+.pay-method-btn.soon .pay-method-logo { filter: grayscale(1); opacity: 0.45; }
+.pay-method-btn.soon .pay-method-label { color: #4d4d4d; }
+.pay-method-soon {
+  position: absolute; top: 6px; right: 6px;
+  font-size: 0.52rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+  color: #8a8a8a; background: #1c1c1c; border: 1px solid #303030;
+  padding: 2px 7px; border-radius: 999px; line-height: 1.4;
+  white-space: nowrap;
+}
+.pay-methods-note {
+  display: flex; align-items: flex-start; gap: 7px;
+  margin-top: 12px; font-size: 0.7rem; line-height: 1.5; color: #6a6a6a;
+}
+.pay-methods-note svg { flex-shrink: 0; margin-top: 2px; color: #4d4d4d; }
+
 /* Mobile money form */
 .pay-mobile-form { margin-top: 18px; }
 .pay-input-icon-wrap { position: relative; }
@@ -3056,6 +3077,7 @@ body {
   .pay-field--half { grid-column: 1; }
   .pay-methods-grid { grid-template-columns: 1fr; }
   .pay-method-btn { flex-direction: row; justify-content: flex-start; padding: 10px 14px; }
+  .pay-method-soon { position: static; margin-left: auto; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
