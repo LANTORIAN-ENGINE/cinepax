@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import SeatMap from '../components/SeatMap'
+import HeroSlider from '../components/HeroSlider'
 import PaymentForm from '../components/PaymentForm'
 import BookingConfirmation from '../components/BookingConfirmation'
 import { useI18n } from '@/lib/i18n'
@@ -379,6 +380,17 @@ export default function Home() {
       if (!bFirst) return -1
       return new Date(sessionTime(aFirst)) - new Date(sessionTime(bFirst))
     })
+
+  // Films mis en avant dans le carrousel d'accueil : tous ceux à l'affiche,
+  // du plus proche au plus lointain. Indépendant du sélecteur de date, pour que
+  // le carrousel ne se recompose pas quand on navigue dans les jours.
+  const heroFilms = [...films].sort((a, b) => {
+    const aFirst = allSessions.find(s => String(s.FilmId) === String(a.Id))
+    const bFirst = allSessions.find(s => String(s.FilmId) === String(b.Id))
+    if (!aFirst) return 1
+    if (!bFirst) return -1
+    return new Date(sessionTime(aFirst)) - new Date(sessionTime(bFirst))
+  })
 
   const sessionsForFilm = selectedFilm
     ? sessionsByDay.filter(s => String(s.FilmId) === String(selectedFilm.Id))
@@ -888,6 +900,11 @@ export default function Home() {
   }
 
   return (
+    <>
+      {step === 'films' && (
+        <HeroSlider films={heroFilms} loading={loading} onSelectFilm={selectFilm} />
+      )}
+
     <div className="page-container">
 
       {error && <div className="error-banner">⚠ {error}</div>}
@@ -1172,5 +1189,6 @@ export default function Home() {
       )}
 
     </div>
+    </>
   )
 }

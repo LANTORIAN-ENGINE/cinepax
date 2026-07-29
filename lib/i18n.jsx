@@ -39,6 +39,17 @@ const DICT = {
       logout: 'Déconnexion',
     },
 
+    hero: {
+      label: "Films à l'affiche",
+      book: 'Réserver',
+      play: 'Lancer la bande annonce',
+      pause: 'Mettre en pause',
+      mute: 'Couper le son',
+      unmute: 'Activer le son',
+      fullscreen: 'Plein écran',
+      exitFullscreen: 'Quitter le plein écran',
+    },
+
     home: {
       title: 'Horaires et billets',
       byDay: 'PAR JOUR',
@@ -494,6 +505,17 @@ const DICT = {
       publicSite: 'Public site',
       myBookings: 'My bookings',
       logout: 'Log out',
+    },
+
+    hero: {
+      label: 'Now playing',
+      book: 'Book tickets',
+      play: 'Play trailer',
+      pause: 'Pause',
+      mute: 'Mute',
+      unmute: 'Unmute',
+      fullscreen: 'Full screen',
+      exitFullscreen: 'Exit full screen',
     },
 
     home: {
