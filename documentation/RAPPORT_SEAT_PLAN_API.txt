@@ -1,0 +1,357 @@
+================================================================================
+  RAPPORT D'ANALYSE — PLAN DE SALLE & SIEGES VEEZI
+  Projet CINEPAX Madagascar (cinepax.mg)
+  Date : 1er avril 2026
+================================================================================
+
+TABLE DES MATIERES
+------------------
+1. Contexte et objectif
+2. Deux APIs identifiees
+3. Resultats des tests API
+4. Donnees recuperees
+5. Diagnostic du blocage
+6. Action corrective a effectuer
+7. Endpoints seat-plan disponibles (prets a utiliser)
+8. Structure des donnees de sieges
+9. Workflow de reservation avec selection de places
+10. Script de test
+
+
+================================================================================
+1. CONTEXTE ET OBJECTIF
+================================================================================
+
+Objectif : recuperer le plan de salle interactif (seat-plan) et la
+disponibilite siege par siege pour chaque seance, afin de construire un
+composant React de selection de places sur cinepax.mg.
+
+Document source analyse : "Danih-Stephane-CINEPAX Madagascar.pdf"
+Knowledge base du projet : ANALYSE_CINEPAX_VEEZI.md,
+  ANALYSE_REPONSES_VISTA_VEEZI.md, COMPTE_RENDU_BOARD_ET_QUESTIONS_VEEZI.md,
+  QUESTIONS_VISTA_VEEZI.md, collections Postman.
+
+
+================================================================================
+2. DEUX APIs IDENTIFIEES
+================================================================================
+
+Le systeme VEEZI expose deux APIs distinctes :
+
++------+----------------------------+--------------------------------------+
+| API  | Base URL                   | Role                                 |
++------+----------------------------+--------------------------------------+
+| V1   | api.eu.veezi.com           | API back-office Veezi (lecture)      |
+|      |                            | Token : VeeziAccessToken             |
+|      |                            | Valeur : 6bb2gjrmqw85ezth44y0evr7m0  |
++------+----------------------------+--------------------------------------+
+| Con- | connect.eu.veezi.com       | API Vista Connect (ticketing, seat   |
+| nect |                            | plan, paiement, reservations)        |
+|      |                            | Headers : vista-tenant + connectApi  |
+|      |                            | Token                                |
++------+----------------------------+--------------------------------------+
+
+IMPORTANT : la base URL n'est PAS connect.veezi.com (ne resout pas en DNS).
+La region correcte pour notre tenant est EU : connect.eu.veezi.com
+
+Credentials Connect :
+  vista-tenant    : 35th7en0mvz6xwsd096xd4x8q4
+  connectApiToken : rgyUBrMGGpagsACJzVIjogwcmjgcOCJMAqqFrholWaAhjlpoEyUYGdvRyVcmeola
+  CinemaId        : 0000000309
+
+Le token Connect est complet (64 caracteres, pas tronque).
+
+
+================================================================================
+3. RESULTATS DES TESTS API
+================================================================================
+
+--- API V1 (api.eu.veezi.com) ---
+
+  GET /v1/screen         -> 200 OK — 4 salles trouvees
+  GET /v1/session        -> 200 OK — 108 sessions (12 Open, 96 Planned)
+  GET /v1/websession     -> 200 OK — 12 web sessions (toutes Open)
+  GET /v1/film           -> 200 OK — catalogue complet (2299 films)
+  GET /v1/screen/{id}    -> 200 OK — detail d'une salle
+  GET /v1/booking        -> 403 Forbidden
+  Seat-plan endpoints    -> 404 sur toutes les variantes testees
+                            (seat-plan, seats, seatmap, seating, layout...)
+
+  Conclusion : l'API V1 retourne les sessions et les ecrans mais
+  N'EXPOSE PAS le plan de salle (pas d'endpoint seat-plan).
+
+--- API Connect (connect.eu.veezi.com) ---
+
+  GET /OData.svc/Cinemas                  -> 200 OK — 1 cinema
+  GET /OData.svc/Films                    -> 200 OK — 11 films programmes
+  GET /OData.svc/Sessions                 -> 200 OK — 0 sessions (VIDE)
+  GET /OData.svc/GetNowShowingSessions    -> 200 OK — 0 sessions (VIDE)
+  GET /OData.svc/GetNowShowingScheduledFilms -> 200 OK — 0 (VIDE)
+
+  GET /RESTData.svc/.../seat-plan         -> 200 OK — ResponseCode 50
+                                              "Session with ID xxx could not
+                                              be found"
+  POST /RESTTicketing.svc/order/tickets   -> 200 OK — Result 4
+                                              "Session xxx not found for
+                                              Cinema 0000000309"
+
+  Conclusion : l'API Connect a les endpoints seat-plan et ticketing
+  mais NE VOIT AUCUNE SESSION. Les SessionIds de la V1 ne sont pas
+  reconnus par Connect.
+
+
+================================================================================
+4. DONNEES RECUPEREES
+================================================================================
+
+--- 4 salles (screens) ---
+
+  Screen 1 : CPX MADA 1 — 80 sieges — HasCustomLayout: true
+  Screen 2 : CPX MADA 2 — 90 sieges — HasCustomLayout: true
+  Screen 3 : CPX MADA 3 — 74 sieges — HasCustomLayout: true
+  Screen 4 : CPX MADA 4 — 88 sieges — HasCustomLayout: true
+
+  Total : 332 sieges sur 4 salles
+  Toutes les salles ont un layout personnalise (HasCustomLayout: true),
+  ce qui signifie que les plans de salle SONT configures dans VEEZI.
+
+--- 12 web sessions (ouvertes a la vente en ligne) ---
+
+  Id:32217 | GOAT - REVER PLUS HAUT VF       | Screen:3 | 74/74 dispo
+  Id:32218 | SUPER MARIO GALAXY LE FILM 3D VF | Screen:3 | 33/70 dispo *
+  Id:32219 | REMINDER OF HIM VF               | Screen:4 | 88/88 dispo
+  Id:32220 | SUPER MARIO GALAXY LE FILM 2D    | Screen:3 | 74/74 dispo
+  Id:32221 | POLICE FLASH 80 VF               | Screen:3 | 74/74 dispo
+  Id:32222 | ALLAH N'EST PAS OBLIGE VF        | Screen:3 | 74/74 dispo
+  Id:32223 | LE SIFFLET VF                    | Screen:3 | 74/74 dispo
+  Id:32224 | DHURANDHAR 2 : THE REVENGE VO    | Screen:3 | 74/74 dispo
+  Id:32225 | MANDRAKIZAY DORIA VO             | Screen:4 | 88/88 dispo
+  Id:32226 | REMINDER OF HIM VF               | Screen:4 | 88/88 dispo
+  Id:32227 | THEY WILL KILL YOU VF            | Screen:4 | 88/88 dispo
+  Id:32228 | PROJET DERNIERE CHANCE VF        | Screen:4 | 88/88 dispo
+
+  * Session 32218 : 37 sieges vendus sur 70 — la seule avec des ventes.
+
+  Toutes les sessions ont Seating: "Select" (selection de place manuelle).
+  Canaux de vente actifs : WWW, POS, MX, RSP.
+
+
+================================================================================
+5. DIAGNOSTIC DU BLOCAGE
+================================================================================
+
+CAUSE RACINE IDENTIFIEE :
+Le canal de vente "CINEP" n'est pas active pour les sessions dans la
+grille de programmation VEEZI.
+
+Confirmation par Claire (support VEEZI) :
+  "In order to see sessions in Connect the CINEP sales channel needs
+   to be selected in programming grid."
+
+Preuve :
+  - Les 12 web sessions ont SalesVia: [WWW, POS, MX, RSP]
+  - Le canal "CINEP" est ABSENT de cette liste
+  - Sans ce canal, l'API Connect (OData.svc/Sessions) retourne un
+    tableau vide
+  - Sans sessions dans Connect, les endpoints seat-plan et ticketing
+    ne trouvent pas les sessions et retournent "session not found"
+
+Schema du probleme :
+
+  Back-office VEEZI ──> Sessions creees avec canaux WWW, POS, MX, RSP
+                        |
+                        |  Canal CINEP manquant
+                        |
+                        v
+  API V1 (/v1/session) ──> Voit les sessions (filtre par WWW)
+                            MAIS pas d'endpoint seat-plan
+                        |
+                        v
+  API Connect (/OData.svc/Sessions) ──> NE VOIT PAS les sessions
+                                         (filtre par CINEP)
+                                         -> seat-plan inaccessible
+                                         -> ticketing inaccessible
+
+
+================================================================================
+6. ACTION CORRECTIVE A EFFECTUER
+================================================================================
+
+QUI : Cyrille (acces back-office VEEZI) ou Claire (support VEEZI)
+
+QUOI : Activer le canal de vente "CINEP" dans la grille de programmation
+
+COMMENT :
+  1. Se connecter au back-office VEEZI
+  2. Ouvrir le "Programming Grid" (grille de programmation)
+  3. Pour chaque session, cocher le canal de vente "CINEP"
+     (en plus des canaux existants WWW, POS, MX, RSP)
+  4. Sauvegarder
+
+VERIFICATION APRES ACTIVATION :
+  Lancer le script : node test-seat-plan.js
+  Ou tester manuellement :
+    GET https://connect.eu.veezi.com/OData.svc/Sessions?$format=json
+    Headers :
+      vista-tenant: 35th7en0mvz6xwsd096xd4x8q4
+      connectApiToken: rgyUBrMGGpagsACJzVIjogwcmjgcOCJMAqqFrholWaAhjlpoEyUYGdvRyVcmeola
+
+  Si le canal CINEP est active, cette requete retournera les sessions
+  au lieu d'un tableau vide.
+
+
+================================================================================
+7. ENDPOINTS SEAT-PLAN DISPONIBLES (prets a utiliser apres activation)
+================================================================================
+
+Une fois le canal CINEP active, trois endpoints sont disponibles :
+
+--- Endpoint 1 : GET seat-plan (plan complet de la salle pour une seance) ---
+
+  GET /RESTData.svc/cinemas/{CinemaId}/sessions/{SessionId}/seat-plan
+  Headers : vista-tenant, connectApiToken, VeeziCinemaId
+
+  Retourne :
+    {
+      "SeatLayoutData": { ... },    <-- plan de salle complet
+      "ResponseCode": 0,
+      "ErrorDescription": null
+    }
+
+--- Endpoint 2 : POST /order/seats/get (sieges dans le contexte d'une cmd) ---
+
+  POST /RESTTicketing.svc/order/seats/get
+  Body :
+    {
+      "UserSessionId": "12345",
+      "CinemaId": "0000000309",
+      "SessionId": "32217"
+    }
+
+  Retourne : SeatData, SeatLayoutData, AreaSummaryData
+
+--- Endpoint 3 : POST /order/seats (affecter des sieges specifiques) ---
+
+  POST /RESTTicketing.svc/order/seats
+  Body :
+    {
+      "UserSessionId": "12345",
+      "CinemaId": "0000000309",
+      "SessionId": "32217",
+      "SelectedSeats": [
+        {
+          "AreaCategoryCode": "0000000001",
+          "AreaNumber": 1,
+          "RowIndex": 0,
+          "ColumnIndex": 0
+        }
+      ]
+    }
+
+
+================================================================================
+8. STRUCTURE DES DONNEES DE SIEGES
+================================================================================
+
+Chaque siege est identifie par 4 proprietes :
+
+  {
+    "AreaCategoryCode": "0000000008",   // Zone (orchestre, balcon, VIP...)
+    "AreaNumber": 1,                     // Numero de zone
+    "RowIndex": 0,                       // Ligne (base 0)
+    "ColumnIndex": 0                     // Colonne (base 0)
+  }
+
+Parametres de controle dans AddTickets :
+
+  ReturnSeatData: true           -> renvoie les donnees du plan
+  ReturnSeatDataFormat: 0        -> 0=tous formats, 1=pipe, 2=structure
+  UserSelectedSeatingSupported: true -> active la selection manuelle
+  SkipAutoAllocation: true       -> empeche l'attribution automatique
+  IncludeAllSeatPriorities: true -> statuts speciaux (House, Broken, Sofa)
+  IncludeSeatNumbers: true       -> numeros de siege lisibles
+  IncludeCompanionSeats: true    -> sieges accompagnateurs (PMR)
+
+Types de sieges attendus dans les priorities :
+  - Standard
+  - House (reserves maison)
+  - Broken (hors service)
+  - Sofa
+  - Special
+  - Companion (PMR)
+
+
+================================================================================
+9. WORKFLOW DE RESERVATION AVEC SELECTION DE PLACES
+================================================================================
+
+Flux complet une fois le canal CINEP active :
+
+  1. GET /v1/websession
+     -> Recuperer la liste des seances avec SeatsAvailable, SeatsSold
+
+  2. GET /RESTData.svc/cinemas/0000000309/sessions/{SessionId}/seat-plan
+     -> Recuperer le plan complet (grille lignes/colonnes + statuts)
+     -> Identifier : disponible, occupe, broken, house, sofa...
+
+  3. Affichage du composant React interactif
+     -> L'utilisateur selectionne ses sieges
+
+  4. POST /RESTTicketing.svc/order/tickets
+     Body :
+       {
+         "UserSessionId": "xxxxx",
+         "CinemaId": "0000000309",
+         "SessionId": "{SessionId}",
+         "TicketTypes": [
+           { "TicketTypeCode": "0001", "Qty": 2, "PriceInCents": -1 }
+         ],
+         "SelectedSeats": [
+           { "AreaCategoryCode": "...", "AreaNumber": 1,
+             "RowIndex": 3, "ColumnIndex": 5 },
+           { "AreaCategoryCode": "...", "AreaNumber": 1,
+             "RowIndex": 3, "ColumnIndex": 6 }
+         ],
+         "UserSelectedSeatingSupported": true,
+         "ReturnSeatData": true,
+         "ReturnSeatDataFormat": 2,
+         "ReturnOrder": true,
+         "BookingMode": 0
+       }
+
+  5. (Optionnel) POST /RESTTicketing.svc/order/seats
+     -> Si besoin de changer les sieges apres AddTickets
+
+  6. Paiement via Orange Money / MVola / BNI (externe a VEEZI)
+
+  7. POST /RESTTicketing.svc/order/payment
+     -> Finaliser la commande dans VEEZI
+     -> Marquer les sieges comme vendus dans le POS
+
+
+================================================================================
+10. SCRIPT DE TEST
+================================================================================
+
+Fichier : test-veezi-api/test-seat-plan.js
+
+Usage :
+  cd test-veezi-api
+  node test-seat-plan.js
+
+Ce script :
+  - Interroge les deux APIs (V1 et Connect)
+  - Recupere les salles, sessions, websessions
+  - Tente de recuperer le seat-plan pour les 3 premieres sessions
+  - Tente un AddTickets avec ReturnSeatData
+  - Sauvegarde toutes les reponses dans test-veezi-api/output/
+
+Configuration (.env) :
+  VEEZI_BASE_URL=https://connect.eu.veezi.com
+  VISTA_TENANT=35th7en0mvz6xwsd096xd4x8q4
+  CONNECT_API_TOKEN=rgyUBrMGGpagsACJzVIjogwcmjgcOCJMAqqFrholWaAhjlpoEyUYGdvRyVcmeola
+
+
+================================================================================
+  FIN DU RAPPORT
+================================================================================

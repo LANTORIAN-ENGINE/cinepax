@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>CINEPAX Madagascar – Démonstration Plateforme de Réservation en Ligne</title>
+</head>
+<body>
+
+<p>Objet : [POC] CINEPAX Madagascar - Démonstration de la plateforme de réservation en ligne (Proof of Concept)</p>
+
+<hr>
+
+<p>Madame, Monsieur,</p>
+
+<p>
+  Nous avons le plaisir de vous présenter la démonstration de la plateforme de réservation de billets en ligne
+  développée pour <strong>CINEPAX Madagascar</strong>.
+</p>
+
+<p>
+  Vous pouvez accéder à la démo via le lien suivant :<br>
+  <a href="https://cinepax-etech.harilanto.com">https://cinepax-etech.harilanto.com</a>
+</p>
+
+<p>
+  <strong>Important :</strong> toutes les données affichées sur la plateforme - films à l'affiche, séances,
+  disponibilité des places et plans de salle - sont récupérées en temps réel directement depuis votre
+  back-office <strong>Veezi</strong>. Ce que vous voyez est le reflet exact de votre back-office, en temps réel.
+</p>
+
+<hr>
+
+<h2>Fonctionnalités implémentées</h2>
+
+<p>
+  La plateforme permet de parcourir les films à l'affiche, de consulter les détails d'un film
+  (synopsis, casting, séances disponibles) et de sélectionner une séance pour accéder au plan de salle.
+</p>
+
+<h3>Plan de salle interactif</h3>
+<ul>
+  <li>
+    Cartographie complète des 4 salles du cinéma, reconstituée depuis les plans fournis :
+    <ul>
+      <li>Salle 1 : 80 places (rangées A–H)</li>
+      <li>Salle 2 : 90 places (rangées A–I)</li>
+      <li>Salle 3 : 74 places (rangées A–H)</li>
+      <li>Salle 4 : 88 places (rangées A–I)</li>
+    </ul>
+  </li>
+  <li>
+    Statuts des sièges rendus visuellement :
+    <ul>
+      <li>Disponible (sélectionnable)</li>
+      <li>Sélectionné par l'utilisateur (mis en évidence)</li>
+      <li>Occupé / déjà vendu (grisé, non cliquable)</li>
+      <li>Réservé maison (<em>House</em>)</li>
+      <li>Siège défectueux / indisponible (barré)</li>
+      <li>Siège accompagnateur / PMR (accessibilité)</li>
+    </ul>
+  </li>
+  <li>Effet visuel de faisceau de projecteur en haut du plan.</li>
+  <li>Compteur de places : "X libres / Y total".</li>
+  <li>Légende des types de sièges affichée sous le plan.</li>
+  <li>Barre de réservation affichant les sièges sélectionnés avec leurs codes (ex. : A1, B3, C5).</li>
+</ul>
+
+<h3>Module de paiement (reste à faire)</h3>
+<p>
+  À ce stade, lorsque l'utilisateur arrive à l'étape de paiement, un message "Bientôt disponible" s'affiche, avec un bouton lui permettant de retourner à la liste des films.
+  Le module de paiement est entièrement reste à faire ; les solutions de paiement local
+  (Orange Money, MVola, BNI / Carte bancaire) n'étant pas prises en charge nativement par Veezi,
+  nous le développerons en propre après validation de votre part (voir section ci-dessous).
+</p>
+
+<hr>
+
+<h2>Points d'attention</h2>
+
+<p>
+  La plateforme couvre l'ensemble du parcours de réservation jusqu'à la sélection des sièges.
+  Pour compléter l'intégration, deux points nécessitent votre intervention ou votre accord :
+</p>
+
+<ol>
+  <li>
+    <strong>Activation du canal de vente "CINEP" dans le back-office Veezi :</strong>
+    les séances actuellement configurées ne disposent pas du canal <em>CINEP</em> dans la grille de
+    programmation Veezi. Son activation est indispensable pour que la disponibilité des places
+    soit correctement exposée par l'API. Cette configuration peut être effectuée directement
+    depuis votre back-office Veezi.
+  </li>
+  <li>
+    <strong>Validation de l'implémentation du paiement :</strong>
+    le module de paiement sera développé en propre, les méthodes de paiement local (Orange Money, MVola, BNI)
+    n'étant pas disponibles via Veezi. Nous attendons votre accord formel pour démarrer ce développement
+    et vous revenir avec une proposition d'intégration adaptée.
+  </li>
+</ol>
+
+<p>
+  Nous restons dans l'attente de votre validation du POC afin de pouvoir engager la suite du développement.
+</p>
+
+<hr>
+
+<p>
+  Nous restons à votre disposition pour toute question ou retour sur la démonstration.
+</p>
+
+<p>
+  Cordialement,<br>
+  <br>
+  L'équipe eTech
+</p>
+
+</body>
+</html>

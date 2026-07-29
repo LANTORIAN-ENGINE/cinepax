@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Email BNI Pay — Activation API</title>
+</head>
+<body>
+
+<p><strong>À :</strong> support.mypay@bni.mg&nbsp;; technique.mypay@bni.mg</p>
+<p><strong>CC :</strong> [votre interlocuteur BNI]</p>
+<p><strong>Objet :</strong> Activation API BNI P@Y Classic — Compte marchand Cinepax Madagascar — Erreur 401</p>
+
+<hr>
+
+<p>Madame, Monsieur,</p>
+
+<p>
+  Nous sommes en cours d'intégration de la solution de paiement <strong>BNI P@Y Classic</strong>
+  sur le site de réservation de billets en ligne de <strong>Cinepax Madagascar</strong>
+  (<a href="https://cinepax.mg">cinepax.mg</a>), développé par la société eTech Madagascar.
+</p>
+
+<p>
+  Lors de nos tests d'appel à l'endpoint
+  <code>POST https://mypay.bni.mg/api/load_payment_zone</code>,
+  nous recevons systématiquement une réponse <strong>HTTP 401 Unauthorized</strong>,
+  quelle que soit la combinaison d'identifiants utilisée en Basic Auth.
+</p>
+
+<h3>Identifiants utilisés (tels que reçus dans votre documentation)</h3>
+
+<table border="1" cellpadding="6" cellspacing="0">
+  <tr><th>Paramètre</th><th>Valeur</th></tr>
+  <tr><td>Nom d'utilisateur Basic Auth (<code>BNI_PAY_USERNAME</code>)</td><td><code>cinepax_bni_pay_classique_e994b3</code></td></tr>
+  <tr><td><code>id_merchant</code></td><td><code>KDnG4uf7oFg2csH9H2nGT8p8OpiZnTkc</code></td></tr>
+  <tr><td><code>id_entity</code></td><td><code>ETSrHMqpkWkeMc0z7ssvc0yf2gMjNDFh</code></td></tr>
+  <tr><td><code>id_operator</code></td><td><code>eJxgXObPTne050RxUOWVKwwEtobAiebY</code></td></tr>
+</table>
+
+<h3>Commande de test exacte (reproductible)</h3>
+
+<pre>
+curl -v -X POST https://mypay.bni.mg/api/load_payment_zone \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Basic Y2luZXBheF9ibmlfcGF5X2NsYXNzaXF1ZV9lOTk0YjM6NjQ1MjVmMTM0YjcxNDBiZjNlYTU=" \
+  -d '{
+    "authentify": {
+      "id_merchant":       "KDnG4uf7oFg2csH9H2nGT8p8OpiZnTkc",
+      "id_entity":         "ETSrHMqpkWkeMc0z7ssvc0yf2gMjNDFh",
+      "id_operator":       "eJxgXObPTne050RxUOWVKwwEtobAiebY",
+      "operator_password": "usVddCzX3lJL3wu9Cn1jwgTblh1ZMj80"
+    },
+    "order": {
+      "id_order":  "TEST-001",
+      "currency":  "MGA",
+      "amount":    100
+    },
+    "iframe_behavior": { "language": "FR" },
+    "request_mode": "simple",
+    "touchpoint":   "web"
+  }'
+</pre>
+
+<p><em>
+  (La valeur Base64 de l'en-tête Authorization correspond à
+  <code>cinepax_bni_pay_classique_e994b3:64525f134b7140bf3ea5</code>
+  encodé en Base64 selon la spécification RFC 7617.)
+</em></p>
+
+<h3>Réponse obtenue</h3>
+
+<pre>
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Basic realm="API"
+Server: Apache
+
+&lt;!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN"&gt;
+&lt;html&gt;&lt;head&gt;&lt;title&gt;401 Unauthorized&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;&lt;h1&gt;Unauthorized&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;
+</pre>
+
+<h3>Questions</h3>
+
+<ol>
+  <li>
+    <strong>Le compte marchand est-il activé pour l'accès API en production ?</strong><br>
+    Les credentials ont été reçus mais nous ne savons pas si une étape d'activation manuelle
+    est nécessaire côté BNI avant que l'API soit accessible.
+  </li>
+  <li>
+    <strong>Existe-t-il un filtrage par adresse IP ?</strong><br>
+    Si votre serveur Apache applique un whitelist d'IP, merci de nous indiquer la procédure
+    pour déclarer l'adresse IP de notre serveur de production Vercel.
+  </li>
+  <li>
+    <strong>Les identifiants pour l'en-tête <code>Authorization: Basic</code> sont-ils bien
+    <code>BNI_PAY_USERNAME</code> et <code>BNI_PAY_PASSWORD</code>, ou faut-il utiliser
+    <code>id_operator</code> et <code>operator_password</code> ?</strong><br>
+    Nous avons testé les deux combinaisons — les deux retournent 401.
+  </li>
+  <li>
+    <strong>Existe-t-il un environnement de test / sandbox ?</strong><br>
+    Disposez-vous d'une URL de test (ex. <code>https://sandbox.mypay.bni.mg/…</code>)
+    avec des credentials dédiés pour valider l'intégration avant la mise en production ?
+  </li>
+</ol>
+
+<p>
+  Notre intégration suit exactement la documentation
+  <em>« API Documentation for BNI P@Y »</em> que vous nous avez fournie
+  (endpoint <code>load_payment_zone</code>, Basic Auth, corps JSON avec
+  <code>authentify</code> / <code>order</code> / <code>request_mode</code> / <code>touchpoint</code>).
+</p>
+
+<p>
+  Nous restons disponibles pour un échange téléphonique ou une session de débogage en direct
+  si cela peut accélérer la résolution.
+</p>
+
+<p>Dans l'attente de votre retour, veuillez agréer, Madame, Monsieur,
+l'expression de nos salutations distinguées.</p>
+
+<p>
+  <strong>[Votre nom]</strong><br>
+  Développeur — eTech Madagascar<br>
+  Projet : Cinepax Madagascar — Réservation en ligne<br>
+  Email : <a href="mailto:harilantodanih@gmail.com">harilantodanih@gmail.com</a><br>
+  Tél : [votre numéro]
+</p>
+
+</body>
+</html>

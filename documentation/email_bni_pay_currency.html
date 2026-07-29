@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Email BNI Pay - Devise du compte marchand</title>
+</head>
+<body>
+
+<p><strong>À :</strong> support.mypay@bni.mg&nbsp;; technique.mypay@bni.mg</p>
+<p><strong>CC :</strong> [votre interlocuteur BNI]</p>
+<p><strong>Objet :</strong> BNI P@Y Classic - Compte marchand Cinepax Madagascar - Devise configurée en MUR au lieu de MGA</p>
+
+<hr>
+
+<p>Madame, Monsieur,</p>
+
+<p>
+  Merci pour la résolution de l'incident d'authentification (HTTP 401) sur notre compte marchand
+  <strong>Cinepax Madagascar</strong>, ainsi que pour les <strong>identifiants de compte de test</strong>
+  que vous nous avez transmis dans votre précédent message - ils nous ont permis de débloquer
+  l'intégration. L'appel à <code>POST https://mypay.bni.mg/api/load_payment_zone</code>
+  fonctionne désormais et nous renvoie bien le code HTML de l'iframe de paiement.
+</p>
+
+<p>
+  Nous rencontrons toutefois un nouveau blocage. Lorsque l'iframe se charge (passerelle
+  <code>go.mips.mu</code>), elle affiche le message&nbsp;:
+</p>
+
+<blockquote><strong>« This currency is not allowed »</strong></blockquote>
+
+<h3>Diagnostic réalisé de notre côté</h3>
+
+<p>
+  Nous avons testé l'appel <code>load_payment_zone</code> avec plusieurs devises
+  (<code>MGA</code>, <code>EUR</code>, <code>USD</code>), puis suivi l'iframe MIPS générée.
+  Étant un cinéma opérant à Madagascar, nous n'avons en réalité besoin que du <strong>MGA</strong>
+  pour nos encaissements - les autres devises ne sont testées ici que pour le diagnostic.
+  Résultat&nbsp;:
+</p>
+
+<table border="1" cellpadding="6" cellspacing="0">
+  <tr><th>Devise envoyée</th><th>Comportement de l'iframe MIPS</th></tr>
+  <tr><td><code>MUR</code></td><td><strong>✅ Formulaire de paiement chargé normalement</strong></td></tr>
+  <tr><td><code>MGA</code></td><td>❌ « This currency is not allowed »</td></tr>
+  <tr><td><code>EUR</code></td><td>❌ « This currency is not allowed »</td></tr>
+  <tr><td><code>USD</code></td><td>❌ « This currency is not allowed »</td></tr>
+</table>
+
+<p>
+  Il apparaît donc que notre compte marchand est actuellement configuré côté MIPS sur la devise
+  <strong>MUR (Roupie mauricienne)</strong>, et non sur <strong>MGA (Ariary malgache)</strong>.
+</p>
+
+<h3>Notre demande</h3>
+
+<p>
+  S'agissant d'un cinéma opérant à Madagascar, l'intégralité de nos tarifs et de nos encaissements
+  doit se faire en <strong>Ariary (MGA)</strong>. Nous vous remercions de bien vouloir&nbsp;:
+</p>
+
+<ol>
+  <li>
+    <strong>Reconfigurer la devise de notre compte marchand en MGA</strong>
+    (identifiant&nbsp;: <code>cinepax_bni_pay_classique_e994b3</code> /
+    <code>id_merchant : KDnG4uf7oFg2csH9H2nGT8p8OpiZnTkc</code>).
+  </li>
+  <li>
+    Le compte de test que vous nous avez transmis nous suffit pour l'intégration ;
+    nous aurons toutefois besoin, le moment venu, des identifiants du
+    <strong>compte de production</strong> correctement paramétré en MGA.
+  </li>
+  <li>
+    Nous préciser, pour le champ <code>amount</code>, le format attendu en MGA&nbsp;:
+    montant entier en Ariary (ex. <code>15000</code>) - l'Ariary n'ayant pas de sous-unité
+    décimale usuelle - ou un format avec décimales.
+  </li>
+</ol>
+
+<p>
+  En attendant cette reconfiguration, nous poursuivons nos tests d'intégration en <code>MUR</code>
+  afin de valider le bout-en-bout (formulaire carte, notification IMN, page de succès).
+</p>
+
+<p>
+  Nous restons à votre disposition par email pour tout complément d'information.
+</p>
+
+<p>Dans l'attente de votre retour, veuillez agréer, Madame, Monsieur,
+l'expression de nos salutations distinguées.</p>
+
+<p>
+  <strong>[Votre nom]</strong><br>
+  Développeur - eTech Madagascar<br>
+  Projet : Cinepax Madagascar - Réservation en ligne<br>
+  Email : <a href="mailto:harilantodanih@gmail.com">harilantodanih@gmail.com</a><br>
+  Tél : [votre numéro]
+</p>
+
+</body>
+</html>
