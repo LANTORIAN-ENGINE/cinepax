@@ -1,11 +1,13 @@
 'use client'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import NavAuth from './NavAuth'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { useI18n } from '@/lib/i18n'
 
 export function Navbar() {
   const { t } = useI18n()
+  const pathname = usePathname()
   return (
     <nav className="navbar">
       <div className="navbar-inner">
@@ -14,12 +16,20 @@ export function Navbar() {
         </Link>
         <div className="navbar-right">
           <div className="navbar-links">
-            <a href="/" className="nav-link active">
+            <div className="navbar-sections">
+            <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`}>
               <svg className="nav-icon" viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
                 <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
               </svg>
               {t('nav.now')}
-            </a>
+            </Link>
+            <Link href="/prochainement" className={`nav-link ${pathname === '/prochainement' ? 'active' : ''}`}>
+              <svg className="nav-icon" viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+              </svg>
+              {t('nav.soon')}
+            </Link>
+            </div>
             <NavAuth />
             <div className="poc-badge">
               <span className="poc-dot" />
@@ -59,13 +69,13 @@ export function Footer() {
 
         <div className="footer-links">
           <div className="footer-col">
-            <a href="#">{t('footer.colNow')}</a>
+            <Link href="/">{t('footer.colNow')}</Link>
             <a href="#">{t('footer.colTerms')}</a>
             <a href="#">{t('footer.colSchedule')}</a>
             <a href="#">{t('footer.colOffers')}</a>
           </div>
           <div className="footer-col">
-            <a href="#">{t('footer.colSoon')}</a>
+            <Link href="/prochainement">{t('footer.colSoon')}</Link>
             <a href="#">{t('footer.colAbout')}</a>
             <a href="#">{t('footer.colContact')}</a>
           </div>

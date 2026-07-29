@@ -13,8 +13,15 @@ export const LOCALES = {
 //   - un objet { one, other } sélectionné par la variable count
 const DICT = {
   fr: {
-    nav: { now: 'ACTUELLEMENT' },
+    nav: { now: 'ACTUELLEMENT', soon: 'PROCHAINEMENT' },
     lang: { label: 'Langue', fr: 'Français', en: 'Anglais' },
+
+    comingSoon: {
+      title: 'Prochainement',
+      empty: 'Aucune sortie annoncée pour le moment.',
+      onSale: 'En vente',
+      close: 'Fermer',
+    },
 
     footer: {
       colNow: 'ACTUELLEMENT',
@@ -481,7 +488,14 @@ const DICT = {
   },
 
   en: {
-    nav: { now: 'NOW SHOWING' },
+    nav: { now: 'NOW SHOWING', soon: 'COMING SOON' },
+
+    comingSoon: {
+      title: 'Coming soon',
+      empty: 'No releases announced yet.',
+      onSale: 'On sale',
+      close: 'Close',
+    },
     lang: { label: 'Language', fr: 'French', en: 'English' },
 
     footer: {

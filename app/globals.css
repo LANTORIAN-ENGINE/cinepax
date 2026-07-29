@@ -51,6 +51,11 @@ body {
   gap: 0;
 }
 
+.navbar-sections {
+  display: flex;
+  align-items: center;
+}
+
 .nav-link {
   color: #fff;
   text-decoration: none;
@@ -1965,7 +1970,26 @@ body {
    RESPONSIVE
 ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  .navbar-links { display: none; }
+  /* Sur mobile on ne garde que les liens de section : le compte, le badge POC
+     et le reste restent masqués faute de place. Les deux liens passent sur une
+     seconde ligne — sur un rang unique ils repoussaient la bascule de langue
+     hors de l'écran. */
+  .navbar-links > *:not(.navbar-sections) { display: none; }
+  .navbar-inner { height: auto; padding: 8px 16px; }
+  .navbar-logo img { height: 38px; }
+  .navbar-right { flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+  .navbar-links { order: 3; width: 100%; }
+  .navbar-sections { width: 100%; justify-content: center; }
+  .nav-link { height: 40px; padding: 0 14px; font-size: 0.68rem; }
+  .nav-link.active::after { left: 14px; right: 14px; }
+}
+
+/* « ACTUELLEMENT » + « PROCHAINEMENT » réclament 378 px : sous cette largeur
+   on retire les pictogrammes et on resserre pour rester dans l'écran. */
+@media (max-width: 400px) {
+  .nav-icon { display: none; }
+  .nav-link { padding: 0 9px; font-size: 0.63rem; letter-spacing: 0.04em; }
+  .nav-link.active::after { left: 9px; right: 9px; }
 
   .film-row { flex-direction: column; gap: 16px; }
   .film-poster-wrap { width: 100%; }
@@ -4551,4 +4575,270 @@ body {
   .hero-track { transition: none; }
   .hero-cover { transition: none; }
   .hero-progress-bar { transition: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PROCHAINEMENT — grille des films à venir
+   Reprend la page coming-soon de cinepax.mg : affiche 136/205,
+   grille 2 → 4 → 6 colonnes, badge « en vente » biseauté.
+═══════════════════════════════════════════════════════════════ */
+.coming-soon-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px 18px;
+  padding: 24px 0 8px;
+}
+
+/* flex-column plutôt que block : un <button> centre verticalement son contenu
+   quand la cellule de grille est étirée, ce qui décalait les affiches entre
+   cartes de hauteurs de titre différentes. */
+.coming-soon-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.coming-soon-media {
+  position: relative;
+  margin-bottom: 16px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.coming-soon-media img,
+.coming-soon-placeholder {
+  display: block;
+  width: 100%;
+  aspect-ratio: 136 / 205;
+  object-fit: cover;
+  border: 1px solid #c9c9c9;
+  border-radius: 6px;
+}
+
+.coming-soon-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #585555;
+  color: rgba(255, 255, 255, 0.55);
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 2.6rem;
+  line-height: 1;
+}
+
+.coming-soon-card:hover .coming-soon-media img,
+.coming-soon-card:focus-visible .coming-soon-media img {
+  border-color: #ff3044;
+}
+
+/* Bandeau « en vente » : rectangle collé au bord droit, prolongé à gauche
+   par un biseau à 20°, comme sur la page d'origine. */
+.coming-soon-onsale {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 9;
+  display: inline-block;
+  padding: 8px 10px;
+  background: #f42048;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+  border-top-right-radius: 6px;
+  pointer-events: none;
+}
+
+.coming-soon-onsale::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -5px;
+  width: 18px;
+  height: 100%;
+  background: #f42048;
+  transform: skew(20deg, 0deg);
+}
+
+.coming-soon-onsale-inner {
+  position: relative;
+  display: inline-block;
+}
+
+.coming-soon-heading {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #111;
+}
+
+.coming-soon-date {
+  margin: 0;
+  color: #605d5e;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Squelette */
+.coming-soon-card .coming-soon-media.sk-shine {
+  aspect-ratio: 136 / 205;
+  border-radius: 6px;
+}
+
+.coming-soon-sk-line {
+  height: 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.coming-soon-sk-line--short { width: 55%; }
+
+@media screen and (min-width: 40em) {
+  .coming-soon-grid { grid-template-columns: repeat(4, 1fr); gap: 32px 20px; }
+}
+
+@media screen and (min-width: 64em) {
+  .coming-soon-grid { grid-template-columns: repeat(6, 1fr); }
+}
+
+/* ── Fiche détaillée ─────────────────────────────────────────── */
+.cs-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.72);
+  animation: cs-fade 0.18s ease-out;
+}
+
+@keyframes cs-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.cs-dialog {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  background: #17171a;
+  color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+.cs-dialog-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.cs-dialog-close:hover { background: rgba(0, 0, 0, 0.85); }
+
+.cs-dialog-video {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
+}
+
+.cs-dialog-video iframe,
+.cs-dialog-video img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+
+.cs-dialog-body { padding: 22px 26px 28px; }
+
+.cs-dialog-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.cs-dialog-onsale {
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #f42048;
+  color: #fff;
+  letter-spacing: 0.06em;
+}
+
+.cs-dialog-title {
+  margin: 0 0 8px;
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 2rem;
+  font-weight: 400;
+  line-height: 1.05;
+}
+
+.cs-dialog-meta {
+  margin: 0 0 16px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.cs-dialog-synopsis {
+  margin: 0 0 18px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.cs-dialog-row {
+  display: flex;
+  gap: 10px;
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.cs-dialog-label {
+  flex: 0 0 auto;
+  min-width: 88px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  padding-top: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cs-dialog-backdrop { animation: none; }
 }

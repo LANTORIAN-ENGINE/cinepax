@@ -6,25 +6,11 @@ import HeroSlider from '../components/HeroSlider'
 import PaymentForm from '../components/PaymentForm'
 import BookingConfirmation from '../components/BookingConfirmation'
 import { useI18n } from '@/lib/i18n'
+import { filmPoster, filmBackdrop } from '@/lib/images'
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 const CINEMA_ID = '0000000309'
 const TZ = 'Etc/GMT-3'
-
-function fixImageUrl(url) {
-  if (!url) return null
-  if (url.startsWith('https://cdn.eu.veezi.com/')) return url
-  const fixed = url.replace(/^https?:\/\/\//, 'https://www.cinepax.mg/')
-  return `/api/image?url=${encodeURIComponent(fixed)}`
-}
-
-function filmPoster(film) {
-  return fixImageUrl(film?.FilmPosterUrl || film?.FilmPosterThumbnailUrl)
-}
-
-function filmBackdrop(film) {
-  return fixImageUrl(film?.BackdropImageUrl || film?.FilmPosterUrl)
-}
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 async function veeziGet(path) {
