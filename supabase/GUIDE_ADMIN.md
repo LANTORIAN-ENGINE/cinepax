@@ -9,17 +9,31 @@ Ce guide couvre deux choses, **dans cet ordre** :
 
 ## Étape 1 — Exécuter les migrations
 
-Dans **Supabase Dashboard → SQL Editor → New query**, exécuter les 2 fichiers **dans l'ordre** :
+Dans **Supabase Dashboard → SQL Editor → New query**, exécuter les 3 fichiers **dans l'ordre** :
 
 | Ordre | Fichier | Contenu |
 |-------|---------|---------|
 | 1 | `supabase/migration.sql` | 6 tables, trigger profil, RLS, catégories de sièges |
 | 2 | `supabase/migration_veezi_reservation.sql` | Colonnes Veezi sur `bookings` (`ticket_breakdown`, `veezi_booking_number`, …) |
+| 3 | `supabase/migration_contact_messages.sql` | Table `contact_messages` + rattachement des messages au compte client par l'e-mail |
 
-Pour chaque fichier : coller tout le contenu → **Run**. Les deux scripts sont idempotents (`IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`) — sans risque à ré-exécuter.
+Pour chaque fichier : coller tout le contenu → **Run**. Les trois scripts sont idempotents (`IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`, `CREATE OR REPLACE`) — sans risque à ré-exécuter.
 
-**Vérification** : dans **Table Editor**, les 6 tables doivent apparaître :
-`profiles`, `price_cards`, `seat_categories`, `session_prices`, `bookings`, `booking_seats` — et `bookings` doit avoir la colonne `veezi_status`.
+**Vérification** : dans **Table Editor**, les 7 tables doivent apparaître :
+`profiles`, `price_cards`, `seat_categories`, `session_prices`, `bookings`, `booking_seats`, `contact_messages` — et `bookings` doit avoir la colonne `veezi_status`.
+
+> Tant que la migration 3 n'est pas passée, le formulaire de la page **Contact** répond « le message n'a pas pu être enregistré » et `/admin/messages` reste vide : la table n'existe pas encore.
+
+### Ce que fait la migration 3
+
+La page Contact récolte les demandes dans `contact_messages`. L'**e-mail est le seul champ obligatoire** parce qu'il sert de clé de rapprochement avec les comptes clients :
+
+- à l'envoi du message, un trigger cherche un compte portant la même adresse et rattache la demande (`user_id`) ;
+- à l'inscription d'un nouveau compte, un second trigger rattrape les messages envoyés auparavant en visiteur avec cette adresse.
+
+Résultat : le client retrouve ses demandes dans **Mon compte → Mes demandes** (« je vous avais déjà écrit à ce sujet »), et l'administration voit **tous** les messages, rattachés ou non, dans **/admin/messages**.
+
+Les messages contiennent des données personnelles : ils ne sont jamais lus avec la clé anon. `/admin/messages` passe par `/api/admin/messages`, qui vérifie `is_admin` côté serveur avec la `service_role`.
 
 ---
 

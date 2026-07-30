@@ -3,12 +3,18 @@
 import { useState, useEffect } from 'react'
 import { useI18n } from '@/lib/i18n'
 import { CONTACT } from '@/lib/contenu'
+import ContactForm from '@/components/ContactForm'
 
 // ─── Contactez-nous ───────────────────────────────────────────────────────────
 // L'adresse et le téléphone viennent de /api/site (Veezi /v1/site) : ce sont
 // les coordonnées déclarées au back-office, pas une copie figée. Les horaires
 // d'ouverture, l'e-mail et les réseaux ne figurent nulle part dans l'API et
 // sont repris de cinepax.mg — voir lib/contenu.js.
+//
+// Mise en page : les coordonnées à gauche, le formulaire à droite — la colonne
+// de droite était occupée par le plan, qui gagne à passer pleine largeur en
+// dessous. Écrire devient l'action principale de la page sans rien retirer de
+// ce qui s'y trouvait.
 
 const MAPS_EMBED = q =>
   `https://maps.google.com/maps?&q=${encodeURIComponent(q)}&z=17&t=q&output=embed`
@@ -49,6 +55,8 @@ export default function ContactPage() {
 
       <div className="contact-layout">
         <div className="contact-details">
+          <h2 className="contact-col-title">{t('contact.coordinates')}</h2>
+
           <section className="contact-block">
             <h2 className="contact-label">{t('contact.address')}</h2>
             {address
@@ -107,16 +115,19 @@ export default function ContactPage() {
           </section>
         </div>
 
-        <div className="contact-map">
-          <iframe
-            src={MAPS_EMBED(CONTACT.mapQuery)}
-            title={t('contact.mapTitle')}
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            allowFullScreen
-          />
-        </div>
+        <ContactForm />
       </div>
+
+      <div className="contact-map">
+        <iframe
+          src={MAPS_EMBED(CONTACT.mapQuery)}
+          title={t('contact.mapTitle')}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          allowFullScreen
+        />
+      </div>
+      <p className="contact-map-caption">{t('contact.mapCaption')}</p>
     </div>
   )
 }

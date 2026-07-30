@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { QRCodeSVG } from 'qrcode.react'
 import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
-import { IconLogOut, IconTicket, IconQr, IconClose } from '@/components/icons'
+import { IconLogOut, IconTicket, IconQr, IconClose, IconMail } from '@/components/icons'
 import { AccountSkeleton } from '@/components/skeletons'
 
 const TZ = 'Etc/GMT-3'
@@ -25,8 +25,16 @@ const STATUS_CLS = {
   used:      { key: 'account.statusUsed',      cls: 'status-used'      },
 }
 // Onglets ↔ segment d'URL (?onglet=…)
-const TAB_PARAM = { bookings: 'reservations', profile: 'profil' }
-const PARAM_TAB = { reservations: 'bookings', profil: 'profile' }
+const TAB_PARAM = { bookings: 'reservations', requests: 'demandes', profile: 'profil' }
+const PARAM_TAB = { reservations: 'bookings', demandes: 'requests', profil: 'profile' }
+
+// Demandes envoyées depuis la page Contact, rattachées au compte par l'e-mail.
+const REQ_STATUS = {
+  new:         { key: 'account.reqStatusNew',        cls: 'status-pending'   },
+  in_progress: { key: 'account.reqStatusInProgress', cls: 'status-progress'  },
+  answered:    { key: 'account.reqStatusAnswered',   cls: 'status-confirmed' },
+  closed:      { key: 'account.reqStatusClosed',     cls: 'status-used'      },
+}
 
 const PAY_METHOD_LABELS = {
   orange: 'Orange Money',
@@ -40,6 +48,7 @@ export default function MonComptePage() {
   const [user,      setUser]      = useState(null)
   const [profile,   setProfile]   = useState(null)
   const [bookings,  setBookings]  = useState([])
+  const [requests,  setRequests]  = useState([])
   const [loading,   setLoading]   = useState(true)
   const [tab,       setTab]       = useState('bookings') // 'bookings' | 'profile'
   const [qrOpen,    setQrOpen]    = useState(null)       // booking.id
@@ -87,10 +96,13 @@ export default function MonComptePage() {
       try {
         const { data: { session } } = await supabase.auth.getSession()
         if (session?.access_token) {
-          await fetch('/api/bookings/claim', {
-            method:  'POST',
-            headers: { Authorization: `Bearer ${session.access_token}` },
-          })
+          const auth = { Authorization: `Bearer ${session.access_token}` }
+          await fetch('/api/bookings/claim', { method: 'POST', headers: auth })
+
+          // Demandes envoyées depuis la page Contact avec cette adresse —
+          // y compris celles écrites avant l'inscription (l'API les rattache).
+          const res = await fetch('/api/contact/mine', { headers: auth })
+          if (res.ok) setRequests((await res.json()).messages || [])
         }
       } catch { /* best effort — l'historique reste consultable */ }
 
@@ -188,6 +200,11 @@ export default function MonComptePage() {
             {t('account.tabBookings')}
             <span className="compte-tab-count">{bookings.length}</span>
           </button>
+          <button className={`compte-tab ${tab === 'requests' ? 'active' : ''}`}
+            onClick={() => selectTab('requests')}>
+            {t('account.tabRequests')}
+            {requests.length > 0 && <span className="compte-tab-count">{requests.length}</span>}
+          </button>
           <button className={`compte-tab ${tab === 'profile' ? 'active' : ''}`}
             onClick={() => selectTab('profile')}>
             {t('account.tabProfile')}
@@ -231,6 +248,47 @@ export default function MonComptePage() {
           </div>
         )}
 
+        {/* ═══ Onglet Mes demandes ═════════════════════════════════ */}
+        {tab === 'requests' && (
+          <div className="compte-requests">
+            {requests.length === 0 ? (
+              <div className="compte-empty">
+                <IconMail size={44} />
+                <p>{t('account.reqEmpty')}</p>
+                <a href="/contact" className="compte-empty-cta">{t('account.reqEmptyCta')}</a>
+              </div>
+            ) : (
+              <>
+                {(() => {
+                  const open = requests.filter(r => r.status === 'new' || r.status === 'in_progress')
+                  const done = requests.filter(r => r.status === 'answered' || r.status === 'closed')
+                  return (
+                    <>
+                      {open.length > 0 && (
+                        <>
+                          <h2 className="compte-section-title">{t('account.reqOpen')}</h2>
+                          <div className="compte-cards">
+                            {open.map(r => <RequestCard key={r.id} req={r} />)}
+                          </div>
+                        </>
+                      )}
+                      {done.length > 0 && (
+                        <>
+                          <h2 className="compte-section-title compte-section-title--past">{t('account.reqDone')}</h2>
+                          <div className="compte-cards compte-cards--past">
+                            {done.map(r => <RequestCard key={r.id} req={r} />)}
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )
+                })()}
+                <a href="/contact" className="compte-req-cta">{t('account.reqAskAgain')}</a>
+              </>
+            )}
+          </div>
+        )}
+
         {/* ═══ Onglet Profil ═══════════════════════════════════════ */}
         {tab === 'profile' && (
           <div className="compte-profile">
@@ -264,6 +322,39 @@ export default function MonComptePage() {
 
       </div>
     </div>
+  )
+}
+
+// ── Carte de demande (page Contact) ───────────────────────────────────────────
+// L'historique sert d'abord à se souvenir : « je vous avais déjà écrit à ce
+// sujet, le tel jour ». Le message est donc affiché en entier, pas résumé.
+function RequestCard({ req }) {
+  const { t, locale } = useI18n()
+  const st = REQ_STATUS[req.status] || REQ_STATUS.new
+
+  return (
+    <article className="req-card">
+      <div className="req-card-head">
+        <div>
+          <h3 className="req-subject">{t(`cform.subjects.${req.subject}`)}</h3>
+          <p className="req-date">{t('account.reqSentOn', { date: formatDate(req.created_at, locale) })}</p>
+        </div>
+        <span className={`bk-status ${st.cls}`}>{t(st.key)}</span>
+      </div>
+
+      <blockquote className="req-message">{req.message}</blockquote>
+
+      <div className="req-card-foot">
+        <span className="req-ref">
+          <span className="req-ref-label">{t('account.reqRef')}</span>
+          <code>{req.message_ref}</code>
+        </span>
+        {req.answered_at
+          ? <span className="req-foot-note">{t('account.reqAnsweredOn', { date: formatDate(req.answered_at, locale) })}</span>
+          : <span className="req-foot-note">{t('account.reqReplyHint', { email: req.email })}</span>
+        }
+      </div>
+    </article>
   )
 }
 

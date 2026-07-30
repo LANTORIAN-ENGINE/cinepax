@@ -3936,6 +3936,75 @@ body {
 .status-cancelled { background: var(--s-dead-w); color: var(--s-dead); }
 .status-used      { background: var(--s-done-w); color: var(--s-done); }
 
+/* États des messages de contact. « Nouveau » prend l'accent : c'est le seul
+   qui réclame une action, les trois autres décrivent un traitement en cours
+   ou terminé. */
+.status-new      { background: var(--a-accent-w); color: var(--a-accent-hi); }
+.status-progress { background: var(--s-wait-w);   color: var(--s-wait);      }
+.status-answered { background: var(--s-ok-w);     color: var(--s-ok);        }
+.status-closed   { background: var(--a-surface);  color: var(--a-ink-3);     }
+
+/* ── Mes demandes (formulaire de contact) ────────────────────── */
+.req-card {
+  background: var(--a-panel);
+  border: 1px solid var(--a-line-2);
+  border-radius: var(--r-md);
+  padding: 20px 22px;
+}
+
+.req-card-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 16px; margin-bottom: 14px;
+}
+.req-subject {
+  font-size: var(--ts-md); font-weight: 700; color: var(--a-ink);
+  letter-spacing: -0.005em;
+}
+.req-date { font-size: var(--ts-xs); color: var(--a-ink-3); margin-top: 3px; }
+
+.req-message {
+  margin: 0 0 16px;
+  padding: 13px 15px;
+  background: var(--a-bg);
+  border: 1px solid var(--a-line-2);
+  border-radius: var(--r-sm);
+  font-size: var(--ts-sm);
+  line-height: 1.65;
+  color: var(--a-ink-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 72ch;
+}
+
+.req-card-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; flex-wrap: wrap;
+  padding-top: 13px;
+  border-top: 1px solid var(--a-line-2);
+}
+.req-ref { display: inline-flex; align-items: baseline; gap: 9px; }
+.req-ref-label {
+  font-size: var(--ts-2xs); font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--a-ink-3);
+}
+.req-ref code {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: var(--ts-sm); font-weight: 700; letter-spacing: 0.05em;
+  color: var(--a-accent-hi);
+}
+.req-foot-note { font-size: var(--ts-xs); color: var(--a-ink-3); }
+
+.compte-req-cta {
+  display: inline-flex; align-items: center; justify-content: center;
+  margin-top: 24px; padding: 12px 22px;
+  border: 1px solid var(--a-line);
+  border-radius: var(--r-sm);
+  color: var(--a-ink-2);
+  font-size: var(--ts-sm); font-weight: 700; text-decoration: none;
+  transition: border-color 0.16s var(--ez), color 0.16s var(--ez);
+}
+.compte-req-cta:hover { border-color: var(--a-accent); color: var(--a-accent-hi); }
+
 /* ── Profil ──────────────────────────────────────────────────── */
 .compte-profile { max-width: 520px; }
 .compte-profile-card {
@@ -3995,6 +4064,20 @@ body {
   width: 20px; height: 20px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
 }
+/* Compteur de messages non traités, dans la barre latérale */
+.admin-nav-count {
+  margin-left: auto;
+  min-width: 20px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--a-accent);
+  color: oklch(0.99 0 0);
+  font-size: var(--ts-2xs);
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
 .admin-logout-btn { color: var(--a-ink-3); }
 .admin-logout-btn:hover { color: var(--s-dead); background: var(--s-dead-w); }
 .admin-sidebar-footer { padding: 12px 10px; border-top: 1px solid var(--a-line-2); }
@@ -4224,6 +4307,109 @@ body {
 .adp-btn--delete:hover:not(:disabled) {
   background: var(--s-dead); color: oklch(0.16 0.02 25); border-color: var(--s-dead);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   ADMIN — messages du formulaire de contact
+   Reprend le vocabulaire des autres pages d'admin (tableau, panneau
+   de détail, boutons .adp-*). Seul le nécessaire est ajouté ici.
+═══════════════════════════════════════════════════════════════ */
+.amsg-tab-count {
+  margin-left: 7px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.65;
+}
+.admin-filter-tab.active .amsg-tab-count { opacity: 0.85; }
+
+/* Une demande non traitée se repère à la ligne, pas seulement à la pastille */
+.amsg-tr--unread td:first-child { box-shadow: inset 2px 0 0 var(--a-accent); }
+.amsg-tr--unread .amsg-sender-name { font-weight: 700; color: var(--a-ink); }
+
+.amsg-sender { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.amsg-sender-name { font-weight: 600; color: var(--a-ink-2); }
+.amsg-sender-mail {
+  font-size: var(--ts-xs); color: var(--a-ink-3);
+  overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Le message reçu, tel quel : sauts de ligne conservés */
+.amsg-body {
+  margin: 0 0 20px;
+  padding: 15px 17px;
+  background: var(--a-panel);
+  border: 1px solid var(--a-line-2);
+  border-radius: var(--r-md);
+  font-size: var(--ts-md);
+  line-height: 1.65;
+  color: var(--a-ink-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 78ch;
+}
+
+/* Choix de l'état : quatre positions, celle en cours est remplie */
+.amsg-status-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.amsg-status-btn {
+  padding: 7px 14px;
+  border: 1px solid var(--a-line);
+  border-radius: 999px;
+  background: none;
+  color: var(--a-ink-3);
+  font-family: inherit;
+  font-size: var(--ts-xs);
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.16s var(--ez), color 0.16s var(--ez), background 0.16s var(--ez);
+}
+.amsg-status-btn:hover:not(:disabled) { border-color: var(--a-ink-3); color: var(--a-ink-2); }
+.amsg-status-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.amsg-status-btn.active { border-color: currentColor; }
+.amsg-status-btn.active.status-new      { background: var(--a-accent-w); color: var(--a-accent-hi); }
+.amsg-status-btn.active.status-progress { background: var(--s-wait-w);   color: var(--s-wait);      }
+.amsg-status-btn.active.status-answered { background: var(--s-ok-w);     color: var(--s-ok);        }
+.amsg-status-btn.active.status-closed   { background: var(--a-surface);  color: var(--a-ink-2);     }
+
+.amsg-note {
+  width: 100%;
+  max-width: 78ch;
+  background: var(--a-surface);
+  border: 1px solid var(--a-line);
+  border-radius: var(--r-sm);
+  padding: 11px 13px;
+  color: var(--a-ink);
+  font-family: inherit;
+  font-size: var(--ts-sm);
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.16s var(--ez);
+}
+.amsg-note::placeholder { color: oklch(0.48 0.012 45); }
+.amsg-note:focus { border-color: var(--a-accent); }
+
+.amsg-note-row { display: flex; align-items: center; gap: 12px; margin: 10px 0 20px; }
+.amsg-note-saved { font-size: var(--ts-xs); color: var(--s-ok); font-weight: 600; }
+
+.amsg-history { list-style: none; margin: 0 0 20px; padding: 0; max-width: 78ch; }
+.amsg-history li {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--a-line-2);
+  font-size: var(--ts-sm);
+}
+.amsg-history li:last-child { border-bottom: none; }
+.amsg-history-date { color: var(--a-ink-3); font-variant-numeric: tabular-nums; }
+.amsg-history-subject { color: var(--a-ink-2); margin-right: auto; }
+.amsg-history-none { font-size: var(--ts-sm); color: var(--a-ink-3); margin-bottom: 20px; }
+
+/* Vide : ce qui manque, et d'où ça viendra */
+.amsg-empty {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 64px 24px;
+  color: var(--a-ink-3);
+  text-align: center;
+}
+.amsg-empty .admin-empty { padding: 0; }
+.amsg-empty-hint { font-size: var(--ts-sm); color: var(--a-ink-3); max-width: 46ch; line-height: 1.6; }
 
 /* ── Actions d'en-tête ───────────────────────────────────────── */
 .admin-header-actions { display: flex; gap: 9px; flex-wrap: wrap; }
@@ -5543,6 +5729,15 @@ body {
   padding: 28px 0 20px;
 }
 
+.contact-col-title {
+  margin: 0 0 20px;
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.45rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: #111;
+}
+
 .contact-block { margin-bottom: 26px; }
 
 .contact-label {
@@ -5624,6 +5819,336 @@ body {
 }
 
 .contact-map iframe { display: block; width: 100%; height: 100%; min-height: 320px; border: 0; }
+
+.contact-map-caption {
+  margin: 10px 0 8px;
+  font-size: 0.8rem;
+  color: #777;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CONTACT — formulaire
+   ───────────────────────────────────────────────────────────────
+   Le panneau reprend la pellicule de /auth (.auth-film-frame) : une
+   amorce de film perforée en tête de bloc. Motif déjà présent dans le
+   produit, transposé en clair — pas un ornement de plus.
+═══════════════════════════════════════════════════════════════ */
+.cform {
+  --cf-red:    #e8192c;
+  --cf-red-hi: #ff3044;
+  --cf-line:   #e4e1df;
+  --cf-ink-3:  #6f6b68;
+
+  background: #fbfaf9;
+  border: 1px solid var(--cf-line);
+  border-radius: 14px;
+  overflow: hidden;
+  align-self: start;
+}
+
+/* Amorce perforée */
+.cform-perf {
+  height: 14px;
+  background: #141210;
+  background-image: repeating-linear-gradient(
+    to right, #fbfaf9 0 7px, transparent 7px 20px
+  );
+  background-size: auto 5px;
+  background-position: 10px center;
+  background-repeat: repeat-x;
+  border-bottom: 1px solid var(--cf-line);
+}
+
+.cform-body { padding: 26px 24px 28px; }
+
+.cform-eyebrow {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cf-red);
+  margin-bottom: 9px;
+}
+
+.cform-title {
+  margin: 0 0 8px;
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 2rem;
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  color: #111;
+}
+
+.cform-lead {
+  margin: 0 0 22px;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #555;
+  max-width: 60ch;
+}
+
+/* Bandeau « connecté en tant que » */
+.cform-account {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 22px;
+  padding: 12px 14px;
+  border: 1px solid #dfe7df;
+  background: #f2f7f2;
+  border-radius: 9px;
+}
+.cform-account strong { font-size: 0.82rem; color: #1f4d2c; font-weight: 700; }
+.cform-account span   { font-size: 0.78rem; color: #3d6b48; line-height: 1.5; }
+
+/* Piège à robots */
+.cform-hp {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── Champs ─────────────────────────────────────────────────── */
+.cfield { display: flex; flex-direction: column; gap: 7px; margin-bottom: 17px; position: relative; }
+
+.cfield-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+.cfield-label {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #444;
+}
+
+.cfield-flag {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: lowercase;
+  color: #999;
+}
+.cfield-flag.is-required { color: var(--cf-red); }
+
+.cfield-control { display: flex; flex-direction: column; }
+
+.cfield input,
+.cfield textarea,
+.cfield-select select {
+  width: 100%;
+  background: #fff;
+  border: 1px solid #dcd8d5;
+  border-radius: 9px;
+  padding: 11px 13px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  color: #111;
+  outline: none;
+  transition: border-color 0.18s cubic-bezier(0.25, 1, 0.5, 1),
+              box-shadow   0.18s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.cfield textarea { resize: vertical; min-height: 132px; line-height: 1.6; }
+
+.cfield input::placeholder,
+.cfield textarea::placeholder { color: #a8a3a0; }
+
+.cfield input:focus,
+.cfield textarea:focus,
+.cfield-select select:focus {
+  border-color: var(--cf-red);
+  box-shadow: 0 0 0 3px rgba(232, 25, 44, 0.13);
+}
+
+.cfield.has-error input,
+.cfield.has-error textarea {
+  border-color: #c8102e;
+  background: #fffafa;
+}
+.cfield.has-error input:focus,
+.cfield.has-error textarea:focus {
+  box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.15);
+}
+
+.cfield-hint  { font-size: 0.76rem; color: var(--cf-ink-3); line-height: 1.5; }
+.cfield-error { font-size: 0.76rem; color: #c8102e; font-weight: 600; line-height: 1.5; }
+
+/* Compteur du message : discret, il ne s'anime qu'à l'approche du plafond */
+.cfield-counter {
+  align-self: flex-end;
+  margin-top: 5px;
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  color: #a8a3a0;
+  transition: color 0.18s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.cfield-counter.is-near { color: #c8102e; font-weight: 600; }
+
+/* Sélecteur : chevron dessiné, contrôle natif conservé */
+.cfield-select { position: relative; display: flex; }
+.cfield-select select {
+  appearance: none;
+  padding-right: 38px;
+  cursor: pointer;
+}
+.cfield-caret {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #777;
+  pointer-events: none;
+}
+
+/* ── Consentement ───────────────────────────────────────────── */
+.cform-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 4px 0 6px;
+}
+.cform-consent input {
+  width: 17px; height: 17px;
+  margin-top: 1px;
+  flex-shrink: 0;
+  accent-color: var(--cf-red);
+  cursor: pointer;
+}
+.cform-consent label {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: #555;
+  cursor: pointer;
+}
+.cform-consent.has-error label { color: #c8102e; }
+
+/* ── Erreur globale ─────────────────────────────────────────── */
+.cform-alert {
+  margin: 14px 0 0;
+  padding: 11px 14px;
+  border: 1px solid #f0c2c8;
+  background: #fff5f6;
+  border-radius: 9px;
+  font-size: 0.83rem;
+  line-height: 1.5;
+  color: #a30f24;
+}
+
+/* ── Bouton d'envoi ─────────────────────────────────────────── */
+.cform-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 18px;
+  padding: 13px 26px;
+  background: var(--cf-red);
+  border: 1px solid var(--cf-red);
+  border-radius: 9px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.18s cubic-bezier(0.25, 1, 0.5, 1),
+              border-color 0.18s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.cform-submit:hover:not(:disabled) { background: var(--cf-red-hi); border-color: var(--cf-red-hi); }
+.cform-submit:disabled { opacity: 0.55; cursor: progress; }
+
+.cform-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 22px;
+  background: none;
+  border: 1px solid #d8d4d1;
+  border-radius: 9px;
+  color: #444;
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.18s cubic-bezier(0.25, 1, 0.5, 1),
+              color 0.18s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.cform-ghost:hover { border-color: #111; color: #111; }
+
+/* ── Confirmation ───────────────────────────────────────────── */
+.cform-done { text-align: left; }
+.cform-done:focus { outline: none; }
+
+.cform-done-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px; height: 46px;
+  margin-bottom: 16px;
+  border-radius: 50%;
+  background: #eaf6ee;
+  color: #1f7a3d;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cform-done-mark { animation: cform-pop 0.42s cubic-bezier(0.25, 1, 0.5, 1) both; }
+}
+@keyframes cform-pop {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.cform-done-title {
+  margin: 0 0 8px;
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.9rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: #111;
+}
+.cform-done-lead { margin: 0 0 18px; font-size: 0.9rem; line-height: 1.6; color: #555; }
+
+.cform-done-ref {
+  display: flex;
+  align-items: baseline;
+  gap: 11px;
+  padding: 12px 14px;
+  border: 1px dashed #d0ccc9;
+  border-radius: 9px;
+  background: #fff;
+  margin-bottom: 16px;
+}
+.cform-done-ref-label {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: #999;
+}
+.cform-done-ref code {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #111;
+}
+
+.cform-done-note { margin: 0 0 20px; font-size: 0.85rem; line-height: 1.6; color: #555; }
+
+.cform-done-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.cform-done-actions .cform-submit { margin-top: 0; }
 
 /* ═══════════════════════════════════════════════════════════════
    NOS OFFRES
@@ -5835,12 +6360,18 @@ body {
 @media screen and (min-width: 40em) {
   .prose-photos { grid-template-columns: 1fr 1fr; }
   .offer-grid { grid-template-columns: 1fr 1fr; }
+  /* Nom et téléphone tiennent sur une ligne dès qu'il y a la place */
+  .cfield-row { grid-template-columns: 1fr 1fr; gap: 0 16px; }
+  .cform-body { padding: 30px 30px 32px; }
 }
 
 @media screen and (min-width: 64em) {
-  .contact-layout { grid-template-columns: 1fr 1.15fr; gap: 48px; align-items: start; }
-  .contact-map { min-height: 460px; position: sticky; top: 88px; }
-  .contact-map iframe { min-height: 460px; }
+  /* Les coordonnées à gauche, le formulaire à droite et plus large :
+     c'est lui l'action de la page. Le plan passe pleine largeur dessous. */
+  .contact-layout { grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: 52px; align-items: start; }
+  .contact-map { min-height: 420px; }
+  .contact-map iframe { min-height: 420px; }
+  .cform-title { font-size: 2.3rem; }
   .prose-page { max-width: 820px; }
   .prog-poster { flex-basis: 92px; width: 92px; }
 }

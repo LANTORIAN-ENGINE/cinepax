@@ -3,13 +3,14 @@ import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
-import { IconGauge, IconTicket, IconUsers, IconTag, IconHome, IconLogOut, IconMenu } from '@/components/icons'
+import { IconGauge, IconTicket, IconUsers, IconTag, IconHome, IconLogOut, IconMenu, IconMail } from '@/components/icons'
 import { AdminChromeSkeleton } from '@/components/skeletons'
 
 const NAV = [
   { href: '/admin',              labelKey: 'adminNav.dashboard',    Icon: IconGauge  },
   { href: '/admin/reservations', labelKey: 'adminNav.reservations', Icon: IconTicket },
   { href: '/admin/clients',      labelKey: 'adminNav.clients',      Icon: IconUsers  },
+  { href: '/admin/messages',     labelKey: 'adminNav.messages',     Icon: IconMail   },
   { href: '/admin/prix',         labelKey: 'adminNav.pricing',      Icon: IconTag    },
 ]
 
@@ -19,6 +20,7 @@ export default function AdminLayout({ children }) {
   const pathname = usePathname()
   const [checking, setChecking] = useState(true)
   const [sideOpen, setSideOpen] = useState(false)
+  const [newMessages, setNewMessages] = useState(0)
 
   useEffect(() => {
     const supabase = createClient()
@@ -36,8 +38,17 @@ export default function AdminLayout({ children }) {
 
       if (!data?.is_admin) { router.push('/'); return }
       setChecking(false)
+
+      // Messages non traités : le compteur signale ce qui attend une
+      // réponse, la raison d'ouvrir la page plutôt que de la chercher.
+      fetch('/api/admin/messages?status=new', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+        .then(r => (r.ok ? r.json() : null))
+        .then(d => setNewMessages(d?.counts?.new || 0))
+        .catch(() => {})
     })
-  }, [])
+  }, [pathname])
 
   async function logout() {
     const supabase = createClient()
@@ -72,6 +83,9 @@ export default function AdminLayout({ children }) {
             >
               <span className="admin-nav-icon"><item.Icon /></span>
               {t(item.labelKey)}
+              {item.href === '/admin/messages' && newMessages > 0 && (
+                <span className="admin-nav-count">{newMessages}</span>
+              )}
             </a>
           ))}
         </nav>
