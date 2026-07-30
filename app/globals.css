@@ -68,11 +68,11 @@ body {
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  padding: 0 14px;
+  padding: 0 13px;
   height: 64px;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 7px;
   white-space: nowrap;
   transition: color 0.15s;
   position: relative;
@@ -88,15 +88,80 @@ body {
   content: '';
   position: absolute;
   bottom: 0;
-  left: 14px;
-  right: 14px;
+  left: 13px;
+  right: 13px;
   height: 2px;
   background: #fff;
 }
 
+/* ── Icônes de navigation ─────────────────────────────────────
+   Chaque rubrique a son geste, et chaque geste dit son mot : la séance se
+   lance, le sablier se retourne, la date glisse, l'étiquette s'incline, le
+   rabat s'ouvre, les conditions défilent. Un seul geste par icône, la même
+   durée et la même courbe pour tous — c'est ce qui les fait lire comme un
+   système et non comme sept trouvailles.
+
+   « À propos » n'a pas de mouvement propre et se contente de se soulever.
+   Lui inventer un geste ferait le tour de passe-passe que les autres
+   évitent justement. */
 .nav-icon {
   flex-shrink: 0;
-  opacity: 0.9;
+  opacity: 0.85;
+  transition: transform 0.36s var(--nav-ez), opacity 0.2s var(--nav-ez);
+}
+
+/* Les pièces internes se transforment dans le repère du viewBox. Sans
+   view-box, l'origine se calerait sur la boîte du tracé et l'étiquette
+   pivoterait autour de son centre au lieu de son œillet. */
+.nav-icon > * {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  transition: transform 0.36s var(--nav-ez);
+}
+
+.nav-link:hover .nav-icon,
+.nav-more-item:hover .nav-icon,
+.nav-link.active .nav-icon { opacity: 1; }
+
+/* Le clavier a droit au même geste que la souris. */
+.nav-link:is(:hover, :focus-visible) .ni-now-play { transform: translateX(2.2px); }
+
+/* Un demi-tour demande plus de temps qu'un glissement pour rester lisible. */
+.ni-soon { transition: transform 0.55s var(--nav-ez), opacity 0.2s var(--nav-ez); }
+.nav-link:is(:hover, :focus-visible) .ni-soon { transform: rotate(180deg); }
+
+.nav-link:is(:hover, :focus-visible) .ni-schedule-day { transform: translateX(4.8px); }
+
+.ni-offers-tag { transform-origin: 7.6px 7.6px; }
+.nav-link:is(:hover, :focus-visible) .ni-offers-tag { transform: rotate(-9deg); }
+
+:is(.nav-link, .nav-more-item):is(:hover, :focus-visible) .ni-about {
+  transform: translateY(-1.5px);
+}
+
+:is(.nav-link, .nav-more-item):is(:hover, :focus-visible) .ni-contact-flap {
+  transform: translateY(1.8px);
+}
+
+:is(.nav-link, .nav-more-item):is(:hover, :focus-visible) .ni-terms-lines {
+  transform: translateX(1.4px);
+}
+
+/* Entre la bascule à deux rangs (768 px) et ~1020 px, la barre tient déjà sur
+   un seul rang tout juste : les sept pictogrammes lui coûtent 76 px et la
+   feraient déborder de l'écran. Le mot porte le sens, l'icône ne fait que le
+   doubler — c'est donc elle qui cède. Le menu déroulant, lui, a sa propre
+   largeur et garde les siennes. */
+@media (min-width: 769px) and (max-width: 1020px) {
+  .navbar-sections .nav-icon { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-icon, .nav-icon > * { transition: none; }
+  .nav-link:is(:hover, :focus-visible) :is(.ni-now-play, .ni-schedule-day, .ni-soon, .ni-offers-tag),
+  :is(.nav-link, .nav-more-item):is(:hover, :focus-visible) :is(.ni-about, .ni-contact-flap, .ni-terms-lines) {
+    transform: none;
+  }
 }
 
 /* ── Zone droite navbar (liens + utilitaires compte / langue) ── */
@@ -5356,7 +5421,9 @@ body {
 }
 
 .nav-more-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 9px;
   padding: 10px 12px;
   border-radius: 6px;
   color: #d8d8d8;

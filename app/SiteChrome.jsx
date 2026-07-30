@@ -5,20 +5,25 @@ import { usePathname } from 'next/navigation'
 import NavAuth from './NavAuth'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { useI18n } from '@/lib/i18n'
+import {
+  NavIconNow, NavIconSoon, NavIconSchedule, NavIconOffers,
+  NavIconAbout, NavIconContact, NavIconTerms,
+} from '@/components/navIcons'
 
 // Rubriques principales, puis celles regroupées sous « Plus » — la barre ne
-// tient pas les sept d'un seul tenant.
+// tient pas les sept d'un seul tenant. Chaque rubrique porte son pictogramme :
+// il double le mot, il ne le remplace pas.
 const PRIMARY = [
-  { href: '/',              key: 'nav.now' },
-  { href: '/prochainement', key: 'nav.soon' },
-  { href: '/programme',     key: 'nav.programme' },
-  { href: '/nos-offres',    key: 'nav.offers' },
+  { href: '/',              key: 'nav.now',       Icon: NavIconNow },
+  { href: '/prochainement', key: 'nav.soon',      Icon: NavIconSoon },
+  { href: '/programme',     key: 'nav.programme', Icon: NavIconSchedule },
+  { href: '/nos-offres',    key: 'nav.offers',    Icon: NavIconOffers },
 ]
 
 const SECONDARY = [
-  { href: '/a-propos',             key: 'nav.about' },
-  { href: '/contact',              key: 'nav.contact' },
-  { href: '/termes-et-conditions', key: 'nav.terms' },
+  { href: '/a-propos',             key: 'nav.about',   Icon: NavIconAbout },
+  { href: '/contact',              key: 'nav.contact', Icon: NavIconContact },
+  { href: '/termes-et-conditions', key: 'nav.terms',   Icon: NavIconTerms },
 ]
 
 export function Navbar() {
@@ -59,6 +64,7 @@ export function Navbar() {
                   href={link.href}
                   className={`nav-link ${pathname === link.href ? 'active' : ''}`}
                 >
+                  <link.Icon />
                   {t(link.key)}
                 </Link>
               ))}
@@ -85,6 +91,7 @@ export function Navbar() {
                         href={link.href}
                         className={`nav-more-item ${pathname === link.href ? 'active' : ''}`}
                       >
+                        <link.Icon />
                         {t(link.key)}
                       </Link>
                     ))}
@@ -102,6 +109,7 @@ export function Navbar() {
                     href={link.href}
                     className={`nav-link ${pathname === link.href ? 'active' : ''}`}
                   >
+                    <link.Icon />
                     {t(link.key)}
                   </Link>
                 ))}
