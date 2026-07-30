@@ -3514,6 +3514,7 @@ body {
   display: flex; flex-direction: column; gap: 20px;
   transform: rotate(-14deg) scale(1.5);
   opacity: 0.16; pointer-events: none;
+  transition: transform 0.62s var(--ez);
 }
 .auth-film-frame {
   position: relative; height: 92px; flex-shrink: 0;
@@ -3529,6 +3530,53 @@ body {
 }
 .auth-film-frame::before { top: -9px; }
 .auth-film-frame::after  { bottom: -9px; }
+
+/* ── Passage connexion ⇄ inscription ──────────────────────────
+   Le panneau ne bouge pas, la pellicule avance d'une image, le texte et le
+   formulaire se reposent derrière. Un seul geste, porté par la seule chose
+   que ces deux pages ont en propre : le film.
+
+   112 px = une image (92) plus son intervalle (20). Le déplacement est
+   écrit après la rotation, donc appliqué avant elle : la bande glisse
+   selon son propre axe, comme tirée par le mécanisme, et non à la
+   verticale de l'écran. Le facteur d'échelle vaut pour les deux, l'image
+   parcourue reste donc exactement une. */
+.auth-page--register .auth-film-strip {
+  transform: rotate(-14deg) scale(1.5) translateY(-112px);
+}
+
+/* Seuls l'opacité et la transformation sont animées : rien qui force un
+   recalcul de mise en page pendant le mouvement. */
+@keyframes auth-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Le texte suit la pellicule au lieu de partir avec elle — c'est ce léger
+   retard qui donne l'ordre de lecture. */
+.auth-artwork-text {
+  animation: auth-rise 0.55s var(--ez) 0.1s both;
+}
+
+/* Le formulaire se pose bloc par bloc. Le décalage s'arrête au niveau des
+   groupes : cascader chaque champ ferait décoratif, et les champs d'un
+   même formulaire se lisent ensemble. nth-child plutôt qu'une variable
+   posée sur chaque élément — le balisage des deux pages reste net. */
+.auth-form-box > * { animation: auth-rise 0.5s var(--ez) both; }
+.auth-form-box > *:nth-child(1) { animation-delay: 0.04s; }
+.auth-form-box > *:nth-child(2) { animation-delay: 0.09s; }
+.auth-form-box > *:nth-child(3) { animation-delay: 0.13s; }
+.auth-form-box > *:nth-child(4) { animation-delay: 0.18s; }
+.auth-form-box > *:nth-child(5) { animation-delay: 0.24s; }
+.auth-form-box > *:nth-child(6) { animation-delay: 0.28s; }
+
+/* Le mouvement raconte le passage d'une page à l'autre ; il n'en est pas
+   le seul témoin. Sans lui, le contenu est déjà en place. */
+@media (prefers-reduced-motion: reduce) {
+  .auth-film-strip { transition: none; }
+  .auth-artwork-text,
+  .auth-form-box > * { animation: none; }
+}
 
 .auth-artwork-eyebrow {
   font-size: var(--ts-2xs); font-weight: 700; letter-spacing: 0.16em;

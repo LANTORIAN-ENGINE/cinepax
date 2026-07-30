@@ -1,16 +1,10 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
 import { IconArrowRight } from '@/components/icons'
-
-// Rend un texte multi-ligne (séparé par \n) avec des <br/>
-function MultiLine({ text }) {
-  return text.split('\n').map((line, i) => (
-    <span key={i}>{i > 0 && <br />}{line}</span>
-  ))
-}
 
 export default function LoginPage() {
   const { t } = useI18n()
@@ -44,70 +38,50 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="auth-page">
-      {/* — Panneau artistique gauche — */}
-      <div className="auth-artwork" aria-hidden>
-        <div className="auth-artwork-inner">
-          <div className="auth-film-strip">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="auth-film-frame" style={{ '--fi': i }} />
-            ))}
-          </div>
-          <div className="auth-artwork-text">
-            <p className="auth-artwork-eyebrow">{t('auth.eyebrow')}</p>
-            <h2 className="auth-artwork-headline"><MultiLine text={t('auth.loginHeadline')} /></h2>
-            <p className="auth-artwork-sub">{t('auth.loginArtSub')}</p>
-          </div>
+    <div className="auth-form-box">
+      <img src="/logo.jpg" alt="Cinepax" className="auth-logo" />
+      <h1 className="auth-title">{t('auth.loginTitle')}</h1>
+      <p className="auth-subtitle">{t('auth.loginSubtitle')}</p>
+
+      <form onSubmit={handleLogin} className="auth-form">
+        <div className="auth-field">
+          <label>{t('auth.emailLabel')}</label>
+          <input type="email" value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="jean@example.mg"
+            autoComplete="email" required
+          />
         </div>
+        <div className="auth-field">
+          <label>{t('auth.passwordLabel')}</label>
+          <input type="password" value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder="••••••••"
+            autoComplete="current-password" required
+          />
+        </div>
+
+        {error && <div className="auth-error">{error}</div>}
+
+        <button type="submit" className="auth-submit-btn" disabled={loading}>
+          {loading ? t('auth.loggingIn') : t('auth.loginBtn')}
+        </button>
+      </form>
+
+      {/* Seul passage vers l'inscription depuis que la barre ne propose plus
+          qu'une porte : il doit se voir. Link et non <a> — un rechargement
+          complet emporterait le panneau et son animation. */}
+      <div className="auth-switch">
+        <p className="auth-switch-q">{t('auth.noAccount')}</p>
+        <Link href="/auth/register" className="auth-switch-btn">
+          {t('auth.createAccount')}
+          <IconArrowRight size={15} />
+        </Link>
       </div>
 
-      {/* — Formulaire — */}
-      <div className="auth-form-side">
-        <div className="auth-form-box">
-          <img src="/logo.jpg" alt="Cinepax" className="auth-logo" />
-          <h1 className="auth-title">{t('auth.loginTitle')}</h1>
-          <p className="auth-subtitle">{t('auth.loginSubtitle')}</p>
-
-          <form onSubmit={handleLogin} className="auth-form">
-            <div className="auth-field">
-              <label>{t('auth.emailLabel')}</label>
-              <input type="email" value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="jean@example.mg"
-                autoComplete="email" required
-              />
-            </div>
-            <div className="auth-field">
-              <label>{t('auth.passwordLabel')}</label>
-              <input type="password" value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
-                autoComplete="current-password" required
-              />
-            </div>
-
-            {error && <div className="auth-error">{error}</div>}
-
-            <button type="submit" className="auth-submit-btn" disabled={loading}>
-              {loading ? t('auth.loggingIn') : t('auth.loginBtn')}
-            </button>
-          </form>
-
-          {/* Seul passage vers l'inscription depuis que la barre ne propose
-              plus qu'une porte : il doit se voir. */}
-          <div className="auth-switch">
-            <p className="auth-switch-q">{t('auth.noAccount')}</p>
-            <a href="/auth/register" className="auth-switch-btn">
-              {t('auth.createAccount')}
-              <IconArrowRight size={15} />
-            </a>
-          </div>
-
-          <p className="auth-back">
-            <a href="/" className="auth-link auth-link--ghost">{t('auth.backHome')}</a>
-          </p>
-        </div>
-      </div>
+      <p className="auth-back">
+        <Link href="/" className="auth-link auth-link--ghost">{t('auth.backHome')}</Link>
+      </p>
     </div>
   )
 }
