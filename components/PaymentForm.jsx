@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
 
@@ -69,6 +69,54 @@ export default function PaymentForm({
         .finally(() => setLoadingPrice(false))
     }
   }, [session?.Id, ticketUnitPrice])
+
+  // ─── Sous-écrans de paiement dans l'historique ──────────────────────────────
+  // La page bancaire (BNI) et le formulaire carte de secours occupent tout
+  // l'écran : un retour navigateur doit y ramener au formulaire, pas quitter la
+  // réservation. On les inscrit en query (?ecran=bni|carte) — le chemin reste
+  // celui de l'étape paiement, que le tunnel gère de son côté.
+  const checkoutStage = fallbackCard ? 'carte' : (bniIframeHtml || bniLoading) ? 'bni' : null
+  const stageRef = useRef(null)
+
+  useEffect(() => {
+    if (checkoutStage === stageRef.current) return
+    const opening = checkoutStage && !stageRef.current
+    stageRef.current = checkoutStage
+    const url = new URL(window.location.href)
+    if (checkoutStage) url.searchParams.set('ecran', checkoutStage)
+    else if (url.searchParams.has('ecran')) url.searchParams.delete('ecran')
+    else return  // fermé par le retour navigateur : l'URL est déjà à jour
+    const target = url.pathname + url.search
+    // Ouverture → une entrée à dépiler ; changement ou fermeture → on remplace.
+    window.history[opening ? 'pushState' : 'replaceState']({}, '', target)
+  }, [checkoutStage])
+
+  useEffect(() => {
+    function onPopState() {
+      if (new URLSearchParams(window.location.search).has('ecran')) return
+      stageRef.current = null
+      setFallbackCard(null)
+      setBniIframeHtml(null)
+      setBniLoading(false)
+      setCardError(null)
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
+
+  // Fermeture par le bouton : on dépile l'entrée ouverte par le sous-écran,
+  // ce qui déclenche onPopState — sinon le premier retour navigateur suivant
+  // semblerait ne rien faire.
+  function closeCheckout() {
+    if (new URLSearchParams(window.location.search).has('ecran')) {
+      window.history.back()
+      return
+    }
+    setFallbackCard(null)
+    setBniIframeHtml(null)
+    setBniLoading(false)
+    setCardError(null)
+  }
 
   const effectivePrice = sessionPrice
   const hasBreakdown = Array.isArray(ticketBreakdown) && ticketBreakdown.length > 0
@@ -237,7 +285,7 @@ export default function PaymentForm({
             <button
               className="bni-checkout-close"
               type="button"
-              onClick={() => { setFallbackCard(null); setCardError(null) }}
+              onClick={closeCheckout}
               aria-label={t('payment.cancel')}
             >
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14">
@@ -366,7 +414,7 @@ export default function PaymentForm({
             <button
               className="bni-checkout-close"
               type="button"
-              onClick={() => { setBniIframeHtml(null); setBniLoading(false) }}
+              onClick={closeCheckout}
               aria-label={t('payment.cancel')}
             >
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14">

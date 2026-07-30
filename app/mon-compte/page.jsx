@@ -24,6 +24,10 @@ const STATUS_CLS = {
   cancelled: { key: 'account.statusCancelled', cls: 'status-cancelled' },
   used:      { key: 'account.statusUsed',      cls: 'status-used'      },
 }
+// Onglets ↔ segment d'URL (?onglet=…)
+const TAB_PARAM = { bookings: 'reservations', profile: 'profil' }
+const PARAM_TAB = { reservations: 'bookings', profil: 'profile' }
+
 const PAY_METHOD_LABELS = {
   orange: 'Orange Money',
   mvola:  'MVola',
@@ -46,6 +50,29 @@ export default function MonComptePage() {
   const [editPhone, setEditPhone] = useState('')
   const [saving,    setSaving]    = useState(false)
   const [saveMsg,   setSaveMsg]   = useState(null)
+
+  // ─── Onglet courant dans l'URL (?onglet=profil) ─────────────────────────────
+  // Le changement d'onglet remplace l'entrée d'historique plutôt que d'en
+  // empiler une : le retour navigateur quitte la page, comme avant. Seuls le
+  // partage et le rechargement y gagnent.
+  useEffect(() => {
+    const wanted = PARAM_TAB[new URLSearchParams(window.location.search).get('onglet')]
+    if (wanted) setTab(wanted)
+    function onPopState() {
+      const p = new URLSearchParams(window.location.search).get('onglet')
+      setTab(PARAM_TAB[p] ?? 'bookings')
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
+
+  function selectTab(next) {
+    setTab(next)
+    const url = new URL(window.location.href)
+    if (next === 'bookings') url.searchParams.delete('onglet')
+    else url.searchParams.set('onglet', TAB_PARAM[next])
+    window.history.replaceState({}, '', url.pathname + url.search)
+  }
 
   useEffect(() => {
     const supabase = createClient()
@@ -157,12 +184,12 @@ export default function MonComptePage() {
       <div className="compte-tabs-wrap">
         <div className="compte-tabs">
           <button className={`compte-tab ${tab === 'bookings' ? 'active' : ''}`}
-            onClick={() => setTab('bookings')}>
+            onClick={() => selectTab('bookings')}>
             {t('account.tabBookings')}
             <span className="compte-tab-count">{bookings.length}</span>
           </button>
           <button className={`compte-tab ${tab === 'profile' ? 'active' : ''}`}
-            onClick={() => setTab('profile')}>
+            onClick={() => selectTab('profile')}>
             {t('account.tabProfile')}
           </button>
         </div>
