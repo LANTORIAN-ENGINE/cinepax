@@ -3296,7 +3296,6 @@ body {
 .admin-wrap,
 .compte-page,
 .auth-page,
-.admin-loading,
 .qrs-overlay {
   /* Surfaces */
   --a-bg:        oklch(0.155 0.008 30);
@@ -3345,6 +3344,80 @@ body {
 
   /* ease-out-quart : sortie franche, sans rebond */
   --ez: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ÉCRANS D'ATTENTE — squelettes
+   ───────────────────────────────────────────────────────────────
+   Le balayage part des mêmes jetons que le reste de ces espaces :
+   le shimmer du site public est un gris bleuté qui jurerait avec
+   les neutres chauds de l'administration.
+
+   Le décalage --ask-d allume les blocs dans l'ordre de lecture
+   plutôt que tous ensemble : la page se compose au lieu de clignoter.
+═══════════════════════════════════════════════════════════════ */
+@keyframes ask-sweep {
+  0%   { background-position: -420px 0; }
+  100% { background-position:  420px 0; }
+}
+
+.ask {
+  display: block;
+  /* Part de --a-hover, pas de --a-surface : une barre de la même couleur que
+     le fond du bandeau accentué ou de l'en-tête de tableau est invisible. */
+  background: linear-gradient(
+    100deg,
+    var(--a-hover) 0%,
+    var(--a-hover) 34%,
+    var(--a-line)  50%,
+    var(--a-hover) 66%,
+    var(--a-hover) 100%
+  );
+  background-size: 840px 100%;
+  border-radius: 4px;
+  flex-shrink: 0;
+  animation: ask-sweep 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: var(--ask-d, 0s);
+}
+
+/* Rangée de navigation fantôme */
+.ask-nav-row {
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px 12px; margin-bottom: 2px;
+}
+
+/* Bandeau de chiffres, avant que les intitulés soient connus */
+.ask-rail {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  background: var(--a-panel);
+  border: 1px solid var(--a-line-2); border-radius: var(--r-lg);
+  overflow: hidden; margin-bottom: 34px;
+}
+.ask-rail-cell {
+  padding: 22px 24px 20px;
+  border-right: 1px solid var(--a-line-2);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.ask-rail-cell:last-child { border-right: none; }
+
+/* Les onglets restent lisibles pendant l'attente mais inertes */
+.compte-tab:disabled { cursor: default; opacity: 1; }
+
+@media (max-width: 1100px) {
+  .ask-rail { grid-template-columns: repeat(2, 1fr); }
+  .ask-rail-cell:nth-child(2) { border-right: none; }
+  .ask-rail-cell:nth-child(-n+2) { border-bottom: 1px solid var(--a-line-2); }
+}
+@media (max-width: 480px) {
+  .ask-rail { grid-template-columns: 1fr; }
+  .ask-rail-cell { border-right: none; border-bottom: 1px solid var(--a-line-2); }
+  .ask-rail-cell:last-child { border-bottom: none; }
+}
+
+/* Le balayage est un signal d'attente, pas une décoration : sans lui la
+   surface reste, l'information « ça charge » passe par aria-busy. */
+@media (prefers-reduced-motion: reduce) {
+  .ask { animation: none; background: var(--a-hover); }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -3470,16 +3543,6 @@ body {
 /* ═══════════════════════════════════════════════════════════════
    ESPACE CLIENT — MON COMPTE
 ═══════════════════════════════════════════════════════════════ */
-.compte-loading {
-  min-height: 60vh; display: flex; align-items: center; justify-content: center;
-  background: var(--a-bg);
-}
-.compte-spinner {
-  width: 34px; height: 34px; border-radius: 50%;
-  border: 2.5px solid var(--a-line); border-top-color: var(--a-accent);
-  animation: spin 0.8s linear infinite;
-}
-
 .compte-page {
   background: var(--a-bg); min-height: calc(100vh - 64px);
   color: var(--a-ink);
@@ -3679,10 +3742,6 @@ body {
 /* ═══════════════════════════════════════════════════════════════
    ADMINISTRATION — structure
 ═══════════════════════════════════════════════════════════════ */
-.admin-loading {
-  min-height: 100vh; display: flex; align-items: center; justify-content: center;
-  background: var(--a-bg);
-}
 .admin-wrap {
   display: grid;
   grid-template-columns: 248px 1fr;
@@ -3743,10 +3802,6 @@ body {
 .admin-page {
   max-width: 1560px; margin-inline: auto;
   padding: 34px clamp(20px, 3vw, 44px) 96px;
-}
-.admin-page-loading {
-  display: flex; align-items: center; justify-content: center;
-  min-height: 320px;
 }
 .admin-page-header {
   display: flex; align-items: baseline; gap: 16px;
@@ -3870,7 +3925,6 @@ body {
   border: 1px solid var(--a-line-2); border-radius: var(--r-md);
   background: var(--a-panel);
 }
-.admin-table-loading { display: flex; justify-content: center; padding: 48px; }
 .admin-table { width: 100%; border-collapse: collapse; font-size: var(--ts-sm); }
 .admin-table th {
   background: var(--a-surface); color: var(--a-ink-3); font-weight: 700;

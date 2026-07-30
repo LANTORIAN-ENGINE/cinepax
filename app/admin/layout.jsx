@@ -4,6 +4,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
 import { IconGauge, IconTicket, IconUsers, IconTag, IconHome, IconLogOut, IconMenu } from '@/components/icons'
+import { AdminChromeSkeleton } from '@/components/skeletons'
 
 const NAV = [
   { href: '/admin',              labelKey: 'adminNav.dashboard',    Icon: IconGauge  },
@@ -44,11 +45,7 @@ export default function AdminLayout({ children }) {
     router.push('/')
   }
 
-  if (checking) return (
-    <div className="admin-loading">
-      <div className="compte-spinner" />
-    </div>
-  )
+  if (checking) return <AdminChromeSkeleton />
 
   return (
     <div className="admin-wrap">

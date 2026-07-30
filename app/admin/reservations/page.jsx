@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
 import QrScanner from '@/components/QrScanner'
 import { useI18n } from '@/lib/i18n'
+import { TableSkeleton } from '@/components/skeletons'
 
 const TZ = 'Etc/GMT-3'
 
@@ -265,7 +266,11 @@ export default function AdminReservations() {
       <p className="admin-count">{t('reservations.count', { n: total, count: total })}</p>
 
       {loading ? (
-        <div className="admin-table-loading"><div className="compte-spinner" /></div>
+        <TableSkeleton rows={8} headers={[
+          t('reservations.thReference'), t('reservations.thFilm'), t('reservations.thSession'),
+          t('reservations.thClient'), t('reservations.thSeats'), t('reservations.thAmount'),
+          t('reservations.thPayment'), t('reservations.thStatus'), '',
+        ]} />
       ) : bookings.length === 0 ? (
         <p className="admin-empty">{t('reservations.empty')}</p>
       ) : (

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
 import { IconArrowRight } from '@/components/icons'
+import { DashboardSkeleton } from '@/components/skeletons'
 
 const TZ = 'Etc/GMT-3'
 
@@ -43,7 +44,7 @@ export default function AdminDashboard() {
     })
   }, [])
 
-  if (loading) return <div className="admin-page-loading"><div className="compte-spinner" /></div>
+  if (loading) return <DashboardSkeleton />
 
   return (
     <div className="admin-page">

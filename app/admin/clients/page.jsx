@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
+import { TableSkeleton } from '@/components/skeletons'
 
 function formatDate(str, locale = 'fr-FR') {
   if (!str) return '—'
@@ -135,7 +136,11 @@ export default function AdminClients() {
       </div>
 
       {loading ? (
-        <div className="admin-table-loading"><div className="compte-spinner" /></div>
+        <TableSkeleton rows={8} headers={[
+          t('clients.thClient'), t('clients.thEmail'), t('clients.thPhone'),
+          t('clients.thType'), t('clients.thBookings'), t('clients.thTotalSpent'),
+          t('clients.thLastBooking'),
+        ]} />
       ) : filtered.length === 0 ? (
         <p className="admin-empty">{t('clients.empty')}</p>
       ) : (

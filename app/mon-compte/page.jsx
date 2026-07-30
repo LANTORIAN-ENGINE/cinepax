@@ -5,6 +5,7 @@ import { QRCodeSVG } from 'qrcode.react'
 import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
 import { IconLogOut, IconTicket, IconQr, IconClose } from '@/components/icons'
+import { AccountSkeleton } from '@/components/skeletons'
 
 const TZ = 'Etc/GMT-3'
 
@@ -126,11 +127,7 @@ export default function MonComptePage() {
     }
   }
 
-  if (loading) return (
-    <div className="compte-loading">
-      <div className="compte-spinner" />
-    </div>
-  )
+  if (loading) return <AccountSkeleton />
 
   const upcoming = bookings.filter(b => new Date(b.session_time) >= new Date() && b.status !== 'cancelled')
   const past     = bookings.filter(b => new Date(b.session_time) <  new Date() || b.status === 'cancelled')

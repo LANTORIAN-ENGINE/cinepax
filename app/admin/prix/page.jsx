@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
+import { TableSkeleton, PriceCardsSkeleton } from '@/components/skeletons'
 
 const TZ = 'Etc/GMT-3'
 const CINEMA_ID = '0000000309'
@@ -258,7 +259,7 @@ function PriceCards() {
 
       {/* — Liste des types de billets configurés — */}
       {loading ? (
-        <div className="admin-table-loading"><div className="compte-spinner" /></div>
+        <PriceCardsSkeleton />
       ) : cards.length === 0 && !discovered ? (
         <div className="pc-empty">
           <svg viewBox="0 0 48 48" fill="none" width="44" height="44">
@@ -499,7 +500,14 @@ function SessionPrices() {
     setPrices(p => { const n = { ...p }; delete n[sessionId]; return n })
   }
 
-  if (loadingS) return <div className="admin-table-loading"><div className="compte-spinner" /></div>
+  if (loadingS) return (
+    <div className="admin-section">
+      <TableSkeleton rows={7} headers={[
+        t('prix.thSession'), t('prix.thFilm'), t('prix.thScreen'), t('prix.thTicketType'),
+        t('prix.thFallbackPrice'), t('prix.thSpecificPrice'), '',
+      ]} />
+    </div>
+  )
 
   return (
     <div className="admin-section">
