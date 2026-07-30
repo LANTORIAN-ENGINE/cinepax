@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { QRCodeSVG } from 'qrcode.react'
 import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
+import { IconLogOut, IconTicket, IconQr, IconClose } from '@/components/icons'
 
 const TZ = 'Etc/GMT-3'
 
@@ -149,9 +150,7 @@ export default function MonComptePage() {
             <p className="compte-email">{user?.email}</p>
           </div>
           <button className="compte-logout-btn" onClick={logout}>
-            <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
-              <path fillRule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z" clipRule="evenodd"/>
-            </svg>
+            <IconLogOut size={16} />
             {t('account.logout')}
           </button>
         </div>
@@ -179,10 +178,7 @@ export default function MonComptePage() {
           <div className="compte-bookings">
             {bookings.length === 0 && (
               <div className="compte-empty">
-                <svg viewBox="0 0 48 48" fill="none" width="48" height="48">
-                  <rect x="6" y="10" width="36" height="28" rx="3" stroke="#555" strokeWidth="2"/>
-                  <path d="M16 20h16M16 26h10" stroke="#555" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
+                <IconTicket size={44} />
                 <p>{t('account.empty')}</p>
                 <a href="/" className="compte-empty-cta">{t('account.bookNow')}</a>
               </div>
@@ -283,7 +279,9 @@ function BookingCard({ booking, qrOpen, setQrOpen, onCancel, cancelBusy }) {
           <button
             className="bk-qr-toggle"
             onClick={() => setQrOpen(isOpen ? null : booking.id)}
+            aria-expanded={isOpen}
           >
+            {isOpen ? <IconClose size={14} /> : <IconQr size={14} />}
             {isOpen ? t('account.close') : t('account.qrCode')}
           </button>
           {cancellable && (
@@ -301,8 +299,8 @@ function BookingCard({ booking, qrOpen, setQrOpen, onCancel, cancelBusy }) {
       {isOpen && (
         <div className="bk-qr-panel">
           <div className="bk-qr-frame">
-            <QRCodeSVG value={qrData} size={140}
-              bgColor="#0d0d0d" fgColor="#e8192c" level="M" />
+            <QRCodeSVG value={qrData} size={148}
+              bgColor="transparent" fgColor="currentColor" level="M" />
           </div>
           <div className="bk-qr-info">
             <p className="bk-qr-ref">{booking.booking_ref}</p>

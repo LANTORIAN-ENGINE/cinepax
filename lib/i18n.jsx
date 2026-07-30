@@ -350,6 +350,7 @@ const DICT = {
 
     adminNav: {
       brandRole: 'Administration',
+      menu: 'Ouvrir le menu',
       dashboard: 'Tableau de bord',
       reservations: 'Réservations',
       clients: 'Clients',
@@ -363,6 +364,7 @@ const DICT = {
       todayBookings: "Réservations aujourd'hui",
       todayRevenue: "Chiffre d'affaires du jour",
       confirmedSeats: 'Places confirmées',
+      ofToday: 'sur {n} aujourd’hui',
       registeredClients: 'Clients inscrits',
       latest: 'Dernières réservations',
       viewAll: 'Voir tout →',
@@ -879,6 +881,7 @@ const DICT = {
 
     adminNav: {
       brandRole: 'Administration',
+      menu: 'Open menu',
       dashboard: 'Dashboard',
       reservations: 'Bookings',
       clients: 'Customers',
@@ -892,6 +895,7 @@ const DICT = {
       todayBookings: 'Bookings today',
       todayRevenue: "Today's revenue",
       confirmedSeats: 'Confirmed seats',
+      ofToday: 'of {n} today',
       registeredClients: 'Registered customers',
       latest: 'Latest bookings',
       viewAll: 'View all →',
