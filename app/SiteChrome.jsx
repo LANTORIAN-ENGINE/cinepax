@@ -107,12 +107,10 @@ export function Navbar() {
                 ))}
               </div>
             </div>
-            <NavAuth />
-            <div className="poc-badge">
-              <span className="poc-dot" />
-              POC — eTech
-            </div>
           </div>
+          {/* Compte et langue forment le groupe d'utilitaires, calé à droite :
+              même hauteur, même pastille, séparés de la navigation. */}
+          <NavAuth />
           <LanguageSwitcher />
         </div>
       </div>

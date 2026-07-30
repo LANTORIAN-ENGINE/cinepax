@@ -94,7 +94,6 @@ const DICT = {
 
     auth_nav: {
       login: 'Connexion',
-      register: "S'inscrire",
       admin: 'Admin',
       dashboard: 'Tableau de bord',
       reservations: 'Réservations',
@@ -630,7 +629,6 @@ const DICT = {
 
     auth_nav: {
       login: 'Log in',
-      register: 'Sign up',
       admin: 'Admin',
       dashboard: 'Dashboard',
       reservations: 'Bookings',

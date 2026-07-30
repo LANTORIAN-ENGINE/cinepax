@@ -20,6 +20,9 @@ body {
   top: 0;
   z-index: 200;
   border-bottom: 1px solid #1a1a1a;
+
+  /* ease-out-quint : ouverture franche puis arrêt net, sans rebond */
+  --nav-ez: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .navbar-inner {
@@ -96,36 +99,7 @@ body {
   opacity: 0.9;
 }
 
-.poc-badge {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  background: rgba(229, 160, 20, 0.12);
-  border: 1px solid rgba(229, 160, 20, 0.45);
-  border-radius: 20px;
-  padding: 5px 14px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: #ff3044;
-  letter-spacing: 0.03em;
-  white-space: nowrap;
-}
-
-.poc-dot {
-  width: 6px;
-  height: 6px;
-  background: #ff3044;
-  border-radius: 50%;
-  flex-shrink: 0;
-  animation: poc-pulse 2s ease-in-out infinite;
-}
-
-@keyframes poc-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.4; transform: scale(0.7); }
-}
-
-/* ── Zone droite navbar (liens + bascule de langue) ── */
+/* ── Zone droite navbar (liens + utilitaires compte / langue) ── */
 .navbar-right {
   display: flex;
   align-items: center;
@@ -2008,11 +1982,10 @@ body {
    RESPONSIVE
 ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  /* Sur mobile on ne garde que les liens de section : le compte, le badge POC
-     et le reste restent masqués faute de place. Les deux liens passent sur une
-     seconde ligne — sur un rang unique ils repoussaient la bascule de langue
-     hors de l'écran. */
-  .navbar-links > *:not(.navbar-sections) { display: none; }
+  /* Deux rangs : compte et langue en haut à droite, rubriques en dessous.
+     Sur un rang unique les rubriques repoussaient les utilitaires hors de
+     l'écran. La pastille de connexion tient désormais dans ce rang, alors
+     qu'un couple de boutons devait être masqué. */
   .navbar-inner { height: auto; padding: 8px 16px; }
   .navbar-logo img { height: 38px; }
   /* min-width:0 est indispensable : sans lui, cet élément flex se dimensionne
@@ -2774,39 +2747,133 @@ body {
 /* ═══════════════════════════════════════════════════════════════
    NAVBAR AUTH
 ═══════════════════════════════════════════════════════════════ */
+/* Les contrôles de compte reprennent l'habillage du sélecteur de langue —
+   même hauteur de 32 px, même pastille, même liseré. Les deux utilitaires
+   se lisent alors comme un groupe, pas comme deux widgets voisins. */
 .nav-auth-wrap {
-  display: flex; align-items: center; gap: 8px; margin-left: 10px;
+  display: flex; align-items: center; gap: 8px;
 }
-.nav-auth-btn {
-  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
-  text-decoration: none; border-radius: 3px; padding: 6px 14px;
-  transition: all 0.15s; white-space: nowrap;
+
+/* ── Visiteur : pastille « Connexion » ──────────────────────────
+   Repliée, elle vaut un cercle de 32 px. Le survol la déploie vers la
+   gauche et découvre le libellé. Le gabarit invisible occupe le flux à
+   la largeur déployée : rien ne bouge autour, quelle que soit la langue,
+   et l'arithmétique reste juste sans nombre magique. */
+.nav-signin-slot {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
 }
-.nav-auth-btn--ghost {
-  color: #fff; border: 1.5px solid #555; background: transparent;
+
+.nav-signin {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  text-decoration: none;
+  overflow: hidden;
+  transition: background 0.18s, border-color 0.18s;
 }
-.nav-auth-btn--ghost:hover { color: #fff; border-color: #999; background: rgba(255,255,255,0.06); }
-.nav-auth-btn--primary {
-  color: #fff; background: #e8192c; border: 1.5px solid #e8192c;
+
+.nav-signin--ghost { visibility: hidden; pointer-events: none; }
+.nav-signin--ghost .nav-signin-label { grid-template-columns: 1fr; }
+
+.nav-signin--live { position: absolute; top: 0; right: 0; }
+
+.nav-signin--live:hover,
+.nav-signin--live:focus-visible {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
 }
-.nav-auth-btn--primary:hover { background: #ff3044; }
+
+.nav-signin--live:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+.nav-signin-avatar {
+  flex-shrink: 0;
+  width: 26px; height: 26px; margin: 0 2px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.18s var(--nav-ez);
+}
+
+/* Le rouge de marque ne sort qu'au survol : un seul accent, un seul moment. */
+.nav-signin--live:hover .nav-signin-avatar,
+.nav-signin--live:focus-visible .nav-signin-avatar { background: #e8192c; }
+
+/* 0fr → 1fr : la colonne s'ouvre sans qu'on ait à connaître la largeur
+   du texte, et le libellé reste dans le DOM donc lisible au lecteur d'écran. */
+.nav-signin-label {
+  display: grid;
+  grid-template-columns: 0fr;
+  transition: grid-template-columns 0.38s var(--nav-ez);
+}
+
+.nav-signin-clip {
+  overflow: hidden;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+/* Les marges intérieures vivent sur ce span en ligne, jamais sur le bloc
+   rogné : en border-box, un bloc de largeur nulle ne descend pas sous la
+   somme de ses paddings et la pastille repliée cesserait d'être ronde. */
+.nav-signin-text {
+  padding: 0 14px 0 9px;
+  font-family: 'Bebas Neue', 'Helvetica Neue', sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.16s ease;
+}
+
+/* Le texte n'apparaît qu'une fois la place faite — sinon il se comprime. */
+.nav-signin--live:hover .nav-signin-text,
+.nav-signin--live:focus-visible .nav-signin-text {
+  opacity: 1;
+  transition: opacity 0.22s ease 0.1s;
+}
+
+.nav-signin--live:hover .nav-signin-label,
+.nav-signin--live:focus-visible .nav-signin-label { grid-template-columns: 1fr; }
+
+/* Sans survol, rien ne révélerait le libellé : on le laisse déployé. */
+@media (hover: none) {
+  .nav-signin-label { grid-template-columns: 1fr; }
+  .nav-signin-text { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-signin,
+  .nav-signin-avatar,
+  .nav-signin-label,
+  .nav-signin-text { transition: none; }
+}
 
 .nav-admin-link {
-  display: flex; align-items: center; gap: 5px;
+  display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px;
   font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em;
-  color: #e8192c; text-decoration: none; padding: 6px 10px;
-  border: 1px solid rgba(232,25,44,0.3); border-radius: 3px;
-  transition: all 0.15s;
+  color: #ff3044; text-decoration: none;
+  border: 1px solid rgba(232,25,44,0.32); border-radius: 999px;
+  background: rgba(232,25,44,0.08);
+  transition: background 0.18s, border-color 0.18s;
 }
-.nav-admin-link:hover { background: rgba(232,25,44,0.1); }
+.nav-admin-link:hover { background: rgba(232,25,44,0.16); border-color: rgba(232,25,44,0.55); }
 
 .nav-user-menu-wrap { position: relative; }
 .nav-user-btn {
   display: flex; align-items: center; gap: 6px;
-  background: none; border: 1.5px solid #333; border-radius: 20px;
-  padding: 4px 10px 4px 5px; cursor: pointer; transition: border-color 0.15s;
+  height: 32px; padding: 0 9px 0 2px;
+  border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05); color: #fff;
+  cursor: pointer; transition: background 0.18s, border-color 0.18s;
 }
-.nav-user-btn:hover { border-color: #666; }
+.nav-user-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.3); }
+.nav-user-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .nav-user-avatar {
   width: 26px; height: 26px; border-radius: 50%;
   background: #e8192c; color: #fff;
@@ -3524,8 +3591,37 @@ body {
 .auth-submit-btn:hover:not(:disabled) { background: var(--a-accent-hi); }
 .auth-submit-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
-.auth-links { margin-top: 22px; display: flex; flex-direction: column; gap: 8px; }
-.auth-links p { font-size: var(--ts-sm); color: var(--a-ink-3); }
+/* Bascule connexion ⇄ inscription. Le filet la détache du formulaire, le
+   contour la distingue du bouton principal : c'est un second choix, pas une
+   seconde action. Depuis le retrait du raccourci de la barre, c'est le seul
+   chemin d'une page à l'autre — il ne peut pas se lire comme une note. */
+.auth-switch {
+  margin-top: 26px; padding-top: 20px;
+  border-top: 1px solid var(--a-line-2);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.auth-switch-q { font-size: var(--ts-sm); color: var(--a-ink-3); }
+.auth-switch-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 11px 20px;
+  border: 1px solid var(--a-line); border-radius: var(--r-sm);
+  color: var(--a-ink); font-size: var(--ts-sm); font-weight: 700;
+  text-decoration: none;
+  transition: border-color 0.16s var(--ez), background 0.16s var(--ez);
+}
+.auth-switch-btn:hover {
+  border-color: var(--a-accent); background: var(--a-accent-w);
+}
+.auth-switch-btn svg { transition: transform 0.22s var(--ez); }
+.auth-switch-btn:hover svg { transform: translateX(3px); }
+
+.auth-back { margin-top: 18px; text-align: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-switch-btn svg { transition: none; }
+  .auth-switch-btn:hover svg { transform: none; }
+}
+
 .auth-link {
   color: var(--a-accent); text-decoration: none; font-weight: 600;
   font-size: var(--ts-sm);

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
+import { IconUser } from '@/components/icons'
 
 export default function NavAuth() {
   const { t } = useI18n()
@@ -58,10 +59,30 @@ export default function NavAuth() {
   }
 
   /* ── Visiteur ──────────────────────────────────────────────── */
+  // Une seule porte d'entrée : la pastille de connexion. L'inscription se
+  // rejoint depuis la page de connexion, là où le choix se pose vraiment —
+  // deux boutons concurrents dans la barre ne servaient personne.
   if (!user) return (
-    <div className="nav-auth-wrap">
-      <a href="/auth/login"    className="nav-auth-btn nav-auth-btn--ghost">{t('auth_nav.login')}</a>
-      <a href="/auth/register" className="nav-auth-btn nav-auth-btn--primary">{t('auth_nav.register')}</a>
+    <div className="nav-signin-slot">
+      {/* Gabarit invisible : il occupe le flux à la largeur déployée, si bien
+          que le survol ne décale ni la barre ni le sélecteur de langue. */}
+      <span className="nav-signin nav-signin--ghost" aria-hidden>
+        <span className="nav-signin-avatar" />
+        <span className="nav-signin-label">
+          <span className="nav-signin-clip">
+            <span className="nav-signin-text">{t('auth_nav.login')}</span>
+          </span>
+        </span>
+      </span>
+
+      <a href="/auth/login" className="nav-signin nav-signin--live">
+        <span className="nav-signin-avatar"><IconUser size={15} /></span>
+        <span className="nav-signin-label">
+          <span className="nav-signin-clip">
+            <span className="nav-signin-text">{t('auth_nav.login')}</span>
+          </span>
+        </span>
+      </a>
     </div>
   )
 

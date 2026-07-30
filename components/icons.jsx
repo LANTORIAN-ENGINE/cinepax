@@ -54,6 +54,15 @@ export const IconUsers = p => (
   </Icon>
 )
 
+// Compte : buste seul, épaules coupées par le cadre — à 15 px dans la pastille
+// de la barre, un buste détouré se lit mieux qu'une silhouette entière.
+export const IconUser = p => (
+  <Icon {...p}>
+    <circle cx="12" cy="8.4" r="3.6" />
+    <path d="M5.4 20.2a6.6 6.6 0 0113.2 0" />
+  </Icon>
+)
+
 export const IconTag = p => (
   <Icon {...p}>
     <path d="M20.6 12.9l-7.7 7.7a1.6 1.6 0 01-2.3 0l-7.2-7.2a1.6 1.6 0 01-.4-1.1V4.8c0-.9.7-1.6 1.6-1.6h7.5c.4 0 .8.2 1.1.4l7.4 7.4a1.6 1.6 0 010 1.9z" />

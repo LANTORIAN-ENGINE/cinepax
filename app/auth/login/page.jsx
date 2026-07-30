@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
+import { IconArrowRight } from '@/components/icons'
 
 // Rend un texte multi-ligne (séparé par \n) avec des <br/>
 function MultiLine({ text }) {
@@ -92,12 +93,19 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="auth-links">
-            <p>{t('auth.noAccount')}{' '}
-              <a href="/auth/register" className="auth-link">{t('auth.createAccount')}</a>
-            </p>
-            <p><a href="/" className="auth-link auth-link--ghost">{t('auth.backHome')}</a></p>
+          {/* Seul passage vers l'inscription depuis que la barre ne propose
+              plus qu'une porte : il doit se voir. */}
+          <div className="auth-switch">
+            <p className="auth-switch-q">{t('auth.noAccount')}</p>
+            <a href="/auth/register" className="auth-switch-btn">
+              {t('auth.createAccount')}
+              <IconArrowRight size={15} />
+            </a>
           </div>
+
+          <p className="auth-back">
+            <a href="/" className="auth-link auth-link--ghost">{t('auth.backHome')}</a>
+          </p>
         </div>
       </div>
     </div>
