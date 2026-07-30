@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useI18n } from '@/lib/i18n'
 import { fixImageUrl } from '@/lib/images'
+import { IconDownload } from '@/components/icons'
 
 // ─── Programme de la semaine ──────────────────────────────────────────────────
 // cinepax.mg publie une affiche JPEG redéposée chaque semaine dans son CMS —
@@ -92,8 +93,38 @@ export default function ProgrammePage() {
         <p className="empty-state">{t('programme.empty')}</p>
       )}
 
+      {/* ── Affiche de la semaine ────────────────────────────────────
+          Même objet que l'affiche publiée chaque semaine par cinepax.mg, à
+          ceci près qu'elle se compose depuis Veezi et se régénère seule : la
+          leur, déposée à la main dans leur CMS, se périme le lundi suivant.
+          Elle se télécharge — c'est l'usage réel de ce format, qui circule
+          sur Facebook et WhatsApp. */}
+      {!loading && !error && days.length > 0 && (
+        <section className="prog-poster-section">
+          <div className="prog-poster-head">
+            <h2 className="prog-poster-title">{t('programme.posterTitle')}</h2>
+            <a
+              className="prog-poster-dl"
+              href="/api/programme/affiche"
+              download="cinepax-programme.png"
+            >
+              <IconDownload size={16} />
+              {t('programme.posterDownload')}
+            </a>
+          </div>
+          <a href="/api/programme/affiche" target="_blank" rel="noreferrer" className="prog-poster-frame">
+            <img src="/api/programme/affiche" alt={t('programme.posterAlt')} loading="lazy" />
+          </a>
+          <p className="prog-poster-note">{t('programme.posterNote')}</p>
+        </section>
+      )}
+
       {/* La semaine complète fait plusieurs écrans de haut : ces raccourcis
           évitent de la faire défiler pour atteindre un jour précis. */}
+      {!loading && days.length > 0 && (
+        <h2 className="prog-detail-title">{t('programme.detailTitle')}</h2>
+      )}
+
       {days.length > 1 && (
         <nav className="prog-jump" aria-label={t('programme.jumpLabel')}>
           {days.map(day => {

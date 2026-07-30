@@ -68,6 +68,11 @@ const DICT = {
       empty: 'Aucune séance programmée pour le moment.',
       filmCount: { one: '{n} film', other: '{n} films' },
       jumpLabel: 'Aller à un jour',
+      posterTitle: 'Affiche de la semaine',
+      posterDownload: 'Télécharger',
+      posterAlt: 'Programme de la semaine chez Cinepax Madagascar',
+      posterNote: 'Générée à partir des séances Veezi : elle suit la programmation sans être redéposée.',
+      detailTitle: 'Toutes les séances',
     },
 
     comingSoon: {
@@ -598,6 +603,11 @@ const DICT = {
       empty: 'No showtimes scheduled yet.',
       filmCount: { one: '{n} film', other: '{n} films' },
       jumpLabel: 'Jump to a day',
+      posterTitle: 'This week’s poster',
+      posterDownload: 'Download',
+      posterAlt: 'Cinepax Madagascar weekly schedule',
+      posterNote: 'Generated from Veezi showtimes: it follows the schedule without being re-uploaded.',
+      detailTitle: 'All showtimes',
     },
 
     comingSoon: {
