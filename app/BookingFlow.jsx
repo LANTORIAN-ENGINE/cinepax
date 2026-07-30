@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { usePathname } from 'next/navigation'
 import SeatMap from '../components/SeatMap'
 import HeroSlider from '../components/HeroSlider'
 import PaymentForm from '../components/PaymentForm'
@@ -336,6 +337,10 @@ export default function BookingFlow({ initialRoute }) {
   )
   const replaceNextRef = useRef(false)  // écrire l'URL sans empiler d'entrée
   const dayTouchedRef  = useRef(false)  // la date n'entre dans l'URL qu'une fois choisie
+  // Dernier chemin observé, pour distinguer un vrai changement d'adresse d'un
+  // simple rendu — voir l'effet qui écoute usePathname. `null` tant qu'aucun
+  // rendu n'a eu lieu : l'adresse d'entrée est l'affaire de la restauration.
+  const seenPathRef = useRef(null)
   // Films et séances chargés — succès ou échec. Sans ce repère, une
   // programmation vide laisserait une URL profonde en attente pour toujours.
   const [dataLoaded, setDataLoaded] = useState(false)
@@ -379,13 +384,17 @@ export default function BookingFlow({ initialRoute }) {
     return route.step
   }
 
-  // applyRoute se referme sur l'état du rendu courant. On en garde la dernière
-  // version dans un ref : les effets ci-dessous l'appellent sans avoir à la
-  // lister en dépendance, ce qui les relancerait à chaque rendu. Cet effet est
-  // déclaré en premier — les effets s'exécutent dans l'ordre de déclaration,
-  // le ref est donc toujours à jour quand les suivants l'utilisent.
-  const applyRouteRef = useRef(null)
-  useEffect(() => { applyRouteRef.current = applyRoute })
+  // applyRoute et le chemin attendu se referment sur l'état du rendu courant.
+  // On en garde la dernière version dans des refs : les effets ci-dessous s'en
+  // servent sans avoir à les lister en dépendance, ce qui les relancerait à
+  // chaque rendu. Cet effet est déclaré en premier — les effets s'exécutent
+  // dans l'ordre de déclaration, les refs sont donc à jour pour les suivants.
+  const applyRouteRef   = useRef(null)
+  const expectedPathRef = useRef(bookingPath(step, selectedFilm, selectedSession))
+  useEffect(() => {
+    applyRouteRef.current = applyRoute
+    expectedPathRef.current = bookingPath(step, selectedFilm, selectedSession)
+  })
 
   // Restauration : on attend que films et séances soient chargés pour résoudre
   // l'URL d'entrée. Si elle ne mène nulle part (séance passée, lien périmé), on
@@ -429,6 +438,32 @@ export default function BookingFlow({ initialRoute }) {
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
   }, [])
+
+  // Adresse changée sans passer par le tunnel — typiquement le lien
+  // « Actuellement » de la barre de navigation, cliqué depuis une étape.
+  //
+  // Le routeur Next reste sur la route par laquelle on est entré : nos
+  // pushState déplacent l'adresse, pas lui. Un lien vers « / » depuis
+  // /film/… ne provoque donc aucun rendu de page — Next se contente de
+  // ramener l'adresse à celle qu'il croit servir. L'écran resterait figé sur
+  // l'étape précédente, en désaccord avec la barre d'adresse.
+  //
+  // usePathname suit ces mouvements : on se cale dessus. La dépendance est
+  // volontairement limitée au chemin, pour ne réagir qu'à un vrai changement
+  // d'adresse et jamais à nos propres écritures, toujours en retard d'un rendu
+  // sur l'étape qui vient de changer.
+  const pathname = usePathname()
+  useEffect(() => {
+    const previous = seenPathRef.current
+    seenPathRef.current = pathname
+    if (previous === null) return              // adresse d'entrée : déjà traitée
+    if (pathname === previous) return          // pas un changement d'adresse
+    if (pathname === expectedPathRef.current) return  // notre propre écriture
+    const route = parseBookingPath(pathname)
+    const applied = applyRouteRef.current?.(route)
+    if (applied == null) { setPendingRoute(route); return }
+    if (applied !== route.step) replaceNextRef.current = true
+  }, [pathname])
 
   // Filtres d'accueil reçus par lien partagé (/?groupe=film&tri=alpha).
   useEffect(() => {
