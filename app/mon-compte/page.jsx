@@ -25,8 +25,10 @@ const STATUS_CLS = {
   used:      { key: 'account.statusUsed',      cls: 'status-used'      },
 }
 // Onglets ↔ segment d'URL (?onglet=…)
-const TAB_PARAM = { bookings: 'reservations', requests: 'demandes', profile: 'profil' }
-const PARAM_TAB = { reservations: 'bookings', demandes: 'requests', profil: 'profile' }
+const TAB_PARAM = { bookings: 'achats', requests: 'demandes', profile: 'profil' }
+// « reservations » reste accepté en lecture : les liens déjà partagés avant le
+// passage à la terminologie ACHAT continuent d'ouvrir le bon onglet.
+const PARAM_TAB = { achats: 'bookings', reservations: 'bookings', demandes: 'requests', profil: 'profile' }
 
 // Demandes envoyées depuis la page Contact, rattachées au compte par l'e-mail.
 const REQ_STATUS = {

@@ -2,7 +2,15 @@
 
 ## Vue d'ensemble
 
-POC de réservation de billets en ligne pour **Cinepax Madagascar** (cinepax.mg), développé pour eTech. Interface utilisateur en français. Déployé sur Vercel.
+POC d'**achat de tickets en ligne** pour **Cinepax Madagascar** (cinepax.mg), développé pour eTech. Interface utilisateur en français. Déployé sur Vercel.
+
+### Terminologie — ACHAT, jamais « réservation »
+
+Décision client : la vente est un **achat ferme et définitif** d'une séance avec sièges attribués, pas une réservation. Le terme retenu pour la vente est **ACHAT TICKET EN LIGNE**.
+
+- Tout texte visible par l'utilisateur dit **achat / acheter** (EN : *purchase / buy*). Aucun « réservation », « réserver », *booking*, *book*.
+- Le bandeau `components/AchatBand.jsx` porte le message aux trois points d'engagement du tunnel (séances, sièges, paiement).
+- Les **identifiants techniques restent inchangés** : table Supabase `bookings`, route `/admin/reservations`, clés i18n `reservations.*` / `myBookings`, composant `BookingFlow`. Seules les *valeurs* du dictionnaire changent — renommer les routes et la base serait une migration à part entière.
 
 ## Stack technique
 
@@ -17,7 +25,7 @@ POC de réservation de billets en ligne pour **Cinepax Madagascar** (cinepax.mg)
 
 ```
 app/
-  page.jsx          — Page unique (toute la logique de réservation)
+  page.jsx          — Page unique (toute la logique d'achat)
   layout.jsx        — Navbar + Footer + métadonnées globales
   globals.css       — Tout le CSS (2000+ lignes)
   api/
@@ -60,7 +68,7 @@ const TZ = 'Etc/GMT-3'         // Fuseau horaire Madagascar
 
 Les deux sont proxifiées côté serveur Next.js pour masquer les tokens.
 
-## Flux de réservation (5 étapes — state machine `step`)
+## Flux d'achat (5 étapes — state machine `step`)
 
 ```
 films → sessions → seats → payment → done

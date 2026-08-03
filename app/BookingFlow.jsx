@@ -6,6 +6,7 @@ import SeatMap from '../components/SeatMap'
 import HeroSlider from '../components/HeroSlider'
 import PaymentForm from '../components/PaymentForm'
 import BookingConfirmation from '../components/BookingConfirmation'
+import AchatBand from '../components/AchatBand'
 import { useI18n } from '@/lib/i18n'
 import { filmPoster, filmBackdrop } from '@/lib/images'
 import {
@@ -875,6 +876,7 @@ export default function BookingFlow({ initialRoute }) {
         backLabel={t('film.backToShowtimes')}
         extraMeta={`${screenLabel} · ${sessionLabel}`}
       >
+        <AchatBand />
         <h2 className="sessions-title">{t('seats.title')}</h2>
         <hr className="section-divider" />
 
@@ -997,6 +999,7 @@ export default function BookingFlow({ initialRoute }) {
         onBack={() => setStep('films')}
         backLabel={t('film.backToMovies')}
       >
+        <AchatBand />
         <h2 className="sessions-title">{t('sessions.title')}</h2>
         <hr className="section-divider" />
 

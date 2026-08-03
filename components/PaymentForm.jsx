@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
+import AchatBand from './AchatBand'
 
 function fixImageUrl(url) {
   if (!url) return null
@@ -553,6 +554,8 @@ export default function PaymentForm({
               {t('payment.back')}
             </button>
 
+            <AchatBand size="sm" />
+
             <h1 className="pay-form-title">{t('payment.formTitle')}</h1>
             <p className="pay-form-subtitle">{t('payment.formSubtitle')}</p>
 
@@ -722,6 +725,10 @@ export default function PaymentForm({
               )}
 
               {/* — Submit — */}
+              {/* Dernier rappel avant l'engagement : le bouton valide un
+                  achat, pas une mise en attente. */}
+              <p className="pay-final-sale">{t('payment.finalSaleNote')}</p>
+
               <button type="submit" className="pay-submit-btn" disabled={submitting || bniLoading}>
                 {(submitting || bniLoading)
                   ? <><span className="pay-spinner" />{bniLoading ? t('payment.connectingBni') : t('payment.processingShort')}</>

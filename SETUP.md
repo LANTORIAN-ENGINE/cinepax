@@ -70,12 +70,12 @@ npm run dev
 
 | URL | Description |
 |-----|-------------|
-| `/` | Films à l'affiche + réservation |
+| `/` | Films à l'affiche + achat de tickets |
 | `/auth/login` | Connexion |
 | `/auth/register` | Inscription |
-| `/mon-compte` | Espace client (réservations, QR codes, profil) |
+| `/mon-compte` | Espace client (achats, QR codes, profil) |
 | `/admin` | Tableau de bord admin |
-| `/admin/reservations` | Toutes les réservations (filtres, export CSV) |
+| `/admin/reservations` | Tous les achats en ligne (filtres, export CSV) |
 | `/admin/clients` | Gestion des clients |
 | `/admin/prix` | Tarification par séance + catégories de sièges |
 
@@ -102,7 +102,7 @@ seat_categories (catégories par salle avec prix de base)
 
 ---
 
-## 7. Flux de réservation
+## 7. Flux d'achat
 
 ```
 films → sessions → plan de salle → paiement → confirmation
@@ -117,12 +117,12 @@ films → sessions → plan de salle → paiement → confirmation
 **Note sur les prix :**
 - L'API Veezi Connect retourne les prix si le canal **CINEP** est activé (`ticketUnitPrice`)
 - Sinon, les prix viennent de la table `session_prices` (configurés par l'admin dans `/admin/prix`)
-- Si aucun prix n'est trouvé, la réservation est enregistrée à 0 Ar (à régulariser manuellement)
+- Si aucun prix n'est trouvé, l'achat est enregistré à 0 Ar (à régulariser manuellement)
 
 ---
 
 ## 8. Note sur le mode visiteur vs connecté
 
-- **Visiteur** : réservation sans compte, `user_id = NULL`, coordonnées saisies dans le formulaire
-- **Connecté** : `user_id` lié à l'auth Supabase, réservations visibles dans `/mon-compte`
+- **Visiteur** : achat sans compte, `user_id = NULL`, coordonnées saisies dans le formulaire
+- **Connecté** : `user_id` lié à l'auth Supabase, achats visibles dans `/mon-compte`
 - **Admin** : `profiles.is_admin = TRUE`, accès à `/admin/*`

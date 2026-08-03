@@ -6491,3 +6491,142 @@ body {
    sur la colonne étroite : une phrase seule dans 900 px de vide ne gagne
    rien à passer à côté. */
 .prog-poster-note { max-width: 420px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   BANDEAU « ACHAT | TICKET EN LIGNE »
+
+   La vente est un achat ferme et définitif, pas une réservation.
+   Le bandeau emprunte sa forme au talon d'un billet de cinéma : la
+   perforation tombe exactement entre ACHAT et TICKET EN LIGNE, ce qui
+   détache le mot qui doit être lu en premier. Une seule version
+   visuelle — surface sombre + liseré rouge — pour tenir aussi bien sur
+   le blanc des pages publiques que sur le #0f0f0f du panneau de paiement.
+═══════════════════════════════════════════════════════════════ */
+.achat-band {
+  --ab-red:     #e8192c;
+  --ab-surface: #161616;
+  --ab-punch:   #0a0a0a;
+
+  display: flex;
+  /* ACHAT et TICKET EN LIGNE sont une seule phrase coupée par la
+     perforation : ils doivent poser sur la même ligne de base, malgré
+     deux corps différents. */
+  align-items: baseline;
+  background: var(--ab-surface);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-left: 5px solid var(--ab-red);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 0 0 28px;
+}
+
+.achat-band-stub {
+  flex-shrink: 0;
+  padding: 17px 20px 17px 22px;
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 2.1rem;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  color: var(--ab-red);
+}
+
+/* Pointillés du talon + les deux encoches poinçonnées : le trait ne
+   flotte pas au milieu, il traverse le billet de part en part. Les
+   cercles débordent du cadre et sont rognés par overflow: hidden. */
+.achat-band-perf {
+  position: relative;
+  align-self: stretch;
+  flex-shrink: 0;
+  width: 1px;
+  margin: 0 2px;
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.34) 0 5px,
+    transparent 5px 11px
+  );
+  background-size: 1px 11px;
+}
+.achat-band-perf::before,
+.achat-band-perf::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--ab-punch);
+  transform: translateX(-50%);
+}
+.achat-band-perf::before { top: -6px; }
+.achat-band-perf::after  { bottom: -6px; }
+
+.achat-band-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 17px 22px 17px 20px;
+}
+
+.achat-band-rest {
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: 0.13em;
+  color: #fff;
+}
+
+.achat-band-note {
+  font-family: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.775rem;
+  line-height: 1.45;
+  color: #9a9a9a;
+}
+
+/* Version compacte — colonnes étroites (formulaire de paiement). */
+.achat-band--sm { margin-bottom: 22px; }
+.achat-band--sm .achat-band-stub { padding: 13px 15px 13px 16px; font-size: 1.6rem; }
+.achat-band--sm .achat-band-body { padding: 13px 16px 13px 15px; gap: 5px; }
+.achat-band--sm .achat-band-rest { font-size: 1.15rem; letter-spacing: 0.11em; }
+.achat-band--sm .achat-band-note { font-size: 0.72rem; }
+
+/* Sous 560 px le talon passe au-dessus : la perforation bascule à
+   l'horizontale, encoches comprises. */
+@media (max-width: 560px) {
+  .achat-band { flex-direction: column; align-items: stretch; border-left-width: 4px; }
+  .achat-band-stub { padding: 15px 18px 11px; font-size: 1.9rem; }
+
+  .achat-band-perf {
+    width: auto;
+    height: 1px;
+    margin: 0 18px;
+    background-image: linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.34) 0 5px,
+      transparent 5px 11px
+    );
+    background-size: 11px 1px;
+  }
+  .achat-band-perf::before,
+  .achat-band-perf::after {
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+  }
+  .achat-band-perf::before { left: -24px; }
+  .achat-band-perf::after  { left: auto; right: -24px; }
+
+  .achat-band-body { padding: 11px 18px 15px; }
+  .achat-band-rest { font-size: 1.3rem; }
+}
+
+/* Rappel juridique posé juste au-dessus du bouton de validation : le
+   liseré rouge le rattache au bandeau ACHAT sans en refaire un bloc. */
+.pay-final-sale {
+  margin: 0 0 14px;
+  padding: 10px 0 10px 12px;
+  border-left: 2px solid #e8192c;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: #9a9a9a;
+}

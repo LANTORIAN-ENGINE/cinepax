@@ -3,8 +3,8 @@ import { LanguageProvider } from '@/lib/i18n'
 import { Navbar, Footer } from './SiteChrome'
 
 export const metadata = {
-  title: 'Cinepax Madagascar',
-  description: 'Réservation de billets en ligne',
+  title: 'Cinepax Madagascar — Achat de tickets en ligne',
+  description: 'Achat de tickets de cinéma en ligne : choisissez votre séance et vos sièges, payez, et recevez votre billet. Achat ferme et définitif.',
   icons: {
     icon: '/logo.jpg',
     apple: '/logo.jpg',

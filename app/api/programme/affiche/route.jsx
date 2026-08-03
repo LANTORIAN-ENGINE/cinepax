@@ -196,7 +196,7 @@ export async function GET() {
               +261 34 05 735 01
             </div>
             <div style={{ fontSize: 18, color: INK_3, marginTop: 5 }}>
-              Réservation en ligne
+              Achat de tickets en ligne
             </div>
           </div>
         </div>
