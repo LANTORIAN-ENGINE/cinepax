@@ -94,7 +94,7 @@ function SuccessContent() {
       const bannerH = 18
       doc.setFillColor(0, 0, 0)
       doc.rect(0, 0, 90, bannerH, 'F')
-      const logo = await loadImageData('/logo.jpg').catch(() => null)
+      const logo = await loadImageData('/logo2.png').catch(() => null)
       if (logo) {
         const logoH = 11
         const logoW = logoH * (logo.w / logo.h)

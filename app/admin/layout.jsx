@@ -66,7 +66,7 @@ export default function AdminLayout({ children }) {
       {/* ── Sidebar ── */}
       <aside className={`admin-sidebar ${sideOpen ? 'open' : ''}`}>
         <div className="admin-sidebar-brand">
-          <img src="/logo.jpg" alt="Cinepax" className="admin-brand-logo" />
+          <img src="/logo2.png" alt="Cinepax" className="admin-brand-logo" />
           <div>
             <p className="admin-brand-name">Cinepax</p>
             <p className="admin-brand-role">{t('adminNav.brandRole')}</p>

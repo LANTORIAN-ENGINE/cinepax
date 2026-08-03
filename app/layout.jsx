@@ -6,8 +6,8 @@ export const metadata = {
   title: 'Cinepax Madagascar — Achat de tickets en ligne',
   description: 'Achat de tickets de cinéma en ligne : choisissez votre séance et vos sièges, payez, et recevez votre billet. Achat ferme et définitif.',
   icons: {
-    icon: '/logo.jpg',
-    apple: '/logo.jpg',
+    icon: '/logo2.png',
+    apple: '/logo2.png',
   },
 }
 

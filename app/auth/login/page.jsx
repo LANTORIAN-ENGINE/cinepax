@@ -39,7 +39,7 @@ export default function LoginPage() {
 
   return (
     <div className="auth-form-box">
-      <img src="/logo.jpg" alt="Cinepax" className="auth-logo" />
+      <img src="/logo2.png" alt="Cinepax" className="auth-logo" />
       <h1 className="auth-title">{t('auth.loginTitle')}</h1>
       <p className="auth-subtitle">{t('auth.loginSubtitle')}</p>
 

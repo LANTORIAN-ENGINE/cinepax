@@ -3663,7 +3663,11 @@ body {
   padding: 48px 32px; background: var(--a-bg);
 }
 .auth-form-box { width: 100%; max-width: 380px; }
-.auth-logo { height: 46px; width: auto; margin-bottom: 28px; border-radius: var(--r-sm); }
+/* Le logo est fourni avec son fond noir incrusté. Sur la navbar et le pied de
+   page (#000) il se fond tout seul ; ici les panneaux sont d'un noir chaud, et
+   le rectangle du fichier se verrait. « screen » neutralise le noir sans
+   toucher au fichier : noir → transparent, blanc et étoiles inchangés. */
+.auth-logo { height: 46px; width: auto; margin-bottom: 28px; mix-blend-mode: screen; }
 .auth-title {
   font-size: var(--ts-xl); font-weight: 700; color: var(--a-ink);
   letter-spacing: -0.02em; margin-bottom: 6px;
@@ -4041,7 +4045,7 @@ body {
   display: flex; align-items: center; gap: 11px;
   padding: 20px 18px; border-bottom: 1px solid var(--a-line-2);
 }
-.admin-brand-logo { height: 34px; width: auto; border-radius: var(--r-sm); }
+.admin-brand-logo { height: 34px; width: auto; mix-blend-mode: screen; }
 .admin-brand-name { font-size: var(--ts-sm); font-weight: 700; color: var(--a-ink); }
 .admin-brand-role {
   font-size: var(--ts-2xs); color: var(--a-accent); font-weight: 700;

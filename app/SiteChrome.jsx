@@ -53,7 +53,7 @@ export function Navbar() {
     <nav className="navbar">
       <div className="navbar-inner">
         <Link href="/" className="navbar-logo">
-          <img src="/logo.jpg" alt="Cinepax Madagascar" />
+          <img src="/logo2.png" alt="Cinepax Madagascar" />
         </Link>
         <div className="navbar-right">
           <div className="navbar-links">
@@ -132,7 +132,7 @@ export function Footer() {
     <footer className="site-footer">
       <div className="footer-inner">
         <div className="footer-left">
-          <img src="/logo.jpg" alt="Cinepax Madagascar" className="footer-logo" />
+          <img src="/logo2.png" alt="Cinepax Madagascar" className="footer-logo" />
           <p className="footer-address">
             CINEPAX MADAGASCAR | Tana Water Front, Antananarivo, Madagascar | Phone (+261) 34 05 735 01
           </p>
