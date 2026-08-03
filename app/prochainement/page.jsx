@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useI18n } from '@/lib/i18n'
+import { useI18n, formatDuration } from '@/lib/i18n'
 import { fixImageUrl } from '@/lib/images'
 import { youtubeId } from '@/components/HeroSlider'
 
@@ -34,7 +34,7 @@ function ComingSoonSkeleton() {
 
 // ─── Fiche détaillée ──────────────────────────────────────────────────────────
 function FilmDialog({ film, onClose }) {
-  const { t, locale } = useI18n()
+  const { t, lang, locale } = useI18n()
   const videoId = youtubeId(film.trailerUrl)
   const opening = formatOpening(film.openingDate, locale)
 
@@ -49,7 +49,7 @@ function FilmDialog({ film, onClose }) {
     }
   }, [onClose])
 
-  const meta = [film.rating, film.duration && `${film.duration} ${t('home.mins')}`, film.genre]
+  const meta = [film.rating, film.duration && formatDuration(film.duration, lang), film.genre]
     .filter(Boolean).join(' · ')
 
   return (

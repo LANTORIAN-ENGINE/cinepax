@@ -7,7 +7,7 @@ import HeroSlider from '../components/HeroSlider'
 import PaymentForm from '../components/PaymentForm'
 import BookingConfirmation from '../components/BookingConfirmation'
 import AchatBand from '../components/AchatBand'
-import { useI18n } from '@/lib/i18n'
+import { useI18n, formatDuration } from '@/lib/i18n'
 import { filmPoster, filmBackdrop } from '@/lib/images'
 import {
   bookingPath, parseBookingPath, findFilmByParam, homeQuery, parseHomeQuery,
@@ -284,7 +284,7 @@ function RestoringSkeleton({ step }) {
 // Sur l'accueil il vaut { step: 'films' } : le tunnel démarre alors exactement
 // comme avant, sans restauration à faire.
 export default function BookingFlow({ initialRoute }) {
-  const { t, locale, moneyLocale } = useI18n()
+  const { t, lang, locale, moneyLocale } = useI18n()
   const tr = t   // alias utilisable là où `t` est masqué (ex: sessionTickets.map(t => …))
   const formatHour       = (s) => formatHourL(s, locale)
   const formatTime       = (s) => formatTimeL(s, locale)
@@ -820,7 +820,7 @@ export default function BookingFlow({ initialRoute }) {
 
               {(film.Duration || film.Genre) && (
                 <p className="film-meta-hero">
-                  {film.Duration && `${film.Duration} ${t('home.mins')}`}
+                  {film.Duration && formatDuration(film.Duration, lang)}
                   {film.Duration && film.Genre && ' | '}
                   {film.Genre}
                 </p>
@@ -1262,7 +1262,7 @@ export default function BookingFlow({ initialRoute }) {
                         <p className="film-meta">
                           {film.Rating && <span>{film.Rating}</span>}
                           {film.Rating && film.Duration && <span> | </span>}
-                          {film.Duration && <span>{film.Duration} {t('home.mins')}</span>}
+                          {film.Duration && <span>{formatDuration(film.Duration, lang)}</span>}
                         </p>
 
                         {synopsis && (
@@ -1334,7 +1334,7 @@ export default function BookingFlow({ initialRoute }) {
               <div className="film-detail-info">
                 <h2>{selectedFilm.Title}</h2>
                 <p className="meta">
-                  {selectedFilm.Duration && `${selectedFilm.Duration} ${t('home.mins')}`}
+                  {selectedFilm.Duration && formatDuration(selectedFilm.Duration, lang)}
                   {selectedFilm.Duration && selectedFilm.Rating && ' · '}
                   {selectedFilm.Rating}
                 </p>

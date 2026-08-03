@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useI18n } from '@/lib/i18n'
+import { useI18n, formatDuration } from '@/lib/i18n'
 import { fixImageUrl } from '@/lib/images'
 import { IconDownload } from '@/components/icons'
 
@@ -54,7 +54,7 @@ function ProgrammeSkeleton() {
 }
 
 export default function ProgrammePage() {
-  const { t, locale } = useI18n()
+  const { t, lang, locale } = useI18n()
 
   const [data, setData]       = useState(null)
   const [loading, setLoading] = useState(true)
@@ -161,7 +161,7 @@ export default function ProgrammePage() {
                 <div className="prog-info">
                   <h3 className="prog-film-title">{film.title}</h3>
                   <p className="prog-film-meta">
-                    {[film.rating, film.duration && `${film.duration} ${t('home.mins')}`, film.genre]
+                    {[film.rating, film.duration && formatDuration(film.duration, lang), film.genre]
                       .filter(Boolean).join(' · ')}
                   </p>
 

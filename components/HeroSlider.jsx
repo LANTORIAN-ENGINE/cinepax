@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useI18n } from '@/lib/i18n'
+import { useI18n, formatDuration } from '@/lib/i18n'
 
 // ─── Carrousel d'accueil ──────────────────────────────────────────────────────
 // Reproduit le slider vidéo plein cadre de cinepax.mg, alimenté uniquement par
@@ -173,7 +173,7 @@ const IconShrink = () => <svg viewBox="0 0 24 24" fill="currentColor" width="15"
 
 // ─── Carrousel ────────────────────────────────────────────────────────────────
 export default function HeroSlider({ films, loading, onSelectFilm }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const reducedMotion = usePrefersReducedMotion()
 
   const slides = pickHeroFilms(films)
@@ -283,7 +283,7 @@ export default function HeroSlider({ films, loading, onSelectFilm }) {
             const cover     = coverImage(film, videoId)
             const isActive  = i === index
             const synopsis  = film.Synopsis || film.ShortSynopsis || ''
-            const meta      = [film.Rating, film.Duration && `${film.Duration} ${t('home.mins')}`, film.Genre?.trim()]
+            const meta      = [film.Rating, film.Duration && formatDuration(film.Duration, lang), film.Genre?.trim()]
               .filter(Boolean).join(' · ')
 
             return (

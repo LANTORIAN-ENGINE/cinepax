@@ -188,7 +188,8 @@ const DICT = {
       emptyDay: 'Aucun film programmé ce jour.',
       more: 'Plus',
       less: 'Moins',
-      mins: 'mins',
+      mins: 'min',
+      hourShort: 'h',
       prev: 'Précédent',
       next: 'Suivant',
     },
@@ -841,6 +842,7 @@ const DICT = {
       more: 'More',
       less: 'Less',
       mins: 'min',
+      hourShort: 'h',
       prev: 'Previous',
       next: 'Next',
     },
@@ -1339,6 +1341,23 @@ export function translate(lang, key, vars) {
     val = Number(count) === 1 ? val.one : val.other
   }
   return interpolate(val, vars)
+}
+
+// Durée d'un film, exprimée en minutes par Veezi. Le client la veut lue comme
+// une horloge — « 1 h 45 » plutôt que « 105 mins » — les minutes sur deux
+// chiffres. En dessous d'une heure il ne reste que les minutes, au singulier
+// (« 45 min »), et une heure pleine se passe des minutes (« 2 h »).
+export function formatDuration(minutes, lang = 'fr') {
+  const total = Math.round(Number(minutes))
+  if (!Number.isFinite(total) || total <= 0) return ''
+
+  const hours = Math.floor(total / 60)
+  const mins  = total % 60
+
+  if (!hours) return `${mins} ${translate(lang, 'home.mins')}`
+  return mins
+    ? `${hours} ${translate(lang, 'home.hourShort')} ${String(mins).padStart(2, '0')}`
+    : `${hours} ${translate(lang, 'home.hourShort')}`
 }
 
 // ─── Contexte React ───────────────────────────────────────────────────────────
