@@ -182,7 +182,7 @@ const DICT = {
       title: 'Horaires et achat de billets',
       byDay: 'PAR JOUR',
       byMovie: 'PAR FILM',
-      byShowtime: 'PAR HEURE DE SÉANCE',
+      byShowtime: 'PAR HEURE DE SÉANCES',
       alphabetical: 'PAR ORDRE ALPHABÉTIQUE',
       newest: 'PLUS RÉCENT',
       emptyDay: 'Aucun film programmé ce jour.',
