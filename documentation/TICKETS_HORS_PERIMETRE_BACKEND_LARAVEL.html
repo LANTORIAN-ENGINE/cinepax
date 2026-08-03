@@ -1,0 +1,1064 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cinepax Madagascar - Tickets techniques - Back-end Laravel hors périmètre</title>
+</head>
+<body>
+
+<h1>Cinepax Madagascar × eTech - Tickets techniques</h1>
+<h2>Back-end Laravel - travaux hors périmètre contractuel</h2>
+
+<p><strong>Périmètre couvert :</strong> les neuf journées de développement hors périmètre du 7 au 17 juillet 2026, portant sur la vérification, le redressement et la complétion du back-end Laravel destiné à se substituer aux vingt-deux points d'entrée embarqués dans l'application Next.js.</p>
+
+<p><strong>Ce que ces tickets ne couvrent pas :</strong> le reliquat contractuel (notifications, concessions, activation du paiement mobile, tests automatisés du front), les travaux de recherche et d'investigation du 20 au 31 juillet, et tout ce qui relève du périmètre initial des 43 journées.</p>
+
+<p><strong>Convention de nommage :</strong> chaque ticket porte un identifiant de la forme CPX-BE suivi d'un numéro. Les lots sont désignés par une lettre. Les dépendances sont exprimées entre identifiants de tickets.</p>
+
+<hr>
+
+<h2>Sommaire des lots</h2>
+
+<ul>
+  <li><strong>Lot A - Conformité de contrat et socle applicatif.</strong> Cinq tickets. Garantir que le back-end Laravel est substituable à la couche Next.js sans modification du front.</li>
+  <li><strong>Lot B - Portabilité du schéma de données.</strong> Quatre tickets. Rendre le schéma installable indifféremment sur MySQL 8 et PostgreSQL 15, et remonter la logique métier de la base vers le code.</li>
+  <li><strong>Lot C - Authentification et autorisations.</strong> Quatre tickets. Sortir du service d'identité externe sans réinitialiser les mots de passe des clients.</li>
+  <li><strong>Lot D - Intégration Veezi et Vista Connect.</strong> Quatre tickets. Centraliser la connaissance des deux interfaces et rendre la tarification déterministe.</li>
+  <li><strong>Lot E - Fiabilité transactionnelle du tunnel.</strong> Cinq tickets. Garantir qu'aucun encaissement ne reste sans place, et qu'aucune place n'est vendue deux fois.</li>
+  <li><strong>Lot F - Chaîne de paiement.</strong> Quatre tickets. Durcir le rappel bancaire et préparer l'accueil des moyens de paiement mobile.</li>
+  <li><strong>Lot G - Back-office d'exploitation.</strong> Quatre tickets. Sortir l'administration de l'accès direct à la base depuis le navigateur.</li>
+  <li><strong>Lot H - Mesure, billetterie et langues.</strong> Quatre tickets. Fiabiliser l'indicateur de fréquentation et remonter la génération du billet côté serveur.</li>
+  <li><strong>Lot I - Industrialisation et bascule.</strong> Quatre tickets. Rendre l'ensemble déployable et réversible.</li>
+</ul>
+
+<hr>
+
+<h1>LOT A - Conformité de contrat et socle applicatif</h1>
+
+<h2>CPX-BE-01 - Harnais de comparaison de contrat entre Laravel et Next.js</h2>
+
+<h3>Contexte</h3>
+
+<p>Le back-end Laravel doit remplacer vingt-deux points d'entrée Next.js sans que le front soit modifié. Chaque point d'entrée possède ses propres conventions de nommage, héritées de six semaines d'itérations rapides des deux côtés. Rien ne mesure aujourd'hui l'écart entre les deux implémentations : une divergence de nom de champ ou de type ne se révélerait qu'au moment de la bascule, sous forme de régression silencieuse en production.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Écrire une classe de test de base capable de comparer une réponse Laravel à une réponse Next.js enregistrée sur disque, avec une comparaison structurelle stricte : une clé en trop est un échec, une clé manquante également, un type divergent également.</li>
+  <li>Prévoir une déclaration de chemins volatils, pour les valeurs qui changent légitimement à chaque appel - horodatage de génération, référence tirée au hasard, identifiant de transaction. Sur ces chemins, vérifier la présence et le type, jamais la valeur.</li>
+  <li>Capturer les réponses de référence depuis la couche Next.js en fonctionnement, pour les vingt-deux points d'entrée, en couvrant pour chacun le cas nominal, le cas vide et le cas d'erreur.</li>
+  <li>Intégrer la suite de contrat comme famille de tests distincte, exécutable indépendamment des tests fonctionnels.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Au moins trente fichiers de référence sont versionnés dans le dépôt.</li>
+  <li>La suite de contrat s'exécute en une commande et signale chaque divergence en nommant le point d'entrée et le chemin fautif.</li>
+  <li>Un changement délibéré de nom de champ dans une classe de ressource fait échouer la suite.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,5 journée. <strong>Dépendances :</strong> aucune. <strong>Priorité :</strong> haute - ce ticket conditionne la validation de tous les autres.</p>
+
+<h2>CPX-BE-02 - Correction des sept écarts de contrat détectés</h2>
+
+<h3>Contexte</h3>
+
+<p>La mise en service du harnais a révélé sept points d'entrée déjà développés dont la réponse diverge de celle attendue par le front. Trois portent sur un nom de champ, deux sur un type - un nombre renvoyé sous forme de chaîne de caractères -, un sur un tableau vide renvoyé à la place d'une valeur nulle, et un sur un code de retour HTTP.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Corriger chacun des sept écarts dans la classe de ressource concernée, et non dans le contrôleur, afin que la correction reste au niveau du contrat de sérialisation.</li>
+  <li>Traiter en particulier le cas du tableau vide contre valeur nulle : le front teste la nullité pour décider d'afficher un état vide, et un tableau vide passerait ce test.</li>
+  <li>Traiter le cas du code de retour : le front discrimine plusieurs situations d'erreur sur le code HTTP, et un code générique les rendrait indistinguables.</li>
+  <li>Ajouter un test de contrat par écart corrigé, pour interdire la réapparition.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>La suite de contrat passe intégralement sur les sept points d'entrée concernés.</li>
+  <li>Aucune modification n'a été apportée au code du front pour y parvenir.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-01.</p>
+
+<h2>CPX-BE-03 - Généralisation de la sérialisation explicite</h2>
+
+<h3>Contexte</h3>
+
+<p>Plusieurs points d'entrée renvoient encore directement les objets de la base, ce qui laisse le contrat de réponse implicite. Toute évolution du schéma - ajout d'une colonne, renommage - se propagerait alors jusqu'au front sans qu'aucun test ne le signale. C'est également un risque de fuite : une colonne interne ajoutée demain serait exposée publiquement par défaut.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Introduire une classe de ressource dédiée pour chaque contrat de réponse, y compris lorsque la réponse est un simple objet.</li>
+  <li>Interdire par analyse statique le renvoi direct d'un modèle depuis un contrôleur.</li>
+  <li>Vérifier en particulier que la ressource client des messages de contact n'expose pas la note interne d'administration, et que la ressource client des réservations n'expose pas les identifiants techniques du système de billetterie.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Aucun contrôleur ne renvoie de modèle sans passer par une ressource.</li>
+  <li>Un test échoue si la note interne réapparaît dans la ressource client.</li>
+  <li>La règle d'analyse statique est intégrée à la chaîne d'intégration continue.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-01.</p>
+
+<h2>CPX-BE-04 - Externalisation des constantes métier en configuration</h2>
+
+<h3>Contexte</h3>
+
+<p>Plusieurs valeurs structurantes sont écrites en dur et dupliquées : l'identifiant du cinéma apparaît dans quatre fichiers, le fuseau horaire de Madagascar dans cinq, et les durées de revalidation dans chacun. Une modification demande donc de retrouver toutes les occurrences, et un oubli produit une incohérence silencieuse.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Créer trois fichiers de configuration : intégration Veezi, passerelle de paiement, constantes métier du projet.</li>
+  <li>Retenir un décalage horaire fixe de trois heures plutôt que le fuseau nominal d'Antananarivo. Madagascar n'appliquant pas d'heure d'été, le décalage fixe supprime toute dépendance à la fraîcheur de la base de fuseaux du serveur.</li>
+  <li>Différencier les durées de cache selon la volatilité réelle : une heure pour le catalogue de films, dix minutes pour la grille des séances, une heure pour l'identité du cinéma, cinq minutes pour la grille tarifaire, et aucun cache pour le plan de salle.</li>
+  <li>Documenter dans le fichier lui-même les deux constantes issues d'un constat en conditions réelles : la longueur maximale de trente-deux caractères de l'identifiant de panier, et le mode de réservation à retenir, qui place le siège en état réservé sans transaction financière.</li>
+  <li>Étendre le fichier d'exemple de configuration en commentant chaque variable avec sa provenance : banque, éditeur de billetterie, hébergeur.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Aucune de ces valeurs n'apparaît plus en dur dans le code applicatif.</li>
+  <li>Le fichier d'exemple couvre les vingt-sept variables nécessaires au démarrage.</li>
+  <li>Un démarrage avec une variable obligatoire manquante produit un message explicite nommant la variable.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> aucune.</p>
+
+<h2>CPX-BE-05 - Durcissement des clients de communication vers Veezi</h2>
+
+<h3>Contexte</h3>
+
+<p>Les appels aux deux interfaces passent par des requêtes sans délai maximal, sans reprise et sans journalisation. Un incident réseau bloque donc un processus indéfiniment, et aucune trace ne permet de reconstituer ce qui s'est passé.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Centraliser les appels dans deux clients distincts, aux comportements volontairement différents.</li>
+  <li>Pour le client de lecture : délai maximal de douze secondes, délai de connexion de quatre secondes, jusqu'à trois tentatives espacées progressivement. Ces appels sont sans effet de bord et leur rejeu est sans risque.</li>
+  <li>Pour le client de billetterie : délai maximal de vingt secondes et <strong>aucune reprise automatique</strong>. La commande de billets n'est pas idempotente : un rejeu créerait un second panier tenant les mêmes sièges, donc une place perdue pour la vente.</li>
+  <li>Figer la casse exacte des en-têtes d'authentification du client de billetterie, et la commenter. Le système distant rejette silencieusement toute variante de casse.</li>
+  <li>Convertir toute réponse non interprétable en exception métier portant les deux cents premiers caractères du corps, et journaliser le corps complet côté serveur. Le système distant renvoie parfois une page web d'erreur avec un code de succès.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Aucun appel direct aux interfaces ne subsiste hors de ces deux clients.</li>
+  <li>Un test vérifie qu'une réponse en page web est convertie en exception nommée et non en erreur d'analyse syntaxique.</li>
+  <li>Un test vérifie qu'aucune reprise automatique n'a lieu sur la commande de billets.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-04.</p>
+
+<hr>
+
+<h1>LOT B - Portabilité du schéma de données</h1>
+
+<h2>CPX-BE-06 - Réécriture des migrations en constructions portables</h2>
+
+<h3>Contexte</h3>
+
+<p>Le schéma en production est du PostgreSQL idiomatique, écrit pour la plateforme managée qui l'héberge. Les migrations Laravel en reproduisent les constructions propriétaires, ce qui contredit l'engagement de portabilité pris dans la note de chiffrage : le schéma est annoncé installable sur les deux moteurs, il ne l'est en réalité que sur un seul. L'hébergement n'étant pas arbitré, ce point est bloquant pour le déploiement.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Recenser et traiter les neuf constructions non portables : références vers la table de comptes du service d'identité externe, fonction propriétaire retournant l'utilisateur courant, sécurité au niveau des lignes, déclencheurs à privilèges élevés, type document binaire indexé, génération d'identifiants universels par la base, horodatages avec fuseau, contrôles par expression régulière, et vue exécutée avec les droits de l'appelant.</li>
+  <li>Substituer une table de comptes propre à l'application, en conservant les identifiants universels d'origine afin de ne pas rompre les clés étrangères des réservations et des messages.</li>
+  <li>Employer le type document simple plutôt que sa variante indexée pour le détail des types de billets : aucun filtre ne porte sur ce champ, la perte est nulle.</li>
+  <li>Dimensionner les montants en entiers longs non signés. La convention du projet étant le montant en ariary multiplié par cent, un entier ordinaire suffirait pour une vente courante mais pas pour une privatisation de salle.</li>
+  <li>Traiter la limite de longueur d'index de MySQL en encodage universel : indexer sur un préfixe de cent quatre-vingt-onze caractères là où la colonne dépasse.</li>
+  <li>Ajouter un tri explicite partout où l'ordre des résultats est visible côté client. Sans tri, les deux moteurs ne renvoient pas les lignes dans le même ordre - défaut déjà présent dans la couche Next.js.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>La totalité des migrations s'exécute sans erreur sur PostgreSQL 15 et sur MySQL 8.</li>
+  <li>La suite de tests fonctionnels passe intégralement sur les deux moteurs.</li>
+  <li>Une note interne recense les neuf constructions et la résolution retenue pour chacune.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,5 journée. <strong>Dépendances :</strong> aucune. <strong>Priorité :</strong> haute - bloquant pour l'arbitrage d'hébergement.</p>
+
+<h2>CPX-BE-07 - Remontée de la logique métier des déclencheurs vers des observateurs</h2>
+
+<h3>Contexte</h3>
+
+<p>Trois règles métier vivent aujourd'hui dans des déclencheurs écrits en PL/pgSQL, avec privilèges élevés : la création automatique du profil à l'inscription, le rattachement d'un message de contact au compte correspondant, et le rattrapage des messages antérieurs à la création d'un compte. Ces règles sont robustes mais invisibles depuis le code applicatif, non testables hors base, et non portables sur MySQL.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Transposer la création du profil dans un observateur sur la création d'un compte, et fournir une commande de rattrapage pour les comptes antérieurs.</li>
+  <li>Transposer le rattachement d'un message dans un observateur sur l'écriture, en conservant la règle de sécurité d'origine : le compte associé est <strong>toujours recalculé</strong> à partir de l'adresse électronique, et une valeur fournie par l'appelant est ignorée. Sans cette règle, une écriture directe pourrait déposer un message dans l'espace client d'un tiers.</li>
+  <li>Conserver également la contrainte selon laquelle un message déposé publiquement est neuf par construction : état, note interne et horodatage de réponse sont forcés à leurs valeurs initiales.</li>
+  <li>Faire partager au rattrapage à l'inscription et au rattrapage manuel du point d'entrée client une seule et même implémentation, afin qu'ils ne puissent pas diverger.</li>
+  <li>Normaliser l'adresse électronique en minuscules à l'écriture, plutôt que de dépendre de la collation du moteur. MySQL compare sans tenir compte de la casse, PostgreSQL non.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Les trois déclencheurs peuvent être supprimés sans perte fonctionnelle.</li>
+  <li>Un test vérifie qu'un compte fourni par l'appelant est ignoré au profit du compte résolu par l'adresse.</li>
+  <li>Un test vérifie qu'un message inséré avec un état déjà traité est ramené à l'état neuf.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-06.</p>
+
+<h2>CPX-BE-08 - Table de tenue temporaire des sièges</h2>
+
+<h3>Contexte</h3>
+
+<p>Un siège n'est aujourd'hui bloqué qu'au moment de la commande de billets, c'est-à-dire après le paiement. Entre la sélection et l'encaissement s'écoulent deux à cinq minutes de saisie de carte pendant lesquelles un autre visiteur peut choisir le même fauteuil. Les deux paieront, un seul aura sa place.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Créer une table de tenue portant la séance, le siège en notation d'affichage, les trois coordonnées de position, le code de catégorie, un jeton de panier, une réservation éventuelle et une date d'expiration.</li>
+  <li>Poser une contrainte d'unicité sur le couple séance et siège. C'est cette contrainte, et non un contrôle applicatif, qui doit garantir l'exclusion : elle est la seule à résister à deux processus concurrents sur deux serveurs.</li>
+  <li>Indexer la date d'expiration pour permettre une purge efficace.</li>
+  <li>Retenir une durée de dix minutes, calée sur l'expiration observée de la zone de paiement par carte, au-delà de laquelle l'interface bancaire cesse d'accepter la saisie.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Deux insertions concurrentes sur le même siège produisent exactement un succès et un échec de contrainte.</li>
+  <li>La table est créée à l'identique sur les deux moteurs.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-06. <strong>Suite :</strong> CPX-BE-14.</p>
+
+<h2>CPX-BE-09 - Tables de mesure de fréquentation et journal des échanges avec le système de billetterie</h2>
+
+<h3>Contexte</h3>
+
+<p>L'indicateur de fréquentation annoncé au tableau de bord repose sur un comptage sommaire. Par ailleurs, aucune trace ne subsiste des échanges avec le système de billetterie : le jour où un client affirmera avoir payé sans avoir de place, rien ne permettra de reconstituer ce qui a été tenté.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Créer une table de visites détaillées portant une empreinte de visiteur, le chemin consulté, l'origine, le type d'appareil, la langue et un indicateur de robot. <strong>Ne jamais stocker d'adresse réseau</strong>, ni en base ni en journal.</li>
+  <li>Créer une table d'agrégat quotidien portant les visites, les visiteurs uniques, les entrées dans le tunnel et les réservations payées. Elle existe pour que le tableau de bord n'ait pas à compter des centaines de milliers de lignes à chaque chargement.</li>
+  <li>Créer une table de journal des échanges avec le système de billetterie, portant l'horodatage, le point d'entrée appelé, le corps envoyé expurgé, le code de résultat, le code de résultat étendu, la description d'erreur, la durée et la référence de réservation liée.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Aucune colonne des trois tables ne peut contenir d'adresse réseau.</li>
+  <li>Le journal des échanges est renseigné pour la commande de billets, la confirmation, l'annulation et le renversement comptable.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-06. <strong>Suite :</strong> CPX-BE-24.</p>
+
+<hr>
+
+<h1>LOT C - Authentification et autorisations</h1>
+
+<h2>CPX-BE-10 - Reprise des comptes clients sans réinitialisation de mot de passe</h2>
+
+<h3>Contexte</h3>
+
+<p>L'authentification repose sur le service d'identité de la plateforme hébergeant la base. La question qui conditionne toute la bascule est celle du devenir des comptes existants : imposer une réinitialisation de mot de passe à l'ensemble du fichier client lors d'un changement d'infrastructure est un incident qui se paie en appels à l'accueil pendant deux semaines.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Vérifier le format de stockage des empreintes de mot de passe du service d'identité. Elles emploient un algorithme de hachage lent standard, dans un format directement vérifiable par Laravel : elles sont donc réutilisables telles quelles, sans réinitialisation.</li>
+  <li>Écrire une commande de reprise qui recrée chaque compte en <strong>conservant son identifiant universel d'origine</strong>. Sans cela, les clés étrangères des réservations et des messages perdraient leur cible.</li>
+  <li>Reverser les métadonnées de compte - nom complet, téléphone - dans le profil associé.</li>
+  <li>Ne jamais importer le statut d'administrateur. Les comptes d'administration sont réattribués un par un après la bascule, par une commande dédiée et journalisée. Importer un privilège depuis un fichier serait le meilleur moyen de propager une élévation accidentelle.</li>
+  <li>Prévoir une commande de synchronisation incrémentale, à exécuter toutes les quinze minutes pendant la période de recouvrement où le service historique reste autorité d'inscription.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>La commande est éprouvée sur un export anonymisé d'au moins deux cents lignes, sans échec.</li>
+  <li>Une connexion réussit avec un mot de passe d'origine, sans intervention du client.</li>
+  <li>Aucun compte importé ne porte le statut d'administrateur.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,5 journée. <strong>Dépendances :</strong> CPX-BE-06. <strong>Priorité :</strong> haute - bloquant pour la bascule.</p>
+
+<h2>CPX-BE-11 - Modèle d'autorisation en remplacement de la sécurité au niveau des lignes</h2>
+
+<h3>Contexte</h3>
+
+<p>La protection en lecture des réservations repose sur des politiques de base de données, absentes de MySQL. Par ailleurs, chaque point d'entrée refait à sa façon la lecture de l'en-tête, la validation du jeton, le chargement du profil et le test du statut - avec sept implémentations dupliquées côté administration.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Introduire une porte d'autorisation globale accordant tous les droits aux administrateurs, afin que la question ne se repose plus dans chaque politique.</li>
+  <li>Écrire quatre politiques d'objet : réservations, messages de contact, profils, grilles tarifaires.</li>
+  <li>Dans la politique d'annulation, reprendre la règle métier existante : on n'annule que si la séance n'a pas commencé. Passé l'heure, la place n'a plus de valeur et seul un administrateur peut supprimer.</li>
+  <li>Définir la propriété sur deux cas : le compte directement lié, et la réservation faite en visiteur portant l'adresse vérifiée du compte.</li>
+  <li>Écrire une portée de requête reprenant le rôle de la politique de base. <strong>Corriger au passage un défaut existant :</strong> l'ancienne politique ne testait que l'égalité au propriétaire déclaré, laissant les réservations invité invisibles au client connecté tant qu'un rattrapage n'était pas déclenché.</li>
+  <li>Remplacer les sept vérifications dupliquées par un intercepteur unique.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Un client ne peut ni lire ni annuler la réservation d'un autre - test négatif explicite.</li>
+  <li>Une réservation faite en visiteur est visible du client connecté portant la même adresse, sans rattrapage préalable.</li>
+  <li>Les politiques fonctionnent à l'identique sur les deux moteurs.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-10.</p>
+
+<h2>CPX-BE-12 - Jetons à portée restreinte et durées différenciées</h2>
+
+<h3>Contexte</h3>
+
+<p>Le contrôle d'accès en salle s'exerce depuis un téléphone ou une tablette, par du personnel qui n'est pas administrateur du site. Lui confier un compte d'administration complet pour valider des billets serait disproportionné : un appareil égaré donnerait accès au fichier clients et à la recette.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Définir quatre types de jetons avec des portées et des durées distinctes : client web à trente jours glissants, administration à douze heures, contrôle en salle à vingt-quatre heures, panier anonyme à dix minutes.</li>
+  <li>Restreindre le jeton de contrôle à une seule capacité, n'ouvrant que deux opérations : lire une réservation par sa référence, et la marquer comme utilisée.</li>
+  <li>Justifier la durée d'administration par l'usage réel : le poste de caisse est partagé, la journée d'exploitation suffit.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Un jeton de contrôle en salle se voit refuser l'accès au fichier clients, à la recette et aux tarifs - test négatif explicite.</li>
+  <li>Un jeton expiré et un jeton révoqué produisent chacun un refus distinct et documenté.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-11.</p>
+
+<h2>CPX-BE-13 - Limitation de débit à compteur partagé</h2>
+
+<h3>Contexte</h3>
+
+<p>La seule limitation existante est un garde-fou en mémoire sur le formulaire de contact, explicitement décrit dans le code comme un ralentisseur et non une protection, le processus pouvant être recyclé à tout moment. Rien ne protège la connexion ni la création de réservation.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Limiter la connexion à cinq tentatives par minute pour un couple identifiant et adresse réseau, et à vingt par heure pour une adresse.</li>
+  <li>Reprendre la limite du formulaire de contact avec un compteur partagé qui survit au redémarrage.</li>
+  <li>Limiter la création de réservation à dix par minute et par client, <strong>et à trente par minute et par séance</strong>. Cette seconde limite protège la disponibilité des sièges et non seulement le serveur.</li>
+  <li>N'appliquer aucune limite au rappel bancaire : le brider reviendrait à perdre la confirmation d'un paiement encaissé.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Les compteurs sont partagés entre processus et survivent à un redémarrage applicatif.</li>
+  <li>Un test vérifie qu'aucune limite ne s'applique au rappel bancaire.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-04.</p>
+
+<hr>
+
+<h1>LOT D - Intégration Veezi et Vista Connect</h1>
+
+<h2>CPX-BE-14 - Résolveur de prix à cascade déterministe</h2>
+
+<h3>Contexte</h3>
+
+<p>La détermination du prix d'une place est la règle métier la plus subtile du projet, et elle est répartie entre trois points d'entrée et du code client. Aucune source unique ne dit d'où vient un prix, ce qui rend toute anomalie tarifaire ininstruisible.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Concentrer la résolution dans un objet unique interrogeant trois sources dans un ordre strict : le prix fixé à la main pour la séance, qui prime car il représente une décision humaine explicite ; la grille en direct du système de billetterie, qui est la source de vérité commerciale ; puis la table locale des grilles, filet de sécurité jamais autorité.</li>
+  <li>Ne jamais inventer de prix. En l'absence des trois sources, ne rien renvoyer : la page bascule alors sur l'affiche officielle et le tunnel refuse la vente.</li>
+  <li><strong>Traiter un montant à zéro comme inconnu et non comme gratuit.</strong> Une grille est volontairement enregistrée à zéro pour rester visible au back-office sans afficher de tarif faux au public ; sans cette règle, la séance concernée serait vendue à zéro ariary.</li>
+  <li>Faire remonter par le deuxième niveau non seulement le montant mais les codes de types de billets, sans lesquels la commande de billets est impossible. Une réservation dépourvue de ce détail doit être marquée comme écartée.</li>
+  <li>Journaliser le niveau atteint à chaque résolution, et exposer la répartition au tableau de bord.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Les douze combinaisons de disponibilité des trois niveaux sont couvertes par des tests.</li>
+  <li>Un montant à zéro ne produit jamais une vente.</li>
+  <li>Le niveau de résolution est consultable pour toute vente passée.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,5 journée. <strong>Dépendances :</strong> CPX-BE-05.</p>
+
+<h2>CPX-BE-15 - Normalisateur de plan de salle et table des statuts de siège</h2>
+
+<h3>Contexte</h3>
+
+<p>La structure renvoyée par le système de billetterie est profondément imbriquée, et le statut d'un siège se lit sur deux champs distincts selon le cas. La correspondance entre ces signaux et l'affichage est aujourd'hui dispersée entre le composant d'affichage et plusieurs commentaires, sans source unique.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Aplatir la structure imbriquée - zones, rangées, sièges, position sur trois coordonnées - en une grille exploitable par le front.</li>
+  <li>Figer la table de correspondance des sept statuts : disponible et vendable ; occupé ; réservé exploitation ; hors service ; place accompagnant, vendable sous condition ; vide, correspondant à une allée ; et inconnu, lorsque la réponse est indisponible.</li>
+  <li>Décider du mode dégradé <strong>côté serveur</strong> et non côté front. Le canal de vente étant fermé, tous les sièges tombent aujourd'hui en statut inconnu et le plan s'affiche en lecture seule ; le front ne doit pas avoir à interpréter un code de réponse du système distant pour le savoir.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Les sept statuts sont couverts par des tests s'appuyant sur des réponses réelles enregistrées.</li>
+  <li>Le comportement en mode dégradé est identique à celui de la couche Next.js, vérifié par test de contrat.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-05.</p>
+
+<h2>CPX-BE-16 - Politique de cache et protection contre l'avalanche</h2>
+
+<h3>Contexte</h3>
+
+<p>Le catalogue de films pèse environ cinq mégaoctets et demi pour près de deux mille trois cents films. Il est aujourd'hui rechargé sans coordination, ce qui produit à chaque expiration une rafale de téléchargements simultanés.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Stocker le catalogue <strong>découpé et réduit aux seuls champs utiles</strong>, jamais entier.</li>
+  <li>Poser un verrou au rechargement : à l'expiration, une seule requête va chercher les données, les autres attendent quelques secondes puis servent la valeur périmée.</li>
+  <li><strong>Ne jamais mettre le plan de salle en cache</strong>, pas même une seconde. Un siège affiché libre alors qu'il vient d'être vendu produit un encaissement sans place - la seule faute impardonnable du tunnel.</li>
+  <li>Filtrer côté serveur toutes les réponses volumineuses, afin que le client ne reçoive jamais le catalogue brut.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>La réponse de la page des films à venir ne dépasse pas quelques dizaines de kilooctets.</li>
+  <li>Un test vérifie qu'aucun cache n'est appliqué au plan de salle.</li>
+  <li>Quarante appels concurrents après expiration déclenchent un seul rechargement.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-05.</p>
+
+<h2>CPX-BE-17 - Constitution des jeux de données de référence des interfaces</h2>
+
+<h3>Contexte</h3>
+
+<p>Le canal de vente n'étant pas activé, il est impossible de développer ou de tester la chaîne de réservation contre l'interface vivante. Toute la logique de vente doit néanmoins être écrite et vérifiée.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Archiver les réponses réelles capturées lors de la campagne de test de début juillet : commande de billets réussie, confirmation réussie avec son numéro de réservation, lecture de réservation, annulation refusée avec son code de résultat étendu, et renversement comptable réussi. Ce sont des documents d'archive prouvant que la chaîne fonctionne canal ouvert.</li>
+  <li>Reconstituer les réponses d'échec : séance introuvable, résultat en erreur, page web d'erreur renvoyée avec un code de succès, expiration de connexion.</li>
+  <li>Reconstituer en particulier le message générique renvoyé par le système distant dans deux situations distinctes - siège déjà pris, et identifiant de panier trop long. Le message étant rigoureusement identique alors que l'une est une collision commerciale banale et l'autre un défaut de programmation, c'est ce cas qui justifie le pré-contrôle de disponibilité.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Au moins vingt-cinq jeux de données couvrent les trois systèmes tiers.</li>
+  <li>La suite de tests s'exécute intégralement hors ligne.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-05.</p>
+
+<hr>
+
+<h1>LOT E - Fiabilité transactionnelle du tunnel</h1>
+
+<h2>CPX-BE-18 - Gestionnaire de tenue des sièges</h2>
+
+<h3>Contexte</h3>
+
+<p>La table de tenue étant en place, il reste à écrire le service qui l'exploite. L'enjeu est la correction sous concurrence, dans une situation où deux serveurs peuvent traiter simultanément deux clients visant le même fauteuil.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Tenter l'insertion et lire l'échec de contrainte, plutôt que de vérifier puis d'insérer. La seconde approche laisserait une fenêtre de course entre les deux opérations.</li>
+  <li>Rendre la tenue <strong>atomique</strong> : tout le groupe de sièges ou rien. On ne laisse pas un client avec deux sièges sur les quatre qu'il voulait, séparés par une place vendue à un autre.</li>
+  <li><strong>Trier les sièges selon une clé stable avant toute insertion.</strong> Sans ce tri, deux clients demandant les mêmes sièges en ordre inverse se bloquent mutuellement : chacun obtient un siège puis échoue sur celui que l'autre détient, les deux transactions sont annulées, et la vente est perdue pour les deux alors que les places restent libres.</li>
+  <li>Documenter la limite du dispositif : la tenue est purement locale et ne bloque pas le siège au guichet du cinéma. Elle protège les clients du site les uns des autres, et c'est le pré-contrôle de disponibilité qui attrape une vente en caisse concurrente.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Aucun doublon de tenue sur un essai de plusieurs milliers de tentatives concurrentes.</li>
+  <li>Cinq cents paires de demandes en ordre inverse ne produisent aucun blocage mutuel.</li>
+  <li>Un refus nomme explicitement les sièges perdus.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,5 journée. <strong>Dépendances :</strong> CPX-BE-08. <strong>Priorité :</strong> haute.</p>
+
+<h2>CPX-BE-19 - Machine à états explicite de la réservation</h2>
+
+<h3>Contexte</h3>
+
+<p>Les états sont implicites, répartis sur trois colonnes - état de la réservation, état du paiement, état de l'écriture chez le cinéma - sans que les transitions admises soient écrites nulle part. Il est donc impossible de savoir si une combinaison observée est légitime ou accidentelle.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Formaliser les états et leurs transitions : en attente, payée, réservée, en échec, expirée, annulée, utilisée.</li>
+  <li><strong>Ajouter un état « à examiner »</strong>, désignant le cas redouté : argent encaissé, place non écrite, reprises épuisées.</li>
+  <li>Interdire les transitions non prévues, et faire échouer un test si une combinaison illégitime devient atteignable.</li>
+  <li>Faire remonter le nombre de réservations à examiner en tête du tableau de bord, <strong>avant la recette du jour</strong>. Une réservation payée sans place est plus urgente que n'importe quel indicateur commercial.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Les transitions sont couvertes par des tests, y compris les transitions refusées.</li>
+  <li>L'état « à examiner » n'est jamais atteint sans qu'une alerte parte simultanément.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-06.</p>
+
+<h2>CPX-BE-20 - Idempotence sur les trois points de rejeu</h2>
+
+<h3>Contexte</h3>
+
+<p>Trois opérations peuvent être rejouées sans intention : la création de réservation par double clic ou reprise de connexion mobile, l'écriture chez le cinéma lorsqu'un rappel bancaire arrive en double, et le rappel bancaire lui-même, que la passerelle peut émettre plusieurs fois.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>À la création : accepter une clé d'idempotence transmise par le front, générée à l'entrée dans le tunnel, et renvoyer la réservation existante accompagnée d'un drapeau de rejeu si la clé est déjà connue.</li>
+  <li>À l'écriture chez le cinéma : ne rien refaire si un numéro de réservation distant est déjà enregistré, et <strong>placer cette vérification à l'intérieur d'un verrou nommé sur la référence</strong>, afin d'interdire deux exécutions concurrentes de la même tâche.</li>
+  <li>Au rappel bancaire : rendre l'identifiant de transaction unique en base, et acquitter sans nouvelle écriture un rappel déjà traité. Répondre autre chose qu'un acquittement provoquerait des rappels en boucle.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Un double envoi de création renvoie la même référence de réservation.</li>
+  <li>Un rappel bancaire rejoué à l'identique ne produit aucune double écriture.</li>
+  <li>Deux exécutions concurrentes de la tâche d'écriture n'aboutissent qu'à une seule réservation distante.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-19.</p>
+
+<h2>CPX-BE-21 - Tâche de réservation chez le cinéma avec reprise et pré-contrôle</h2>
+
+<h3>Contexte</h3>
+
+<p>L'écriture de la place chez le cinéma est le maillon le plus critique de la chaîne, et elle n'a aujourd'hui aucun filet : un échec après encaissement impose une intervention manuelle, à condition que quelqu'un s'en aperçoive.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Basculer la tâche en file d'attente, avec cinq tentatives et des délais croissants de dix secondes, trente secondes, deux minutes, cinq minutes et un quart d'heure. Un incident sur le système distant dure rarement moins d'une minute et rarement plus d'un quart d'heure ; retenter cinq fois en dix secondes n'ajouterait que du bruit.</li>
+  <li>Exécuter un <strong>pré-contrôle de disponibilité</strong> avant tout appel, et ne pas réessayer s'il échoue : la situation est définitive. Ce contrôle existe pour transformer le message générique du système distant en une erreur nommée portant la liste des sièges perdus.</li>
+  <li>Marquer comme écartée, sans tentative, une réservation dépourvue du détail des types de billets - cas d'une séance dont le canal de vente n'est pas ouvert.</li>
+  <li>Employer un identifiant de panier de trente-deux caractères hexadécimaux, conformément à la contrainte constatée sur le système distant.</li>
+  <li>Enchaîner la commande de billets en mode réservation puis la confirmation déclarée sans exécution de paiement, celui-ci ayant été encaissé en externe.</li>
+  <li>À l'épuisement des tentatives, basculer en état « à examiner » et notifier l'exploitation avec le dossier complet. Ne rien masquer.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Onze cas d'échec sont couverts par des tests, dont système distant indisponible, siège perdu entre le paiement et l'écriture, et expiration de la tenue pendant la saisie de carte.</li>
+  <li>Un échec définitif produit systématiquement une notification.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,5 journée. <strong>Dépendances :</strong> CPX-BE-17, CPX-BE-19, CPX-BE-20. <strong>Priorité :</strong> haute.</p>
+
+<h2>CPX-BE-22 - Service d'annulation avec libération réelle de la place</h2>
+
+<h3>Contexte</h3>
+
+<p>La procédure de libération d'un siège a été éprouvée en conditions réelles, mais elle vit dans un document accompagné d'un script d'exploitation. Elle doit devenir du code testé, sans quoi elle sera réappliquée de mémoire, et mal.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Reprendre le principe établi : le statut occupé d'un siège n'est pas un attribut indépendant, il est dérivé de la réservation qui le tient. Aucune libération n'est possible sans relâcher la réservation.</li>
+  <li>Implémenter les deux voies dans l'ordre : l'annulation, qui fonctionne sur une réservation non payée du côté du cinéma ; puis le renversement comptable, nécessaire lorsqu'elle est payée de leur côté - cas signalé par un code de résultat étendu spécifique lors de la tentative d'annulation.</li>
+  <li>Fournir au renversement le montant exact et la liste dédoublonnée des groupes de remboursement.</li>
+  <li><strong>Commenter explicitement la nature du renversement dans le code :</strong> nos réservations étant finalisées sans exécution de paiement du côté du cinéma, aucun argent réel n'a jamais transité par ce système. Il s'agit d'une écriture comptable interne qui décroche le siège, et non d'un remboursement bancaire - lequel, s'il est dû, se traite chez la passerelle, séparément.</li>
+  <li>Faire partager cette implémentation à l'annulation client et à l'annulation administrateur.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Les deux voies sont couvertes par des tests s'appuyant sur les réponses réelles archivées.</li>
+  <li>Une annulation après le début de la séance est refusée avec un message explicite.</li>
+  <li>Une seule implémentation sert les deux points d'entrée.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-17, CPX-BE-21.</p>
+
+<hr>
+
+<h1>LOT F - Chaîne de paiement</h1>
+
+<h2>CPX-BE-23 - Abstraction de passerelle de paiement</h2>
+
+<h3>Contexte</h3>
+
+<p>Le code appelle directement la passerelle bancaire depuis le fichier de route. Deux intégrations de paiement mobile sont annoncées au reliquat contractuel pour deux journées ; sans abstraction, chacune imposerait de dupliquer toute la mécanique et cette estimation ne tiendrait pas.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Définir une interface commune couvrant cinq opérations : initier un paiement, vérifier un rappel, interroger l'état d'une transaction, rembourser, et déclarer sa propre disponibilité.</li>
+  <li>Implémenter complètement la passerelle par carte, et fournir les squelettes des deux passerelles mobiles avec leurs tests d'interface.</li>
+  <li>Faire piloter l'état grisé des boutons du front par la déclaration de disponibilité, de sorte qu'un moyen de paiement dont les identifiants ne sont pas renseignés soit présenté comme indisponible <strong>sans aucun code conditionnel dans l'interface</strong>.</li>
+  <li>Conserver la table de traduction des erreurs en messages français, et l'étendre. Lorsque la passerelle renvoie une page web au lieu de données structurées, l'exploitant doit lire un message intelligible et non une erreur d'analyse syntaxique.</li>
+  <li>Conserver les dimensions explicites du cadre de paiement intégré : sans elles, la passerelle génère un cadre trop petit et défilant, dont le style est appliqué de leur côté et ne peut pas être corrigé par notre feuille de style.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Renseigner les seules variables de configuration d'un moyen de paiement suffit à le faire apparaître, sans modification de code.</li>
+  <li>Les trois implémentations satisfont le même jeu de tests d'interface.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,5 journée. <strong>Dépendances :</strong> CPX-BE-04.</p>
+
+<h2>CPX-BE-24 - Durcissement du rappel bancaire</h2>
+
+<h3>Contexte</h3>
+
+<p>Le rappel arrive chiffré et se déchiffre par un appel retour à la passerelle. Le traitement actuel fait confiance au statut renvoyé, ne conserve aucune trace en cas d'échec, et s'exécute intégralement dans le cycle de requête.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li><strong>Journaliser avant tout traitement</strong> la charge chiffrée brute, les en-têtes et l'adresse source. Si le déchiffrement échoue, la preuve du rappel subsiste et l'opération reste rejouable.</li>
+  <li><strong>Contrôler le montant déchiffré</strong> contre le montant attendu de la réservation. En cas de divergence, basculer en état « à examiner » et ne pas considérer le paiement comme acquitté.</li>
+  <li>Filtrer par adresse source, en mode avertissement d'abord - journalisé et non bloquant - afin d'observer les adresses réellement employées avant de fermer.</li>
+  <li>Acquitter en moins de cinquante millisecondes et confier la suite à une tâche de fond. Un rappel bancaire ne doit pas attendre un appel au système de billetterie de trois secondes, sous peine d'expiration côté passerelle et de rappels en boucle.</li>
+  <li>Renvoyer un acquittement même en cas d'échec de déchiffrement, pour la même raison. La reprise se fait chez nous, à partir du journal.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Un rappel avec montant divergent ne marque jamais la réservation comme payée.</li>
+  <li>Un rappel indéchiffrable laisse une trace exploitable et rejouable.</li>
+  <li>Le temps de réponse du point d'entrée reste sous cinquante millisecondes.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,5 journée. <strong>Dépendances :</strong> CPX-BE-09, CPX-BE-23. <strong>Priorité :</strong> haute.</p>
+
+<h2>CPX-BE-25 - Réconciliation des paiements</h2>
+
+<h3>Contexte</h3>
+
+<p>Un rappel peut se perdre : coupure réseau, redémarrage au mauvais moment, changement d'adresse publique. Sans filet, la conséquence est un client débité dont la réservation reste en attente puis expire.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Interroger la passerelle de notre propre initiative, toutes les dix minutes, sur les réservations en attente depuis plus d'un quart d'heure et de moins de deux jours - au-delà, il s'agit d'un abandon.</li>
+  <li>Lorsqu'un paiement est retrouvé, marquer la réservation payée et déclencher l'écriture chez le cinéma.</li>
+  <li>Journaliser un avertissement portant l'écart de temps constaté. C'est cette trace qui dira si les rappels se perdent occasionnellement ou systématiquement.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Un test simule un rappel perdu et vérifie que la réconciliation rattrape le paiement.</li>
+  <li>Une réservation abandonnée depuis plus de deux jours n'est plus interrogée.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-24.</p>
+
+<h2>CPX-BE-26 - Objet de montant et encadrement du mode simulé</h2>
+
+<h3>Contexte</h3>
+
+<p>La convention interne est le montant en ariary multiplié par cent, mais les divisions par cent sont disséminées dans le code. Par ailleurs, un mode de paiement simulé existe pour dérouler le parcours sans passerelle, et rien n'empêche aujourd'hui son activation en production.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Introduire un objet de montant exposant trois conversions - depuis l'ariary, vers le format attendu par la passerelle, vers le format attendu par le système de billetterie - et le formatage d'affichage.</li>
+  <li>Contraindre le formatage à zéro décimale : la norme internationale attribue deux chiffres mineurs à l'ariary, alors que la monnaie n'a pas d'usage courant des subdivisions.</li>
+  <li>Imposer l'espace insécable comme séparateur de milliers, y compris en anglais, pour éviter une notation qui se lirait comme un nombre décimal.</li>
+  <li>Interdire par analyse statique les nombres à virgule flottante dans les signatures du domaine de paiement.</li>
+  <li><strong>Refuser le mode simulé en environnement de production</strong>, quelles que soient les autres variables, et tester ce garde-fou de sorte qu'un test échoue si la protection est retirée.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Aucune division par cent ne subsiste hors de l'objet de montant.</li>
+  <li>Le mode simulé est inaccessible en production, vérifié par test.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-23.</p>
+
+<hr>
+
+<h1>LOT G - Back-office d'exploitation</h1>
+
+<h2>CPX-BE-27 - Agrégats du tableau de bord et correction du comptage de recette</h2>
+
+<h3>Contexte</h3>
+
+<p>L'interface d'administration interroge la base directement depuis le navigateur, avec la clé publique, et calcule ses agrégats en JavaScript après avoir rapatrié les réservations une à une. Surtout, elle compte comme payée toute réservation dont l'état de paiement est « payé » <strong>ou</strong> dont l'état général est « confirmé » - or ce dernier vaut « confirmé » par défaut dès la création, avant tout encaissement. <strong>La recette affichée est donc supérieure à l'encaissement réel.</strong></p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Remplacer les trois requêtes navigateur par une requête agrégée unique exécutée par la base.</li>
+  <li>Calculer la recette sur les seules réservations réellement payées, ce qui corrige la surévaluation.</li>
+  <li>Produire dans la même passe le total du jour, le nombre payé, le nombre annulé et le nombre à examiner.</li>
+  <li>Traiter la portabilité de l'agrégat conditionnel : la forme la plus lisible n'est pas supportée par MySQL. Émettre la forme native sur PostgreSQL et une somme conditionnelle sur MySQL - c'est le seul branchement par dialecte accepté dans le projet, justifié par la fréquence d'appel.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>La recette affichée correspond exactement à la somme des paiements encaissés.</li>
+  <li>Le tableau de bord se charge en une requête serveur.</li>
+  <li>Les chiffres sont identiques sur les deux moteurs, vérifié par test.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,5 journée. <strong>Dépendances :</strong> CPX-BE-11, CPX-BE-19. <strong>Priorité :</strong> haute - chiffre faux visible par le client.</p>
+
+<h2>CPX-BE-28 - Points d'entrée de gestion des réservations</h2>
+
+<h3>Contexte</h3>
+
+<p>La gestion quotidienne des réservations doit passer côté serveur. Un défaut existant doit être corrigé au passage : la suppression est réservée aux administrateurs et destinée aux séances passées, mais rien ne l'empêche techniquement sur une séance à venir - ce qui effacerait une vente sans libérer le siège chez le cinéma, laissant le fauteuil bloqué jusqu'à la séance, invendable et invendu.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Exposer la liste paginée avec filtres par état, date, séance et film. <strong>Paginer par curseur et non par numéro de page</strong>, afin que la liste reste stable lorsque des réservations arrivent pendant la consultation.</li>
+  <li>Exposer le détail siège par siège, accompagné de l'historique des échanges avec le système de billetterie.</li>
+  <li>Exposer l'annulation, en réutilisant le service commun avec l'annulation client.</li>
+  <li>Restreindre la suppression aux séances passées, avec un refus explicite renvoyant vers l'annulation dans le cas contraire.</li>
+  <li>Ajouter deux points d'entrée nouveaux : la relance manuelle de l'écriture chez le cinéma, qui permet de sortir de l'état « à examiner » sans intervention directe en base, et la réémission du billet.</li>
+  <li>Produire les exports en flux, sans charger la table en mémoire.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>La suppression d'une réservation à venir est refusée, vérifié par test.</li>
+  <li>La relance manuelle fait sortir une réservation de l'état à examiner.</li>
+  <li>Un export de plusieurs milliers de lignes n'augmente pas la mémoire du processus de façon significative.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,5 journée. <strong>Dépendances :</strong> CPX-BE-22, CPX-BE-27.</p>
+
+<h2>CPX-BE-29 - Boîte de réception et administration des tarifs</h2>
+
+<h3>Contexte</h3>
+
+<p>Le module de messages contient plusieurs décisions fines qu'il serait facile de perdre au portage, et qui sont chacune la réponse à un défaut d'ergonomie constaté.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Rendre les compteurs par onglet <strong>indépendants du filtre courant</strong>. Un compteur qui bouge quand on tape dans un champ de recherche est un compteur auquel on cesse de se fier.</li>
+  <li>Neutraliser les caractères joker de la recherche, afin qu'une recherche portant sur un pourcentage ne se transforme pas en filtre fourre-tout.</li>
+  <li>Faire ignorer les filtres à la consultation par adresse : le panneau des autres demandes d'une même adresse doit montrer tout l'historique, une liste tronquée étant trompeuse.</li>
+  <li>Effacer l'horodatage de réponse lorsqu'un message revient en amont de l'état répondu, afin que la date affichée reste celle de la réponse en vigueur.</li>
+  <li>Pour les tarifs : exposer le balayage des séances des trente prochains jours, la modification d'une grille, et la fixation d'un prix dérogatoire par séance.</li>
+  <li><strong>Afficher pour chaque grille d'où viendrait effectivement le prix</strong> si une vente avait lieu maintenant - premier, deuxième ou troisième niveau, ou aucun prix disponible. C'est la réponse anticipée à la question que l'exploitant posera le premier jour où un tarif le surprendra.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Les cinq subtilités de la boîte de réception sont couvertes par des tests distincts.</li>
+  <li>La note interne n'apparaît dans aucune réponse destinée au client.</li>
+  <li>L'origine du prix est affichée pour chaque grille.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-07, CPX-BE-14.</p>
+
+<h2>CPX-BE-30 - Point d'entrée de contrôle d'accès à six verdicts</h2>
+
+<h3>Contexte</h3>
+
+<p>Le contrôle d'accès en salle doit distinguer des situations que le personnel traite différemment. Un verdict unique de refus rendrait indistinguables un billet falsifié, un billet expiré et un billet déjà passé.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Rendre six verdicts distincts, chacun avec sa couleur et son libellé dans les deux langues : billet inconnu, réservation annulée, réservation non payée, billet déjà utilisé, séance passée, billet valide.</li>
+  <li>Sur le verdict « déjà utilisé », <strong>afficher l'horodatage du premier passage et l'identité de qui l'a scanné</strong>. Ce sont les deux informations qui permettent de trancher en quelques secondes entre une capture d'écran partagée et un double scan.</li>
+  <li>Accepter au contrôle une réservation écartée faute de canal de vente ouvert : la place a été payée et le billet est valide de notre côté. Signaler discrètement au personnel que la place n'apparaît pas dans le système de caisse, information nécessaire en cas de litige.</li>
+  <li>Restreindre l'accès à la seule capacité de contrôle définie au ticket CPX-BE-12.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Les six verdicts sont couverts par des tests.</li>
+  <li>Un second scan bascule bien vers le verdict « déjà utilisé » avec les informations de traçabilité.</li>
+  <li>Le point d'entrée est inaccessible avec un jeton client ordinaire.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-12.</p>
+
+<hr>
+
+<h1>LOT H - Mesure, billetterie et langues</h1>
+
+<h2>CPX-BE-31 - Mesure de fréquentation sans conservation d'adresse réseau</h2>
+
+<h3>Contexte</h3>
+
+<p>L'indicateur de fréquentation annoncé au tableau de bord doit être fiable, et son argumentaire est directement lié au choix d'hébergement : un site encastré dans un hébergement d'accueil voit son trafic partiellement capté et brouillé. La mesure doit par ailleurs respecter la protection des données personnelles.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Enregistrer la visite <strong>après l'envoi de la réponse</strong>, afin que la mesure ne coûte rien au visiteur qu'elle mesure.</li>
+  <li>Calculer une empreinte de visiteur par fonction de hachage irréversible sur l'adresse réseau, le navigateur et <strong>un sel tournant à minuit, heure de Madagascar</strong>. La conséquence est voulue : on distingue deux visiteurs le même jour et on perd tout recoupement le lendemain.</li>
+  <li>Exclure de la mesure les appels d'interface, les fichiers statiques, les routes d'administration, les méthodes autres que la consultation et les réponses non affichables. Enregistrer les robots avec leur indicateur plutôt que les ignorer, afin de pouvoir vérifier ce que le filtre a écarté.</li>
+  <li>Agréger la veille peu après minuit et ne compter en direct que le jour courant.</li>
+  <li>Exposer trois indicateurs et <strong>deux</strong> taux de transformation : l'un rapporté aux visiteurs uniques, l'autre aux seuls visiteurs entrés dans le tunnel. L'écart entre les deux indique si le problème est en amont - visibilité, prix affiché - ou dans le tunnel lui-même.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Aucune adresse réseau n'est stockée, ni en base ni en journal.</li>
+  <li>La rotation du sel est vérifiée par test.</li>
+  <li>Le tableau de bord affiche les indicateurs sans requête coûteuse sur l'historique.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,5 journée. <strong>Dépendances :</strong> CPX-BE-09, CPX-BE-27.</p>
+
+<h2>CPX-BE-32 - Génération serveur du billet et signature du code-barres</h2>
+
+<h3>Contexte</h3>
+
+<p>Le billet est produit dans le navigateur, ce qui interdit de l'envoyer par courriel, de le régénérer depuis le back-office et de garantir sa stabilité dans le temps. Par ailleurs, le contenu du code-barres est en clair et sans authentification : n'importe qui peut fabriquer un code portant une référence plausible.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Doubler la génération côté serveur - référence, code-barres, document imprimable - en conservant le rendu client pour l'affichage immédiat.</li>
+  <li>Conserver le contenu actuel du code-barres à l'identique, et <strong>ajouter</strong> une signature cryptographique courte sans rien remplacer.</li>
+  <li>Assurer la compatibilité ascendante : les billets déjà émis n'ont pas de signature et doivent continuer à passer, en étant marqués comme non signés. N'activer le refus strict qu'une fois jouée la dernière séance vendue avant la mise en place.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Un code falsifié est identifié comme faux et non comme expiré.</li>
+  <li>Trois billets archivés - un ancien non signé, un signé, un falsifié - sont rejoués à chaque exécution de la suite de tests.</li>
+  <li>Le document est produit dans les deux langues.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-30.</p>
+
+<h2>CPX-BE-33 - Socle de traduction côté serveur</h2>
+
+<h3>Contexte</h3>
+
+<p>Le dictionnaire de traduction vit côté client. Or plusieurs contenus produits par le serveur doivent être traduits : messages d'erreur, courriels, document du billet, verdicts du contrôle d'accès.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Résoudre la langue par intercepteur, dans un ordre de priorité décroissant : paramètre explicite dans l'adresse, préférence enregistrée du compte, en-tête du navigateur, puis français par défaut.</li>
+  <li><strong>Figer la langue sur la réservation</strong> au moment de sa création. Un client ayant acheté en anglais recevra son billet et ses courriels en anglais, même s'il consulte le site en français six mois plus tard.</li>
+  <li>Limiter les fichiers de traduction serveur au vocabulaire serveur, sans recouvrement avec le dictionnaire client.</li>
+  <li>Employer les formateurs internationaux pour les dates et les montants, avec les locales de Madagascar, en reproduisant exactement les rendus actuels.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Les rendus de date et de montant sont identiques à ceux de la couche Next.js, vérifié par test de contrat.</li>
+  <li>La langue de la réservation ne change jamais après sa création.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-03.</p>
+
+<h2>CPX-BE-34 - Socle de notifications prêt à recevoir un transport</h2>
+
+<h3>Contexte</h3>
+
+<p>L'envoi de courriels et de messages courts relève du reliquat contractuel, chiffré à trois journées. Ce qui est livré ici est ce dont cette livraison dépendra, afin que ces trois journées en soient réellement trois le jour venu.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Rédiger et mettre en gabarit quatre notifications dans les deux langues : confirmation de réservation avec billet joint, annulation, rappel de séance, et alerte d'exploitation pour une réservation à examiner.</li>
+  <li>Abstraire les canaux : transport de courriel configurable, et interface de message court avec une implémentation écrivant dans le journal - assez pour éprouver toute la chaîne sans opérateur.</li>
+  <li>Créer une table de suivi des remises consignant chaque envoi, son canal, son état et sa raison d'échec. Un courriel de confirmation qui n'arrive pas est une réclamation ; sans trace, elle est ininstruisible.</li>
+  <li>Placer tous les envois en file d'attente, jamais dans le cycle de requête.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>La chaîne complète est vérifiable de bout en bout avec le canal de journalisation, sans prestataire.</li>
+  <li>Brancher un transport réel ne demande aucune modification de code applicatif.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-33.</p>
+
+<hr>
+
+<h1>LOT I - Industrialisation et bascule</h1>
+
+<h2>CPX-BE-35 - Conteneurisation et contrôle de santé différencié</h2>
+
+<h3>Contexte</h3>
+
+<p>L'application doit être déployable par quelqu'un d'autre que son auteur, sur une machine qui n'est pas la sienne. Elle doit également pouvoir déclarer son état de façon utile, ce qui suppose de distinguer une panne d'une indisponibilité attendue.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Construire une image en trois étapes, en installant explicitement les extensions nécessaires - notamment celles fournissant les formats internationaux, les calculs de montants sans virgule flottante et l'arrêt propre des processus de file d'attente.</li>
+  <li>Figer les caches de configuration, de routes et d'événements à la construction, afin que l'image soit immuable et n'écrive rien au démarrage.</li>
+  <li>Écrire un contrôle de santé vérifiant, avec des délais courts et sans effet de bord : base, cache, file d'attente, interface de lecture, interface de billetterie, passerelle de paiement, stockage des billets et dernière exécution du planificateur.</li>
+  <li><strong>Introduire un verdict « dégradé »</strong> distinct de « en panne ». L'indisponibilité du plan de salle pour cause de canal de vente fermé est un état connu et attendu, qui n'empêche ni le site de fonctionner ni les pages de contenu de s'afficher. Un contrôle qui déclarerait le service en panne pour cette raison serait ignoré au bout de deux jours - et le serait aussi le jour d'une vraie panne.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Le démarrage à froid reste sous deux secondes.</li>
+  <li>Le contrôle rend « dégradé » et non « en panne » lorsque seule l'interface de billetterie est indisponible.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-04.</p>
+
+<h2>CPX-BE-36 - Chaîne d'intégration continue à double moteur de base</h2>
+
+<h3>Contexte</h3>
+
+<p>L'engagement de portabilité ne tiendra pas dans la durée s'il n'est pas vérifié à chaque modification. Sans exécution sur les deux moteurs, la première requête écrite dans un dialecte propriétaire passerait inaperçue jusqu'au jour du déploiement.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Exécuter les tests <strong>sur les deux moteurs de base</strong> à chaque modification, avec un seuil de couverture minimal.</li>
+  <li>Exécuter la suite de contrat comme étape distincte et bloquante.</li>
+  <li>Ajouter les contrôles de qualité : validation des dépendances, style de code, analyse statique au niveau le plus strict, détection des constructions obsolètes.</li>
+  <li>Ajouter les contrôles de sécurité : audit des dépendances et balayage du dépôt à la recherche de secrets écrits en dur.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Une requête écrite dans un dialecte propriétaire fait échouer la chaîne.</li>
+  <li>Une rupture de contrat fait échouer la chaîne.</li>
+  <li>La durée totale d'exécution reste sous cinq minutes.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-01, CPX-BE-06.</p>
+
+<h2>CPX-BE-37 - Observabilité et expurgation des secrets dans les journaux</h2>
+
+<h3>Contexte</h3>
+
+<p>Aucun journal métier n'existe, et les alertes sont inexistantes. Par ailleurs, journaliser les corps de requête exposerait des secrets et des données personnelles.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Mettre en place un journal structuré avec identifiant de corrélation, permettant de suivre une opération de bout en bout.</li>
+  <li>Alimenter le journal métier sur création, paiement, écriture chez le cinéma, annulation et contrôle d'accès.</li>
+  <li>Configurer trois alertes : réservation à examiner, avec notification immédiate ; planificateur sans exécution depuis un quart d'heure ; première tâche en échec définitif. Ajouter une alerte sur un taux d'échec supérieur à dix pour cent sur un quart d'heure côté système de billetterie.</li>
+  <li><strong>Expurger à la source</strong> les champs sensibles des corps journalisés : mots de passe, charges chiffrées, clés, sels et jetons d'interface.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>Un test échoue délibérément si un secret connu apparaît en clair dans un journal.</li>
+  <li>Les trois alertes se déclenchent effectivement lors d'une simulation.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,25 journée. <strong>Dépendances :</strong> CPX-BE-09, CPX-BE-19.</p>
+
+<h2>CPX-BE-38 - Couche d'accès unique côté front et bascule réversible</h2>
+
+<h3>Contexte</h3>
+
+<p>Le front appelle ses routes par des chemins relatifs. Pour qu'il puisse parler au back-end Laravel sans réécriture, il lui faut un point de contact unique avec le serveur. C'est la seule modification à apporter à l'application cliente sur l'ensemble de ces travaux.</p>
+
+<h3>Travail attendu</h3>
+
+<ul>
+  <li>Introduire une couche d'accès d'une quarantaine de lignes, seul point de contact avec le serveur : elle préfixe les chemins par une adresse de base lue en configuration, ajoute les en-têtes d'authentification et de langue, et normalise le traitement des erreurs.</li>
+  <li>Remplacer tous les appels directs du front par cette couche.</li>
+  <li>Faire en sorte que l'adresse de base vide conserve le comportement actuel - routes internes - et qu'une adresse renseignée bascule vers le back-end Laravel.</li>
+  <li>Dérouler la recette de bout en bout sur les vingt étapes du parcours, dans les deux configurations.</li>
+</ul>
+
+<h3>Critères d'acceptation</h3>
+
+<ul>
+  <li>La bascule d'une couche serveur à l'autre se fait par une seule variable de configuration, dans les deux sens.</li>
+  <li>Aucune différence n'est observable côté client entre les deux configurations.</li>
+  <li>Les vingt étapes de la recette passent dans les deux configurations.</li>
+</ul>
+
+<p><strong>Charge estimée :</strong> 0,5 journée. <strong>Dépendances :</strong> l'ensemble des lots A à H. <strong>Priorité :</strong> haute - c'est le ticket qui rend l'ensemble exploitable.</p>
+
+<hr>
+
+<h1>Récapitulatif</h1>
+
+<h2>Volumétrie</h2>
+
+<ul>
+  <li><strong>Trente-huit tickets</strong> répartis en neuf lots.</li>
+  <li><strong>Charge cumulée : 9 journées</strong>, correspondant exactement au périmètre hors contrat du 7 au 17 juillet 2026.</li>
+  <li><strong>Neuf tickets sont marqués en priorité haute :</strong> CPX-BE-01, CPX-BE-06, CPX-BE-10, CPX-BE-18, CPX-BE-21, CPX-BE-24, CPX-BE-27, CPX-BE-38, ainsi que CPX-BE-02 par dépendance immédiate.</li>
+</ul>
+
+<h2>Ordre d'exécution recommandé</h2>
+
+<p>Les dépendances imposent un ordre partiel qu'il est préférable de respecter, faute de quoi certains tickets devraient être repris.</p>
+
+<ul>
+  <li><strong>D'abord CPX-BE-01</strong>, le harnais de contrat. Il conditionne la validation de tous les autres et révèle immédiatement les écarts existants.</li>
+  <li><strong>Puis CPX-BE-06</strong>, la portabilité du schéma. Tous les tickets touchant à la base en dépendent, et une reprise tardive imposerait de rejouer les migrations.</li>
+  <li><strong>Ensuite les lots C et D en parallèle</strong>, l'authentification et l'intégration Veezi n'ayant aucune dépendance croisée.</li>
+  <li><strong>Puis le lot E</strong>, la fiabilité transactionnelle, qui consomme les acquis des lots B et D.</li>
+  <li><strong>Puis les lots F, G et H</strong>, qui s'appuient sur le lot E.</li>
+  <li><strong>Enfin le lot I</strong>, et en particulier CPX-BE-38, qui ne peut être validé qu'une fois tout le reste en place.</li>
+</ul>
+
+<h2>Tickets corrigeant un défaut existant</h2>
+
+<p>Huit tickets ne se contentent pas de porter du code : ils corrigent un défaut présent dans le système avant ces travaux. Ils méritent d'être signalés comme tels au moment de la recette.</p>
+
+<ul>
+  <li><strong>CPX-BE-27</strong> - recette du jour surévaluée au tableau de bord.</li>
+  <li><strong>CPX-BE-08 et CPX-BE-18</strong> - absence de tenue de sièges entre la sélection et l'encaissement.</li>
+  <li><strong>CPX-BE-18</strong> - blocage mutuel sur sièges demandés en ordre inverse.</li>
+  <li><strong>CPX-BE-24</strong> - absence de contrôle du montant dans le rappel bancaire.</li>
+  <li><strong>CPX-BE-21</strong> - absence de reprise après échec d'écriture chez le cinéma.</li>
+  <li><strong>CPX-BE-11</strong> - réservations invité invisibles au client connecté.</li>
+  <li><strong>CPX-BE-28</strong> - suppression possible d'une réservation à venir sans libération du siège.</li>
+  <li><strong>CPX-BE-03</strong> - exposition potentielle de colonnes internes par sérialisation implicite.</li>
+</ul>
+
+<hr>
+
+<p><strong>Cinepax Madagascar - Billetterie en ligne</strong></p>
+<p>Tickets techniques - back-end Laravel hors périmètre contractuel</p>
+<p>Trente-huit tickets, neuf lots, neuf journées - eTech</p>
+
+</body>
+</html>

@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cinepax Madagascar - Revue de périmètre, chiffrage complémentaire et mise en production</title>
+<style>
+  :root{
+    --ink:#16110f; --ink-2:#4a3f3b; --ink-3:#7d706b;
+    --paper:#ffffff; --panel:#faf7f5; --panel-2:#f3eeeb;
+    --line:#e3dad5; --line-2:#cfc2bb;
+    --accent:#d81f2a; --accent-soft:#fdeced;
+    --ok:#1c7c4a; --ok-soft:#e8f4ed;
+    --warn:#9a6207; --warn-soft:#fdf3e2;
+    --info:#1c5c8c; --info-soft:#e9f2f9;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--panel-2); color:var(--ink);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    font-feature-settings:"kern" 1;
+  }
+  .sheet{
+    max-width:980px; margin:0 auto; background:var(--paper);
+    padding:0 0 72px; box-shadow:0 1px 3px rgba(0,0,0,.06),0 12px 40px rgba(0,0,0,.07);
+  }
+
+  /* ── En-tête ─────────────────────────────────────────── */
+  header.masthead{
+    background:linear-gradient(160deg,#1a1211 0%,#2b1a19 60%,#3a1d1e 100%);
+    color:#f7f2ef; padding:44px 56px 38px; border-bottom:4px solid var(--accent);
+  }
+  .brand{
+    display:inline-block; font-size:11px; letter-spacing:.22em; text-transform:uppercase;
+    color:#e9b7ba; border:1px solid rgba(255,255,255,.22); border-radius:3px;
+    padding:5px 11px; margin-bottom:22px;
+  }
+  header.masthead h1{
+    margin:0 0 12px; font-size:31px; line-height:1.22; font-weight:650; letter-spacing:-.015em;
+  }
+  header.masthead p.sub{ margin:0; color:#c9b6b2; font-size:15px; max-width:64ch }
+  .meta{
+    display:flex; flex-wrap:wrap; gap:0 40px; margin-top:26px;
+    padding-top:20px; border-top:1px solid rgba(255,255,255,.14); font-size:13px;
+  }
+  .meta div{min-width:130px}
+  .meta dt{color:#9d8a86; font-size:11px; letter-spacing:.12em; text-transform:uppercase; margin-bottom:3px}
+  .meta dd{margin:0; color:#f2e9e6}
+
+  /* ── Corps ───────────────────────────────────────────── */
+  main{padding:0 56px}
+  section{padding-top:44px}
+  h2{
+    font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:var(--accent);
+    margin:0 0 6px; font-weight:700;
+  }
+  h2 + .h2sub{ margin:0 0 20px; font-size:23px; font-weight:640; letter-spacing:-.012em; line-height:1.3 }
+  h3{ font-size:17px; margin:30px 0 10px; font-weight:640; letter-spacing:-.008em }
+  h4{ font-size:14.5px; margin:20px 0 6px; font-weight:640 }
+  p{margin:0 0 14px; color:var(--ink-2)}
+  strong{color:var(--ink); font-weight:640}
+  ul,ol{margin:0 0 14px; padding-left:22px; color:var(--ink-2)}
+  li{margin-bottom:6px}
+  li::marker{color:var(--ink-3)}
+  hr.rule{border:0; border-top:1px solid var(--line); margin:44px 0 0}
+  code{
+    font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    background:var(--panel-2); border:1px solid var(--line); border-radius:3px;
+    padding:1px 5px; color:#7a2a2f;
+  }
+
+  /* ── Encarts ─────────────────────────────────────────── */
+  .callout{
+    border-left:3px solid var(--accent); background:var(--panel);
+    padding:18px 22px; margin:0 0 20px; border-radius:0 4px 4px 0;
+  }
+  .callout.ok{border-left-color:var(--ok); background:var(--ok-soft)}
+  .callout.warn{border-left-color:var(--warn); background:var(--warn-soft)}
+  .callout.info{border-left-color:var(--info); background:var(--info-soft)}
+  .callout p:last-child{margin-bottom:0}
+  .callout .lbl{
+    display:block; font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    font-weight:700; margin-bottom:7px; color:var(--ink);
+  }
+
+  /* ── Chiffres clés ───────────────────────────────────── */
+  .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line); border:1px solid var(--line); margin:0 0 8px}
+  .kpi{background:var(--paper); padding:18px 16px}
+  .kpi b{display:block; font-size:26px; font-weight:660; letter-spacing:-.02em; color:var(--ink); line-height:1.1}
+  .kpi span{display:block; font-size:12px; color:var(--ink-3); margin-top:5px; line-height:1.4}
+  .kpi-note{font-size:12px; color:var(--ink-3); margin:0 0 14px}
+
+  /* ── Tableaux ────────────────────────────────────────── */
+  .tw{overflow-x:auto; margin:0 0 18px; border:1px solid var(--line); border-radius:4px}
+  table{border-collapse:collapse; width:100%; font-size:14px; min-width:560px}
+  th,td{text-align:left; padding:11px 14px; border-bottom:1px solid var(--line); vertical-align:top}
+  thead th{
+    background:var(--panel); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink-3); font-weight:700; border-bottom:1px solid var(--line-2);
+  }
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:nth-child(even){background:#fcfaf9}
+  td.num,th.num{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap}
+  td.ctr,th.ctr{text-align:center; white-space:nowrap}
+  tfoot td{
+    background:var(--panel); font-weight:660; color:var(--ink);
+    border-top:2px solid var(--line-2); border-bottom:0;
+  }
+  tfoot tr.grand td{background:#1f1614; color:#fff; border-top:0}
+
+  .tag{
+    display:inline-block; font-size:11px; font-weight:660; letter-spacing:.03em;
+    padding:2px 8px; border-radius:20px; white-space:nowrap;
+  }
+  .tag.base{background:var(--panel-2); color:var(--ink-2); border:1px solid var(--line-2)}
+  .tag.plus{background:var(--accent-soft); color:#a3161f; border:1px solid #f2c4c8}
+  .tag.ok{background:var(--ok-soft); color:var(--ok); border:1px solid #bfe0cd}
+  .tag.wait{background:var(--warn-soft); color:var(--warn); border:1px solid #eed9b0}
+  .tag.new{background:#efe9f7; color:#5b3a8e; border:1px solid #d8cbec}
+
+  /* ── Balance ─────────────────────────────────────────── */
+  .balance{border:1px solid var(--line); border-radius:5px; overflow:hidden; margin:0 0 20px}
+  .balance .row{
+    display:flex; justify-content:space-between; align-items:baseline; gap:20px;
+    padding:13px 20px; border-bottom:1px solid var(--line); font-size:14.5px;
+  }
+  .balance .row:nth-child(even){background:#fcfaf9}
+  .balance .row .lab{color:var(--ink-2)}
+  .balance .row .val{font-variant-numeric:tabular-nums; font-weight:640; white-space:nowrap; color:var(--ink)}
+  .balance .row.plus .val{color:var(--ok)}
+  .balance .row.minus .val{color:var(--accent)}
+  .balance .row.net{background:var(--panel); border-top:1px solid var(--line-2)}
+  .balance .row.net .lab{font-weight:640; color:var(--ink)}
+  .balance .row.final{
+    background:#1f1614; color:#fff; border-bottom:0; padding:17px 20px; font-size:16px;
+  }
+  .balance .row.final .lab{color:#e8dbd7; font-weight:640}
+  .balance .row.final .val{color:#fff; font-size:20px}
+
+  /* ── Comparatif scénarios ────────────────────────────── */
+  .scenarios{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin:0 0 20px}
+  .sc{border:1px solid var(--line); border-radius:5px; overflow:hidden; background:var(--paper)}
+  .sc.reco{border:2px solid var(--ok)}
+  .sc header{padding:14px 18px; background:var(--panel); border-bottom:1px solid var(--line)}
+  .sc.reco header{background:var(--ok-soft); border-bottom-color:#bfe0cd}
+  .sc header .n{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); display:block; margin-bottom:3px}
+  .sc.reco header .n{color:var(--ok)}
+  .sc header h4{margin:0; font-size:16px}
+  .sc .body{padding:16px 18px}
+  .sc ul{margin:0; padding-left:19px; font-size:14px}
+  .sc li{margin-bottom:7px}
+  .sc .verdict{
+    padding:12px 18px; border-top:1px solid var(--line); font-size:13px;
+    background:#fcfaf9; color:var(--ink-2);
+  }
+  .sc.reco .verdict{background:var(--ok-soft); border-top-color:#bfe0cd; color:#14603a; font-weight:600}
+
+  /* ── Flux ────────────────────────────────────────────── */
+  .flow{display:flex; flex-wrap:wrap; align-items:stretch; gap:8px; margin:0 0 18px}
+  .flow .st{
+    flex:1 1 130px; border:1px solid var(--line); border-radius:4px; background:var(--panel);
+    padding:12px 13px; font-size:13px;
+  }
+  .flow .st b{display:block; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); margin-bottom:4px}
+  .flow .st span{color:var(--ink-2)}
+
+  /* ── Signature ───────────────────────────────────────── */
+  .signoff{margin-top:44px; padding-top:22px; border-top:1px solid var(--line); font-size:13px; color:var(--ink-3)}
+  .signoff b{color:var(--ink)}
+
+  @media (max-width:820px){
+    header.masthead{padding:32px 24px 28px}
+    header.masthead h1{font-size:25px}
+    main{padding:0 24px}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .scenarios{grid-template-columns:1fr}
+  }
+  @media print{
+    body{background:#fff}
+    .sheet{box-shadow:none; max-width:none}
+    header.masthead{background:#1a1211 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    .balance .row.final, tfoot tr.grand td{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+    section{page-break-inside:avoid}
+    .tw{overflow:visible}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<header class="masthead">
+  <span class="brand">Cinepax Madagascar × eTech</span>
+  <h1>Revue de périmètre, chiffrage complémentaire<br>et mise en production</h1>
+  <p class="sub">Confrontation du livré au chiffrage contractuel de 43 JH, solde de périmètre dans les deux sens, comparatif des voies de déploiement et reste-à-facturer.</p>
+  <dl class="meta">
+    <div><dt>Projet</dt><dd>Billetterie en ligne cinepax.mg</dd></div>
+    <div><dt>Date</dt><dd>30 juillet 2026</dd></div>
+    <div><dt>Contrat initial</dt><dd>43 JH</dd></div>
+    <div><dt>Complément demandé</dt><dd>10 JH</dd></div>
+  </dl>
+</header>
+
+<main>
+
+<!-- ══════════════════ 1 ══════════════════ -->
+<section>
+  <h2>1 - L'essentiel</h2>
+  <p class="h2sub">Trois points, si vous ne lisez que ceci</p>
+
+  <div class="callout ok">
+    <span class="lbl">Point 1 - Le solde de périmètre est nettement positif</span>
+    <p>Le chiffrage contractuel prévoyait <strong>43 JH</strong>. À cette base se sont ajoutés, en cours de développement, un <strong>back-office d'exploitation complet</strong>, un <strong>site vitrine intégralement branché sur les API</strong>, le <strong>bilinguisme FR/EN</strong> et le <strong>contrôle d'accès par QR code</strong> - soit <strong>28 JH hors contrat</strong>. Déduction faite de ce qui reste ouvert côté contrat (11 JH), le solde net en faveur de Cinepax est de <strong>+17 JH</strong>.</p>
+  </div>
+
+  <div class="callout info">
+    <span class="lbl">Point 2 - Le déploiement le plus court est aussi le plus sûr</span>
+    <p>Réintégrer l'application dans l'hébergement mutualisé actuel imposerait de recompiler le front pour l'encastrer dans une page du système existant, et de trouver en parallèle un serveur capable d'accueillir le back-end. <strong>Déployer le site en autonomie et faire pointer le DNS de cinepax.mg dessus</strong> supprime cette étape : même nom de domaine, même adresse pour le public, sans dépendre des contraintes du mutualisé.</p>
+  </div>
+
+  <div class="callout">
+    <span class="lbl">Point 3 - Le reste-à-facturer</span>
+    <p>Sur un surplus net de 17 JH, il est demandé <strong>10 JH</strong>, mise en production incluse. Les 7 JH restants sont absorbés. La facturation totale du projet s'établit ainsi à <strong>53 JH pour environ 60 JH de valeur livrée</strong>.</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ══════════════════ 2 ══════════════════ -->
+<section>
+  <h2>2 - Le point de départ</h2>
+  <p class="h2sub">Pourquoi le périmètre s'est élargi</p>
+
+  <p>Le cœur de la commande était le <strong>système de réservation et de paiement en ligne</strong>. Le reste du site - pages de contenu, programme, offres - devait rester celui de cinepax.mg.</p>
+
+  <p>Cette découpe s'est révélée intenable, pour une raison simple : <strong>un tunnel de vente ne se teste pas isolément</strong>. Pour vérifier qu'une séance est correctement récupérée, que son plan de salle correspond à la bonne salle, que le tarif appliqué est celui de la grille Veezi du jour, que le siège tenu se libère bien en cas d'abandon - il faut pouvoir parcourir le catalogue, naviguer dans les dates, ouvrir une fiche film, revenir en arrière. Autrement dit : il faut le site autour.</p>
+
+  <p>Ces pages ont donc été construites, non comme des maquettes de circonstance, mais <strong>branchées directement sur les API Veezi</strong> - puisque c'était précisément le comportement de ces API que nous cherchions à éprouver. Une fois branchées et validées, elles étaient de fait des pages de production. Nous ne les avons pas jetées.</p>
+
+  <div class="callout">
+    <span class="lbl">Le bénéfice inattendu</span>
+    <p>En reconstruisant ces pages depuis l'API plutôt qu'en recopiant l'existant, <strong>plusieurs contenus qui se périmaient chaque semaine sont devenus permanents</strong>. Le programme hebdomadaire, aujourd'hui une image JPEG redéposée à la main dans le CMS, se recompose désormais tout seul à partir des séances programmées en back-office. Idem pour les films à venir, les grilles tarifaires actives, l'adresse et le nombre de salles.</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ══════════════════ 3 ══════════════════ -->
+<section>
+  <h2>3 - Revue du périmètre contractuel</h2>
+  <p class="h2sub">Les 43 JH engagés, lot par lot, face au livré</p>
+
+  <p>Avant de parler de complément, il faut établir où en est le contrat lui-même. Cette revue est faite dans les deux sens : ce qui est livré comme prévu, et ce qui reste ouvert.</p>
+
+  <div class="tw">
+  <table>
+    <thead>
+      <tr><th>Lot contractuel</th><th class="num">JH</th><th>État du livré</th><th class="ctr">Bilan</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Front-end</strong><br><span style="color:var(--ink-3);font-size:13px">Sélection séance, panier, login, espace client, responsive</span></td>
+        <td class="num">12</td>
+        <td>Tunnel complet avec plan de salle interactif des 4 salles, inscription et connexion, espace client (historique, billets QR, profil), interface responsive.</td>
+        <td class="ctr"><span class="tag ok">Complet</span></td>
+      </tr>
+      <tr>
+        <td><strong>Back-end</strong><br><span style="color:var(--ink-3);font-size:13px">Authentification, catalogue, réservation, concessions, annulations</span></td>
+        <td class="num">14</td>
+        <td>Authentification et droits, catalogue Veezi, réservation écrite dans Veezi en deux temps et idempotente, annulation avec libération réelle du siège (procédure prouvée en conditions réelles). <strong>Les concessions n'ont pas été engagées.</strong></td>
+        <td class="ctr"><span class="tag wait">4 / 5</span></td>
+      </tr>
+      <tr>
+        <td><strong>Paiement</strong><br><span style="color:var(--ink-3);font-size:13px">CB Cybersource/BRED, Mobile Money, transactions</span></td>
+        <td class="num">6</td>
+        <td>Paiement carte livré <strong>via BNI Pay / MIPS</strong> en lieu et place de Cybersource/BRED : zone de paiement, redirection, déchiffrement du callback bancaire IMN, suivi des transactions. Orange Money et MVola sont intégrés à l'interface mais grisés, en attente des contrats.</td>
+        <td class="ctr"><span class="tag wait">Substitution</span></td>
+      </tr>
+      <tr>
+        <td><strong>Notifications &amp; services</strong><br><span style="color:var(--ink-3);font-size:13px">E-mails, SMS, e-tickets</span></td>
+        <td class="num">4</td>
+        <td>E-tickets livrés et au-delà : référence unique, QR code, PDF téléchargeable, <em>et</em> contrôle à l'entrée de salle. <strong>Les envois e-mail et SMS restent à produire.</strong></td>
+        <td class="ctr"><span class="tag wait">1 / 3</span></td>
+      </tr>
+      <tr>
+        <td><strong>Tests &amp; recette</strong><br><span style="color:var(--ink-3);font-size:13px">Unitaires, intégration API, recette fonctionnelle</span></td>
+        <td class="num">7</td>
+        <td>Tests d'intégration API et recette fonctionnelle menés en profondeur et <strong>documentés</strong> (rapport d'analyse des API seat-plan, scripts de test devise et d'annulation, validations en conditions réelles). La couverture par tests automatisés, elle, n'est pas en place.</td>
+        <td class="ctr"><span class="tag wait">Partiel</span></td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr><td>Total contractuel</td><td class="num">43</td><td colspan="2"></td></tr>
+    </tfoot>
+  </table>
+  </div>
+
+  <h3>3.1 - Ce qui reste ouvert côté contrat</h3>
+
+  <div class="tw">
+  <table>
+    <thead>
+      <tr><th>Élément</th><th>Situation</th><th class="num">Charge résiduelle</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Concessions</strong></td><td>Vente de confiserie et boissons - non engagée à ce stade, le tunnel ayant été construit au périmètre billetterie</td><td class="num">3 JH</td></tr>
+      <tr><td><strong>Notifications e-mail &amp; SMS</strong></td><td>Confirmation de réservation par e-mail et SMS. Les e-tickets, eux, sont livrés</td><td class="num">3 JH</td></tr>
+      <tr><td><strong>Activation Mobile Money</strong></td><td>Interface prête ; branchement suspendu aux contrats Orange Money et MVola - <em>blocage externe</em></td><td class="num">2 JH</td></tr>
+      <tr><td><strong>Tests automatisés</strong></td><td>Recette et tests d'intégration réalisés manuellement et documentés ; la formalisation en tests unitaires reste à faire</td><td class="num">3 JH</td></tr>
+    </tbody>
+    <tfoot>
+      <tr><td colspan="2">Reliquat contractuel</td><td class="num">11 JH</td></tr>
+    </tfoot>
+  </table>
+  </div>
+
+  <div class="callout info">
+    <span class="lbl">Pourquoi ce tableau figure ici</span>
+    <p>Il aurait été plus flatteur de ne présenter que le surplus. Ce reliquat est posé volontairement : <strong>un chiffrage complémentaire n'a de valeur que s'il repose sur un solde honnête</strong>. Il est intégralement déduit du complément demandé au §7.</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ══════════════════ 4 ══════════════════ -->
+<section>
+  <h2>4 - Ce qui a été livré hors contrat</h2>
+  <p class="h2sub">Le surplus, et ce qu'il représente</p>
+
+  <div class="kpis">
+    <div class="kpi"><b>20</b><span>pages fonctionnelles</span></div>
+    <div class="kpi"><b>22</b><span>points d'entrée API</span></div>
+    <div class="kpi"><b>~12 250</b><span>lignes de code applicatif</span></div>
+    <div class="kpi"><b>2</b><span>langues intégrales</span></div>
+  </div>
+  <p class="kpi-note">Hors feuille de style (≈ 6 500 lignes), hors schéma de base de données (7 tables, ≈ 480 lignes SQL), hors documentation technique.</p>
+
+  <h3>4.1 - Le back-office d'exploitation <span class="tag plus">Hors contrat</span></h3>
+
+  <p>Le contrat prévoyait un <strong>espace client</strong>. Il ne prévoyait aucun outil côté exploitant. Cinq écrans d'administration ont pourtant été construits, parce que la vente en ligne pose mécaniquement des questions auxquelles personne d'autre ne répond :</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Écran</th><th>Fonction</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Tableau de bord</strong></td><td>Recette du jour, réservations du jour, réservations payées, nombre de clients - et désormais la fréquentation du site (voir §4.2)</td></tr>
+      <tr><td><strong>Réservations</strong></td><td>Recherche, filtres par statut, détail siège par siège, annulation avec libération réelle de la place côté Veezi, suppression</td></tr>
+      <tr><td><strong>Contrôle d'accès</strong></td><td><strong>Scanner de QR code</strong> intégré : le personnel vérifie un billet acheté en ligne à l'entrée de la salle, depuis un téléphone ou une tablette</td></tr>
+      <tr><td><strong>Clients</strong></td><td>Fichier clients avec historique de réservations et export</td></tr>
+      <tr><td><strong>Messages</strong></td><td>Boîte de réception des demandes du site, avec statuts de traitement et notes internes</td></tr>
+      <tr><td><strong>Tarifs</strong></td><td>Lecture de la grille tarifaire Veezi en direct, gestion des types de billets et des prix par séance</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout">
+    <span class="lbl">À souligner</span>
+    <p>Sans le <strong>scanner de QR code</strong>, le tunnel de vente aurait été livré sans son pendant côté exploitant : des billets vendus sur Internet, et aucun moyen de les contrôler à l'entrée. C'est la fonction la plus structurante du lot, et elle ne figurait dans aucune ligne du chiffrage initial.</p>
+  </div>
+
+  <h3>4.2 - KPI de fréquentation du site <span class="tag new">Ajout récent</span></h3>
+
+  <p>Le tableau de bord administrateur intègre désormais le <strong>suivi de la fréquentation du site</strong> : nombre de visites, aux côtés des indicateurs commerciaux existants. Cinepax dispose ainsi, dans un seul écran, de la lecture croisée qui compte réellement - <strong>combien de personnes viennent sur le site, et combien achètent</strong>. La mesure est produite par le back-end Laravel décrit au §5 et restituée dans le tableau de bord.</p>
+
+  <div class="callout info">
+    <span class="lbl">Une conséquence directe sur le choix d'hébergement</span>
+    <p>Cet indicateur n'a de valeur que si la mesure est fiable. Dans le scénario d'un site encastré dans une page du système mutualisé existant (§6, scénario A), le trafic est partiellement capté et brouillé par l'hébergement d'accueil. <strong>Le déploiement autonome donne une mesure directe et complète.</strong></p>
+  </div>
+
+  <h3>4.3 - Le site vitrine, branché sur l'API <span class="tag plus">Hors contrat</span></h3>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Module</th><th>Contenu</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Accueil éditorialisé</strong></td><td>Carrousel plein cadre à bandes-annonces, lecture automatique, regroupement des versions (VF/VO/3D) d'un même film</td><td>Veezi</td></tr>
+      <tr><td><strong>Prochainement</strong></td><td>Films à venir avec synopsis, casting, réalisateur, date de sortie</td><td>Veezi - rubrique reconstituée, l'API n'en expose pas</td></tr>
+      <tr><td><strong>Programme de la semaine</strong></td><td>Grille jour par jour <em>et</em> affiche 1080×1920 générée à la volée, téléchargeable et partageable sur Facebook / WhatsApp</td><td>Veezi - régénérée en continu</td></tr>
+      <tr><td><strong>Nos offres &amp; tarifs</strong></td><td>Visuels promotionnels et grilles tarifaires en vigueur avec les jours qu'elles couvrent</td><td>Veezi + contenus repris</td></tr>
+      <tr><td><strong>À propos / Contact / CGV</strong></td><td>Pages éditoriales, plan d'accès, horaires, coordonnées, salles et places</td><td>Veezi pour l'identité du cinéma</td></tr>
+      <tr><td><strong>Formulaire de contact</strong></td><td>Six sujets, anti-spam, et <strong>rattachement automatique de la demande au compte client</strong> par l'adresse e-mail - y compris pour les messages envoyés avant la création du compte</td><td>Base propre</td></tr>
+      <tr><td><strong>Bilingue FR / EN</strong></td><td>Traduction intégrale, site public <em>et</em> back-office, avec dates et devises localisées</td><td>-</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>Le point commun de ces pages : elles <strong>ne se périment pas</strong>. Là où le site actuel dépend d'un dépôt manuel hebdomadaire dans le CMS, ces contenus se recomposent à partir de ce que le back-office Veezi contient déjà.</p>
+</section>
+
+<hr class="rule">
+
+<!-- ══════════════════ 5 ══════════════════ -->
+<section>
+  <h2>5 - Architecture</h2>
+  <p class="h2sub">Où en est le découpage front / back</p>
+
+  <p>L'orientation retenue est celle d'un <strong>back-end Laravel centralisant tous les accès API</strong>, le front React se contentant de le consommer. Cette application Laravel <strong>est développée et prête</strong>, avec ses migrations de base de données écrites de manière portable : elle s'installe indifféremment sur <strong>MySQL ou PostgreSQL</strong>, selon ce que l'hébergement retenu proposera. Aucune réécriture n'est à prévoir d'un moteur à l'autre.</p>
+
+  <p>L'application actuellement en démonstration embarque encore sa propre couche serveur - les 22 points d'entrée mentionnés plus haut. C'est ce qui a permis d'itérer vite pendant la phase de test contre les API Veezi. Le basculement vers Laravel est une <strong>substitution d'adresses</strong>, pas une réécriture : la logique métier (cascade tarifaire, tenue des sièges, callback bancaire, rattachement des demandes) est déjà spécifiée et éprouvée.</p>
+
+  <div class="callout">
+    <span class="lbl">Conséquence pratique</span>
+    <p>Les deux configurations sont <strong>déployables aujourd'hui</strong>. Nous pouvons mettre en ligne dès maintenant avec la couche serveur actuelle puis basculer sur Laravel sans interruption de service, ou attendre le back-end Laravel pour la première mise en ligne. Ce choix est ouvert et n'affecte ni le planning ni le chiffrage ci-après.</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ══════════════════ 6 ══════════════════ -->
+<section>
+  <h2>6 - Le point de décision</h2>
+  <p class="h2sub">Deux voies pour la mise en production</p>
+
+  <p>L'existant cinepax.mg tourne sur un <strong>hébergement mutualisé</strong> - un environnement fermé, administré par un panneau de contrôle, sans possibilité d'y installer nos propres services. C'est le fait central qui départage les deux scénarios.</p>
+
+  <div class="scenarios">
+    <div class="sc">
+      <header>
+        <span class="n">Scénario A</span>
+        <h4>Encastrer dans le site existant</h4>
+      </header>
+      <div class="body">
+        <ul>
+          <li>Recompiler le front React pour l'intégrer dans une page dédiée du système existant, en le rendant lisible côté PHP.</li>
+          <li>Trouver <strong>en parallèle</strong> un serveur capable d'accueillir le back-end Laravel - le mutualisé ne le permet pas.</li>
+          <li>Faire coexister deux hébergements et gérer les échanges entre eux (domaines croisés, certificats, sessions).</li>
+          <li>Mesure de fréquentation dégradée, captée en partie par l'hébergement d'accueil.</li>
+          <li>Reprendre l'encastrement à <strong>chaque mise à jour</strong>.</li>
+        </ul>
+      </div>
+      <div class="verdict">Chemin le plus long, avec une dépendance forte à un hébergement que nous ne maîtrisons pas.</div>
+    </div>
+
+    <div class="sc reco">
+      <header>
+        <span class="n">Scénario B - recommandé</span>
+        <h4>Déployer en autonomie + bascule DNS</h4>
+      </header>
+      <div class="body">
+        <ul>
+          <li>Le site est déployé sur son propre hébergement, tel qu'il fonctionne aujourd'hui.</li>
+          <li>Le <strong>DNS de cinepax.mg est redirigé</strong> vers ce déploiement : pour le public, rien ne change - même nom de domaine, même adresse.</li>
+          <li>Aucune recompilation, aucun encastrement, aucune adhérence au système existant.</li>
+          <li>Mesure de fréquentation complète et fiable.</li>
+          <li>Mises à jour publiées directement ; <strong>retour arrière immédiat</strong> en repointant le DNS.</li>
+        </ul>
+      </div>
+      <div class="verdict">✓ Mise en ligne la plus rapide, la plus réversible, la moins coûteuse à maintenir.</div>
+    </div>
+  </div>
+
+  <h3>Ce qui rend le scénario B possible</h3>
+  <p>Il n'est envisageable que parce qu'une condition est remplie : <strong>nous disposons des accès API à la totalité de ce que le back-office configure</strong>. Films, séances, salles, plans de salle, grilles tarifaires, identité du cinéma - tout ce que le site actuel affiche provient de sources auxquelles nous sommes connectés. Il n'y a donc rien, dans l'existant, que le nouveau site ne saurait afficher.</p>
+
+  <p>Deux réserves, par honnêteté : les <strong>contenus purement rédactionnels</strong> (texte « À propos », conditions générales) et les <strong>créations graphiques promotionnelles</strong> ne sont exposés par aucune API - ils vivent dans le CMS du site actuel. Ils ont été repris et sont versionnés avec le code. Leur mise à jour passera donc par nous, sauf à prévoir ultérieurement une interface d'édition dédiée (non chiffrée ici).</p>
+</section>
+
+<hr class="rule">
+
+<!-- ══════════════════ 7 ══════════════════ -->
+<section>
+  <h2>7 - Chiffrage complémentaire</h2>
+  <p class="h2sub">Le solde de périmètre, et le reste-à-facturer</p>
+
+  <h3>7.1 - Valorisation du surplus livré</h3>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Lot livré hors contrat</th><th>Détail</th><th class="num">JH</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Back-office d'exploitation</strong></td><td>Tableau de bord, gestion des réservations, fichier clients, boîte de réception, administration des tarifs avec lecture directe de la grille Veezi</td><td class="num">9</td></tr>
+      <tr><td><strong>Site vitrine API</strong></td><td>7 pages branchées sur l'API, carrousel de bandes-annonces, affiche du programme générée automatiquement</td><td class="num">7</td></tr>
+      <tr><td><strong>Système de design</strong></td><td>Navigation, écrans de chargement, jeu d'icônes, cohérence visuelle site public et back-office</td><td class="num">3</td></tr>
+      <tr><td><strong>Bilingue FR / EN</strong></td><td>Traduction intégrale interface publique et administration, localisation des dates et montants</td><td class="num">2,5</td></tr>
+      <tr><td><strong>Contact &amp; relation client</strong></td><td>Formulaire, protection anti-spam, rattachement automatique au compte, traitement côté administration</td><td class="num">2,5</td></tr>
+      <tr><td><strong>Contrôle d'accès QR</strong></td><td>Scanner en salle, vérification et validation du billet</td><td class="num">1,5</td></tr>
+      <tr><td><strong>KPI de fréquentation</strong></td><td>Mesure des visites et restitution dans le tableau de bord administrateur</td><td class="num">1,5</td></tr>
+      <tr><td><strong>Mise en production</strong></td><td>Déploiement autonome, configuration, bascule DNS, recette en production, accompagnement au démarrage</td><td class="num">1,5</td></tr>
+    </tbody>
+    <tfoot>
+      <tr><td colspan="2">Valeur du surplus livré</td><td class="num">28 JH</td></tr>
+    </tfoot>
+  </table>
+  </div>
+
+  <h3>7.2 - Solde et complément demandé</h3>
+
+  <div class="balance">
+    <div class="row"><span class="lab">Chiffrage contractuel initial</span><span class="val">43 JH</span></div>
+    <div class="row plus"><span class="lab">Surplus livré hors contrat (§7.1)</span><span class="val">+ 28 JH</span></div>
+    <div class="row minus"><span class="lab">Reliquat contractuel encore ouvert (§3.1)</span><span class="val">- 11 JH</span></div>
+    <div class="row net"><span class="lab">Solde net en faveur de Cinepax</span><span class="val">+ 17 JH</span></div>
+    <div class="row minus"><span class="lab">Absorbé - geste commercial</span><span class="val">- 7 JH</span></div>
+    <div class="row final"><span class="lab">Complément facturé</span><span class="val">10 JH</span></div>
+  </div>
+
+  <div class="callout ok">
+    <span class="lbl">Lecture d'ensemble</span>
+    <p>Le projet aura livré environ <strong>60 JH de valeur pour 43 JH engagés</strong>, et sera facturé <strong>53 JH</strong>. Le complément demandé représente <strong>23 % du contrat initial pour 65 % de charge supplémentaire</strong>. Les 7 JH non facturés correspondent à la part du travail absorbée en phase de test des API, où la construction du site autour du tunnel était le moyen d'éprouver le tunnel lui-même - et non une commande distincte.</p>
+  </div>
+
+  <h4>Explicitement hors périmètre du complément</h4>
+  <ul>
+    <li>Les 11 JH de <strong>reliquat contractuel</strong> (concessions, notifications e-mail et SMS, activation Mobile Money, tests automatisés) restent dus au titre du contrat initial et feront l'objet d'un calendrier distinct.</li>
+    <li><strong>Interface d'édition des contenus rédactionnels</strong> (textes « À propos », visuels promotionnels, CGV) - aujourd'hui versionnés avec le code.</li>
+    <li>Reprise de l'historique des réservations de l'ancien système, le cas échéant.</li>
+    <li>Abonnements d'hébergement, nom de domaine et frais des passerelles de paiement.</li>
+  </ul>
+
+  <div class="callout info">
+    <span class="lbl">À prévoir : la maintenance</span>
+    <p>Une fois la bascule effectuée, cinepax.mg <em>devient</em> cette application : 20 pages, un back-office d'exploitation et une chaîne de paiement à maintenir en condition opérationnelle. Il est recommandé d'ouvrir en parallèle un <strong>contrat de maintenance</strong> (corrections, mises à jour de sécurité, évolutions mineures, assistance à l'exploitation), à chiffrer séparément.</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ══════════════════ 8 ══════════════════ -->
+<section>
+  <h2>8 - Prérequis</h2>
+  <p class="h2sub">Ce qui reste à débloquer côté Cinepax et partenaires</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Point</th><th>Situation</th><th>Qui</th><th class="num">Statut</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Canal de vente « CINEP »</strong></td>
+        <td>Le canal doit être coché dans la grille de programmation Veezi pour que les séances soient visibles à la vente en ligne. Sans lui, l'API ne retourne ni plan de salle ni grille tarifaire pour la séance concernée.</td>
+        <td>Cyrille - back-office Veezi</td>
+        <td class="num"><span class="tag wait">En attente</span></td>
+      </tr>
+      <tr>
+        <td><strong>Devise MGA chez BNI / MIPS</strong></td>
+        <td>Le compte marchand de test n'accepte à ce jour qu'une devise étrangère. Le passage en Ariary doit être fait par BNI sur le compte de production. Côté application, la bascule est pilotée par configuration - aucune modification de code.</td>
+        <td>BNI Madagascar</td>
+        <td class="num"><span class="tag wait">En attente</span></td>
+      </tr>
+      <tr>
+        <td><strong>Accès au DNS de cinepax.mg</strong></td>
+        <td>Nécessaire pour la bascule du scénario B. Opération de quelques minutes, réversible.</td>
+        <td>Cinepax / registrar</td>
+        <td class="num"><span class="tag wait">À obtenir</span></td>
+      </tr>
+      <tr>
+        <td><strong>Choix de l'hébergement</strong></td>
+        <td>Le déploiement fonctionne aujourd'hui sur une plateforme adaptée. Le choix définitif reste à arbitrer.</td>
+        <td>eTech / Cinepax</td>
+        <td class="num"><span class="tag wait">À arbitrer</span></td>
+      </tr>
+      <tr>
+        <td><strong>Contrats Orange Money / MVola</strong></td>
+        <td>Interface déjà prête et grisée. Le branchement relève du reliquat contractuel, suspendu à l'activation commerciale.</td>
+        <td>Cinepax</td>
+        <td class="num"><span class="tag wait">Bloqué</span></td>
+      </tr>
+      <tr>
+        <td><strong>Chaîne technique de bout en bout</strong></td>
+        <td>Sélection → paiement → écriture Veezi → billet → contrôle par QR : validée en conditions réelles.</td>
+        <td>eTech</td>
+        <td class="num"><span class="tag ok">Validé</span></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout warn">
+    <span class="lbl">Le seul point réellement bloquant</span>
+    <p>Aucun de ces points ne relève du développement. Le seul qui conditionne l'ouverture commerciale est <strong>l'activation du canal CINEP</strong> : tant qu'il n'est pas coché, les séances existent dans le back-office mais restent invisibles à la vente en ligne. C'est une case à cocher, pas un chantier.</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ══════════════════ 9 ══════════════════ -->
+<section>
+  <h2>9 - Mise en production</h2>
+  <p class="h2sub">Séquence proposée</p>
+
+  <div class="flow">
+    <div class="st"><b>Étape 1</b><span>Arbitrage scénario &amp; hébergement</span></div>
+    <div class="st"><b>Étape 2</b><span>Activation du canal CINEP</span></div>
+    <div class="st"><b>Étape 3</b><span>Passage en Ariary chez BNI</span></div>
+    <div class="st"><b>Étape 4</b><span>Déploiement &amp; recette</span></div>
+    <div class="st"><b>Étape 5</b><span>Bascule DNS</span></div>
+    <div class="st"><b>Étape 6</b><span>Accompagnement des équipes</span></div>
+  </div>
+
+  <p>Les étapes 2 et 3 relèvent de tiers et conditionnent l'<em>ouverture commerciale</em>, non la mise en ligne : <strong>le site peut être publié avant leur résolution</strong>, le tunnel de vente s'activant séance par séance à mesure que le canal CINEP est coché.</p>
+
+  <p>L'étape 6 mérite d'être planifiée sérieusement : le back-office et le scanner de QR code sont des outils d'exploitation quotidienne, utilisés par le personnel de salle. Une prise en main accompagnée conditionne leur adoption.</p>
+</section>
+
+<hr class="rule">
+
+<!-- ══════════════════ 10 ══════════════════ -->
+<section>
+  <h2>10 - Conclusion</h2>
+  <p class="h2sub">Ce qui est demandé</p>
+
+  <ol>
+    <li><strong>Valider le scénario B</strong> - déploiement autonome du site et bascule du DNS de cinepax.mg - comme voie de mise en production.</li>
+    <li><strong>Valider le complément de 10 JH</strong>, soldant 28 JH livrés hors contrat déduction faite de 11 JH de reliquat contractuel, mise en production incluse.</li>
+    <li><strong>Arrêter un calendrier pour le reliquat contractuel</strong> (concessions, notifications e-mail et SMS, tests automatisés) et ouvrir la discussion sur le contrat de maintenance.</li>
+    <li><strong>Relancer Cyrille sur l'activation du canal CINEP</strong> et BNI sur le passage en Ariary - les deux seuls points qui conditionnent l'ouverture commerciale.</li>
+  </ol>
+
+  <div class="callout">
+    <p>Le produit est prêt. Ce qui reste tient à des décisions et à deux actions de tiers - aucune ne relève du développement.</p>
+  </div>
+
+  <div class="signoff">
+    <b>Cinepax Madagascar - Billetterie en ligne</b><br>
+    Revue de périmètre et chiffrage complémentaire · 30 juillet 2026 · eTech
+  </div>
+</section>
+
+</main>
+</div>
+</body>
+</html>
