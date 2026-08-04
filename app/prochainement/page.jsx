@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useI18n, formatDuration } from '@/lib/i18n'
 import { fixImageUrl } from '@/lib/images'
 import { youtubeId } from '@/components/HeroSlider'
+import RichText from '@/lib/synopsis'
 
 // ─── Prochainement ────────────────────────────────────────────────────────────
 // Grille des films à venir, reprise de cinepax.mg/coming-soon. Les données
@@ -89,7 +90,7 @@ function FilmDialog({ film, onClose }) {
           </p>
           <h2 className="cs-dialog-title">{film.title}</h2>
           {meta && <p className="cs-dialog-meta">{meta}</p>}
-          {film.synopsis && <p className="cs-dialog-synopsis">{film.synopsis}</p>}
+          <RichText className="cs-dialog-synopsis" text={film.synopsis} />
 
           {film.director && (
             <p className="cs-dialog-row">

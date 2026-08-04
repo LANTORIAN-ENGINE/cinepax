@@ -605,6 +605,49 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   MISE EN FORME DES SYNOPSIS
+   Les synopsis Veezi portent un balisage léger (**gras**, *italique*,
+   lignes vides) interprété par lib/synopsis.jsx. Les distributeurs s'en
+   servent presque toujours pour citer un titre de film : l'italique reste
+   donc la mise en forme dominante, comme dans la presse cinéma.
+═══════════════════════════════════════════════════════════════ */
+.film-synopsis p,
+.film-details-synopsis p,
+.cs-dialog-synopsis p {
+  margin: 0 0 0.85em;
+}
+.film-synopsis p:last-child,
+.film-details-synopsis p:last-child,
+.cs-dialog-synopsis p:last-child {
+  margin-bottom: 0;
+}
+
+.film-synopsis em,
+.film-details-synopsis em,
+.cs-dialog-synopsis em,
+.hero-synopsis em {
+  font-style: italic;
+}
+
+.film-synopsis strong,
+.film-details-synopsis strong {
+  font-weight: 600;
+  color: #111;
+}
+
+/* Sur fond sombre, le gras a besoin d'un cran de plus pour se détacher. */
+.cs-dialog-synopsis strong,
+.hero-synopsis strong {
+  font-weight: 700;
+  color: #fff;
+}
+
+.cs-dialog-synopsis em,
+.hero-synopsis em {
+  color: rgba(255, 255, 255, 0.97);
+}
+
+/* ═══════════════════════════════════════════════════════════════
    FILM DETAILS SECTION (page détail film, après les horaires)
 ═══════════════════════════════════════════════════════════════ */
 .film-details-section {
@@ -5286,6 +5329,53 @@ body {
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Prolongement du synopsis écrêté vers la fiche du film. Discret par choix :
+   la zone d'action du bandeau appartient déjà à « Acheter mes billets », un
+   troisième bouton plein la disputerait. */
+.hero-more {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 9px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: inherit;
+  font-size: 0.69rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.hero-more span {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  text-decoration-color: rgba(255, 255, 255, 0.4);
+  transition: text-decoration-color 0.15s;
+}
+
+.hero-more svg { transition: transform 0.15s; }
+
+.hero-more:hover { color: #fff; }
+.hero-more:hover span { text-decoration-color: var(--hero-accent); }
+.hero-more:hover svg { transform: translateX(3px); }
+
+.hero-more:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-more svg { transition: none; }
+  .hero-more:hover svg { transform: none; }
 }
 
 .hero-actions {

@@ -185,6 +185,7 @@ const DICT = {
       unmute: 'Activer le son',
       fullscreen: 'Plein écran',
       exitFullscreen: 'Quitter le plein écran',
+      readMore: 'Lire la suite',
     },
 
     home: {
@@ -849,6 +850,7 @@ const DICT = {
       unmute: 'Unmute',
       fullscreen: 'Full screen',
       exitFullscreen: 'Exit full screen',
+      readMore: 'Read more',
     },
 
     home: {

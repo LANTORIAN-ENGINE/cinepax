@@ -22,17 +22,6 @@ function baseTitle(title = '') {
     .toUpperCase()
 }
 
-// Les synopsis Veezi contiennent des marqueurs Markdown (*titre*) que rien
-// n'interprète côté client : on les retire.
-function plainText(text) {
-  if (!text) return null
-  return text
-    .replace(/\*\*(.+?)\*\*/g, '$1')
-    .replace(/\*(.+?)\*/g, '$1')
-    .replace(/_{1,2}(.+?)_{1,2}/g, '$1')
-    .trim() || null
-}
-
 function person(people, role) {
   return (people || [])
     .filter(p => p.Role === role)
@@ -98,7 +87,8 @@ export async function GET() {
         poster: film.FilmPosterUrl || film.FilmPosterThumbnailUrl || null,
         backdrop: film.BackdropImageUrl || null,
         trailerUrl: film.FilmTrailerUrl || null,
-        synopsis: plainText(film.Synopsis || film.ShortSynopsis),
+        // Synopsis brut : la mise en forme est interprétée à l'affichage.
+        synopsis: film.Synopsis || film.ShortSynopsis || null,
         genre: film.Genre?.trim() || null,
         rating: film.Rating || null,
         duration: film.Duration || null,

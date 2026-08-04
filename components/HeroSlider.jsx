@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useI18n, formatDuration } from '@/lib/i18n'
+import { parseSynopsis, flattenSynopsis, renderSynopsis } from '@/lib/synopsis'
 
 // ─── Carrousel d'accueil ──────────────────────────────────────────────────────
 // Reproduit le slider vidéo plein cadre de cinepax.mg, alimenté uniquement par
@@ -171,6 +172,52 @@ const IconMuted = () => <svg viewBox="0 0 24 24" fill="currentColor" width="16" 
 const IconExpand = () => <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><path d="M4 9V4h5v2H6v3H4zm11-5h5v5h-2V6h-3V4zM4 15h2v3h3v2H4v-5zm14 0h2v5h-5v-2h3v-3z" /></svg>
 const IconShrink = () => <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><path d="M9 4v5H4V7h3V4h2zm6 0h2v3h3v2h-5V4zM4 15h5v5H7v-3H4v-2zm11 0h5v2h-3v3h-2v-5z" /></svg>
 
+const IconChevron = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="12" height="12" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+
+// ─── Synopsis de la slide ─────────────────────────────────────────────────────
+// Le synopsis est écrêté par CSS à deux ou trois lignes selon la largeur. Le
+// lien « Lire la suite » n'apparaît que lorsque la coupe a réellement lieu :
+// on compare la hauteur réelle du texte à celle du cadre, remesurée à chaque
+// redimensionnement et une fois les polices chargées (leurs métriques
+// déplacent la dernière ligne).
+function HeroSynopsis({ text, title, onExpand }) {
+  const { t } = useI18n()
+  const ref = useRef(null)
+  const [clamped, setClamped] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const measure = () => setClamped(el.scrollHeight - el.clientHeight > 1)
+    measure()
+
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    document.fonts?.ready.then(measure).catch(() => {})
+    return () => observer.disconnect()
+  }, [text])
+
+  const nodes = flattenSynopsis(parseSynopsis(text))
+  if (!nodes.length) return null
+
+  return (
+    <>
+      <p className="hero-synopsis" ref={ref}>{renderSynopsis(nodes)}</p>
+      {clamped && (
+        <button
+          type="button"
+          className="hero-more"
+          onClick={onExpand}
+          aria-label={`${t('hero.readMore')} — ${title}`}
+        >
+          <span>{t('hero.readMore')}</span>
+          <IconChevron />
+        </button>
+      )}
+    </>
+  )
+}
+
 // ─── Carrousel ────────────────────────────────────────────────────────────────
 export default function HeroSlider({ films, loading, onSelectFilm }) {
   const { t, lang } = useI18n()
@@ -325,7 +372,11 @@ export default function HeroSlider({ films, loading, onSelectFilm }) {
                   <div className="hero-content-left">
                     <h2 className="hero-title">{film.Title}</h2>
                     {meta && <p className="hero-meta">{meta}</p>}
-                    {synopsis && <p className="hero-synopsis">{synopsis}</p>}
+                    <HeroSynopsis
+                      text={synopsis}
+                      title={film.Title}
+                      onExpand={() => onSelectFilm?.(film)}
+                    />
                   </div>
 
                   <div className="hero-actions">

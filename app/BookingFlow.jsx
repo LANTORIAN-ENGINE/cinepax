@@ -9,6 +9,7 @@ import BookingConfirmation from '../components/BookingConfirmation'
 import AchatBand from '../components/AchatBand'
 import { useI18n, formatDuration } from '@/lib/i18n'
 import { filmPoster, filmBackdrop } from '@/lib/images'
+import RichText, { parseSynopsis, truncateSynopsis } from '@/lib/synopsis'
 import {
   bookingPath, parseBookingPath, findFilmByParam, homeQuery, parseHomeQuery,
 } from '@/lib/bookingRoutes'
@@ -1115,9 +1116,7 @@ export default function BookingFlow({ initialRoute }) {
               </p>
             )}
 
-            {fullSynopsis && (
-              <p className="film-details-synopsis">{fullSynopsis}</p>
-            )}
+            <RichText className="film-details-synopsis" text={fullSynopsis} />
           </div>
         )}
       </FilmHero>
@@ -1291,10 +1290,13 @@ export default function BookingFlow({ initialRoute }) {
 
               {visibleFilms.map((film, idx) => {
                 const filmSessions = sessionsByDay.filter(s => String(s.FilmId) === String(film.Id))
-                const synopsis = film.Synopsis || film.ShortSynopsis || ''
+                const synopsis = parseSynopsis(film.Synopsis || film.ShortSynopsis)
                 const isExpanded = expandedFilms.has(film.Id)
-                const needsTruncation = synopsis.length > 180
-                const displayedSynopsis = isExpanded || !needsTruncation ? synopsis : synopsis.slice(0, 180) + '...'
+                // La coupe porte sur le texte analysé, pas sur la chaîne brute :
+                // un titre de film en italique ne se retrouve jamais à cheval.
+                const short = truncateSynopsis(synopsis, 180)
+                const needsTruncation = short.truncated
+                const displayedSynopsis = isExpanded ? synopsis : short.paragraphs
 
                 function toggleExpand(e) {
                   e.stopPropagation()
@@ -1339,16 +1341,18 @@ export default function BookingFlow({ initialRoute }) {
                           {film.Duration && <span>{formatDuration(film.Duration, lang)}</span>}
                         </p>
 
-                        {synopsis && (
-                          <p className="film-synopsis">
-                            {displayedSynopsis}
-                            {needsTruncation && (
-                              <> <button className="synopsis-more" onClick={toggleExpand}>
+                        <RichText
+                          className="film-synopsis"
+                          paragraphs={displayedSynopsis}
+                          trailing={needsTruncation && (
+                            <>
+                              {!isExpanded && '… '}
+                              <button className="synopsis-more" onClick={toggleExpand}>
                                 {isExpanded ? t('home.less') : t('home.more')}
-                              </button></>
-                            )}
-                          </p>
-                        )}
+                              </button>
+                            </>
+                          )}
+                        />
 
                         {/* Boutons de séances */}
                         <div className="film-sessions">
