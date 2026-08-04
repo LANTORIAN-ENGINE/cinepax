@@ -1933,6 +1933,41 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Pied du sélecteur : le total se lit sans descendre à la barre d'achat, au
+   moment même où l'on compose les billets. */
+.ticket-picker-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 13px;
+  border-top: 1.5px dashed #dcdcdc;
+}
+
+.ticket-picker-total-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #999;
+}
+
+.ticket-picker-total {
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: #1a1a1a;
+  font-variant-numeric: tabular-nums;
+}
+
+.ticket-picker-note {
+  margin: 10px 0 0;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: #999;
+}
+
 /* Détail des billets dans le récapitulatif de paiement */
 .pay-ticket-breakdown {
   display: flex;
@@ -3716,8 +3751,35 @@ body {
   padding: 6px 0; border-bottom: 1px solid var(--t-line-2); gap: 16px;
 }
 .conf-detail-row:last-child { border-bottom: none; }
+/* Quand le détail des billets suit, c'est son pointillé qui fait la coupure :
+   sans ça, la dernière ligne d'information poserait un second filet juste
+   au-dessus. */
+.conf-detail-row:has(+ .conf-ticket-lines) { border-bottom: none; }
 .conf-detail-label { font-size: 0.72rem; color: var(--t-ink-3); flex-shrink: 0; }
 .conf-detail-value { font-size: 0.82rem; color: var(--t-ink); font-weight: 600; text-align: right; }
+
+/* Détail par type de billet, repris du plan de salle puis du paiement. Séparé
+   des lignes d'information par un filet pointillé : c'est la partie chiffrée
+   du talon, celle qu'on relit en caisse. */
+.conf-ticket-lines {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1.5px dashed #c9cfd8;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.conf-ticket-line {
+  display: flex; align-items: baseline; gap: 10px;
+  font-size: 0.78rem;
+}
+.conf-ticket-line-qty {
+  font-weight: 800; color: var(--t-red-ink); font-variant-numeric: tabular-nums;
+}
+.conf-ticket-line-name { flex: 1; color: var(--t-ink-2); font-weight: 600; }
+.conf-ticket-line-amount {
+  color: var(--t-ink); font-weight: 700; font-variant-numeric: tabular-nums;
+}
 
 .conf-note { font-size: 0.72rem; color: var(--t-ink-3); line-height: 1.6; margin-bottom: 24px; }
 
@@ -6615,44 +6677,357 @@ body {
   color: #111;
 }
 
-.offer-note { margin: 0 0 18px; font-size: 0.85rem; color: #777; line-height: 1.5; }
+/* ─── Le semainier des tarifs ────────────────────────────────────────────────
+   L'affiche officielle range les prix par tranche d'âge et laisse le lecteur
+   deviner quel jour tombe dans quelle grille. Ici c'est l'inverse : la semaine
+   fait la colonne vertébrale — c'est elle que l'API connaît vraiment, séance
+   par séance — et la tranche d'âge n'est plus qu'un réglage.
 
-.rate-table-wrap { overflow-x: auto; margin-bottom: 28px; }
+   Sept colonnes, un prix par colonne, composé comme sur l'affiche : le nombre
+   en chiffres de titrage, « Ar » en petit posé sur la même ligne de base.
 
-.rate-table {
-  width: 100%;
-  min-width: 520px;
-  border-collapse: collapse;
-  font-size: 0.87rem;
+   Le rouge ne dit qu'une chose ici : ce jour coûte moins cher que le tarif
+   ordinaire. Aujourd'hui se marque à l'encre, en tête de colonne, pour que le
+   repère du jour et le signal de prix ne se confondent jamais. */
+
+.tarif-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 28px;
+  margin-bottom: 20px;
 }
 
-.rate-table th, .rate-table td {
-  padding: 12px 14px;
-  text-align: left;
-  border-bottom: 1px solid #ececec;
+.tarif-head-text { max-width: 52ch; }
+.tarif-lead { margin: 2px 0 0; font-size: 0.85rem; line-height: 1.55; color: var(--t-ink-3); }
+
+.tarif-sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
-.rate-table thead th {
-  font-size: 0.68rem;
+/* — Réglage de la tranche d'âge — */
+.tarif-ages {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--t-paper-2);
+}
+
+.tarif-age input {
+  position: absolute;
+  width: 1px; height: 1px;
+  opacity: 0;
+}
+
+.tarif-age span {
+  display: block;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--t-ink-2);
+  cursor: pointer;
+  transition: background 0.2s cubic-bezier(0.22, 1, 0.36, 1), color 0.2s;
+}
+
+.tarif-age:hover span { color: var(--t-ink); }
+
+.tarif-age.is-on span {
+  background: var(--t-surface);
+  color: var(--t-ink);
+  box-shadow: 0 1px 2px rgba(20, 22, 26, 0.09);
+}
+
+.tarif-age input:focus-visible + span {
+  outline: 2px solid var(--t-red);
+  outline-offset: 2px;
+}
+
+/* — La semaine — */
+.tarif-week {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 1px;                       /* les filets naissent du fond, pas de bordures */
+  margin: 0 0 22px;
+  padding: 0;
+  background: var(--t-line-2);
+  border: 1px solid var(--t-line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.tarif-day {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-height: 158px;
+  padding: 14px 13px 15px;
+  background: var(--t-surface);
+  /* Les sept colonnes se posent l'une après l'autre, comme on étale des
+     billets sur le comptoir. */
+  animation: tarif-deal 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i) * 45ms);
+}
+
+@keyframes tarif-deal {
+  from { opacity: 0; transform: translateY(9px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.tarif-day.is-today { background: var(--t-paper); box-shadow: inset 0 3px 0 var(--t-ink); }
+.tarif-day.is-empty { background: var(--t-paper); }
+
+.tarif-day-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 3px 7px;
+}
+
+.tarif-day-flags {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 17px;
+  margin-top: -2px;
+}
+
+.tarif-day-name {
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.08rem;
+  letter-spacing: 0.045em;
+  line-height: 1;
+  color: var(--t-ink-2);
+  text-transform: capitalize;     /* fr rend « lundi », en rend « Monday » */
+}
+
+.tarif-day.is-today .tarif-day-name { color: var(--t-ink); }
+
+.tarif-day-mark {
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--t-ink-3);
+}
+
+.tarif-tag {
+  padding: 3px 6px;
+  border-radius: 3px;
+  background: var(--t-red);
+  color: #fff;
+  font-size: 0.58rem;
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: #777;
-  border-bottom-color: #ddd;
 }
 
-.rate-col-num { text-align: right !important; font-variant-numeric: tabular-nums; }
+/* — Le prix, composé comme sur l'affiche — */
+.tarif-price {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  margin: 0;
+  animation: tarif-swap 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
 
-.rate-name { font-weight: 700; color: #111; white-space: nowrap; }
-.rate-days { color: #555; text-transform: capitalize; }
+@keyframes tarif-swap {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
 
-.rate-swatch {
-  display: inline-block;
-  width: 9px;
-  height: 9px;
-  margin-right: 8px;
+.tarif-price b {
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 2.05rem;
+  font-weight: 400;
+  line-height: 0.88;
+  color: var(--t-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.tarif-price i {
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--t-ink-3);
+}
+
+.tarif-price em {
+  font-style: normal;
+  font-size: 0.78rem;
+  color: var(--t-ink-3);
+}
+
+.tarif-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: var(--t-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.tarif-hours { color: var(--t-ink-3); }
+
+/* Créneaux à part : la séance du matin, l'avant-première. Ils tombent au pied
+   de la colonne pour s'aligner d'un jour à l'autre. */
+.tarif-extra {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: auto 0 0;
+  padding-top: 8px;
+  border-top: 1px dashed var(--t-line);
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.tarif-extra + .tarif-extra { margin-top: 0; padding-top: 4px; border-top: 0; }
+.tarif-extra-name   { font-weight: 600; color: var(--t-ink-2); }
+.tarif-extra-detail { color: var(--t-ink-3); font-variant-numeric: tabular-nums; }
+
+/* — Mentions particulières de l'affiche — */
+.tarif-offers {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 0 0 22px;
+  padding: 0;
+}
+
+.tarif-offers li {
+  position: relative;
+  padding-left: 15px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--t-ink-2);
+}
+
+.tarif-offers li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 6px; height: 6px;
   border-radius: 50%;
-  vertical-align: baseline;
+  background: var(--t-red);
+}
+
+/* — Provenance, et l'affiche à portée d'un clic — */
+.tarif-source { margin-bottom: 8px; }
+
+.tarif-source > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--t-ink-3);
+  cursor: pointer;
+  list-style: none;
+}
+
+.tarif-source > summary::-webkit-details-marker { display: none; }
+
+.tarif-source > summary:focus-visible {
+  outline: 2px solid var(--t-red);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.tarif-source-cta {
+  font-weight: 600;
+  color: var(--t-red-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.tarif-source[open] .tarif-source-cta { text-decoration: none; }
+.tarif-source .offer-poster { margin-top: 14px; }
+
+/* En colonnes étroites, « aujourd'hui » ferait passer un jour long — dimanche,
+   mercredi — sur deux lignes, et cette seule colonne décalerait son prix. Le
+   mot sort de l'image ; le filet d'encre en tête de colonne dit la même chose,
+   et le lecteur d'écran garde le mot. */
+@media (max-width: 1080px) {
+  .tarif-day-mark {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+}
+
+@media (max-width: 1000px) {
+  .tarif-day { min-height: 148px; padding: 12px 10px 13px; }
+  .tarif-day-name { font-size: 1rem; }
+  .tarif-price b  { font-size: 1.75rem; }
+}
+
+/* Sous 900 px les sept colonnes deviennent sept lignes : le jour à gauche, son
+   prix à droite, le reste dessous. */
+@media (max-width: 900px) {
+  .tarif-week { grid-template-columns: 1fr; }
+
+  .tarif-day {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    column-gap: 14px;
+    row-gap: 3px;
+    min-height: 0;
+    padding: 13px 15px;
+  }
+
+  .tarif-day.is-today { box-shadow: inset 3px 0 0 var(--t-ink); }
+
+  /* En liste, la place revient : le repère se relit. */
+  .tarif-day-mark {
+    position: static;
+    width: auto; height: auto;
+    clip-path: none;
+  }
+
+  .tarif-day-head  { grid-column: 1; }
+  .tarif-meta      { grid-column: 1; flex-direction: row; flex-wrap: wrap; gap: 3px 10px; }
+  .tarif-day-flags { grid-column: 1; min-height: 0; margin: 0; }
+  .tarif-day-flags:empty { display: none; }
+
+  .tarif-price {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+    justify-self: end;
+  }
+
+  .tarif-extra {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 3px 8px;
+    margin: 5px 0 0;
+  }
+
+  .tarif-extra + .tarif-extra { margin-top: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarif-day, .tarif-price { animation: none; }
 }
 
 .offer-poster { margin: 0 0 8px; }

@@ -15,6 +15,7 @@
 //      utile d'un gabarit gris.
 
 import { useI18n } from '@/lib/i18n'
+import { WEEK_ORDER, weekdayName } from '@/lib/tarifs'
 
 // Barre fantôme. `w` accepte n'importe quelle longueur CSS, `d` décale
 // l'animation pour que les blocs s'allument dans l'ordre de lecture.
@@ -189,6 +190,28 @@ export function PriceCardsSkeleton({ rows = 4 }) {
         </div>
       ))}
     </div>
+  )
+}
+
+/* ── Semainier des tarifs ───────────────────────────────────────────────────
+   Les sept jours sont connus d'avance : on les écrit. Seuls le prix et le
+   décompte des séances attendent l'API, et ils attendent à leur place. */
+export function TarifWeekSkeleton() {
+  const { locale } = useI18n()
+
+  return (
+    <ol className="tarif-week" aria-busy="true">
+      {WEEK_ORDER.map((day, i) => (
+        <li key={day} className="tarif-day" style={{ '--i': i }}>
+          <div className="tarif-day-head">
+            <span className="tarif-day-name">{weekdayName(day, locale)}</span>
+          </div>
+          <div className="tarif-day-flags" />
+          <p className="tarif-price"><Bar w={86} h={28} r={5} d={i * 0.05} /></p>
+          <p className="tarif-meta"><Bar w="76%" h={10} d={i * 0.05 + 0.04} /></p>
+        </li>
+      ))}
+    </ol>
   )
 }
 

@@ -364,6 +364,11 @@ export default function BookingFlow({ initialRoute }) {
   const formatPrice      = (c) => formatPriceL(c, moneyLocale)
   const formatDateHeader = (d) => formatDateHeaderL(d, locale)
 
+  // Le libellé d'un billet vient du back-office quand il répond ; sinon c'est
+  // une tranche d'âge de l'affiche, traduite ici.
+  const ticketLabel = (tk) =>
+    tk.Description || (tk.BracketId ? tr(`offers.age.${tk.BracketId}`) : tk.TicketTypeCode)
+
   const [step, setStep] = useState('films')
 
   const [films, setFilms] = useState([])
@@ -386,6 +391,7 @@ export default function BookingFlow({ initialRoute }) {
   const [priceLabel, setPriceLabel] = useState(null)
   const [sessionTickets, setSessionTickets] = useState(null)  // grille tarifaire live (Connect /tickets)
   const [ticketCounts, setTicketCounts] = useState({})        // { [TicketTypeCode]: quantité }
+  const [priceSource, setPriceSource] = useState(null)        // 'veezi' | 'session' | 'price_card' | 'reference'
   const [loadingPrice, setLoadingPrice] = useState(false)
   const [bookingResult, setBookingResult] = useState(null)
 
@@ -604,6 +610,22 @@ export default function BookingFlow({ initialRoute }) {
     })
   }, [selectedSeats.length, sessionTickets])
 
+  // Détail des billets choisis. Calculé une seule fois pour les trois écrans
+  // qui l'affichent — plan de salle, paiement, confirmation — afin que le même
+  // récapitulatif suive le client jusqu'à la validation de l'achat.
+  const ticketBreakdown = (sessionTickets || [])
+    .map(tk => ({
+      code:         tk.TicketTypeCode,
+      description:  ticketLabel(tk),
+      priceInCents: tk.PriceInCents,
+      qty:          ticketCounts[tk.TicketTypeCode] || 0,
+    }))
+    .filter(tk => tk.qty > 0)
+
+  const breakdownTotalCents = ticketBreakdown.length
+    ? ticketBreakdown.reduce((s, tk) => s + tk.qty * tk.priceInCents, 0)
+    : null
+
   const availableDays = [...new Set(allSessions.map(s => toDateKey(sessionTime(s))))].sort()
 
   const sessionsByDay = (groupBy === 'film' || !selectedDay)
@@ -674,7 +696,12 @@ export default function BookingFlow({ initialRoute }) {
   //      GET /RESTData.svc/cinemas/{id}/sessions/{id}/tickets
   //      (ne répond que si le canal CINEP est actif sur la séance)
   //   2. Prix enregistré en base (Supabase) : session_prices puis price_cards
+  //   3. Grille de l'affiche officielle, servie par /api/prices
   // Met à jour ticketUnitPrice (en centimes) dès qu'une source répond.
+  //
+  // Les sources 1 et 3 renvoient la même structure de billets — plein tarif en
+  // tête — donc le sélecteur de type de billet, le total et le récapitulatif du
+  // paiement fonctionnent à l'identique, quelle que soit celle qui a répondu.
   async function resolveSessionPrice(session) {
     const sessionId = session?.Id
     setLoadingPrice(true)
@@ -698,6 +725,7 @@ export default function BookingFlow({ initialRoute }) {
           if (primary) {
             setTicketUnitPrice(primary.PriceInCents)
             setPriceLabel(primary.Description || null)
+            setPriceSource('veezi')
             return
           }
         }
@@ -710,10 +738,19 @@ export default function BookingFlow({ initialRoute }) {
         ? `&priceCardName=${encodeURIComponent(session.PriceCardName)}`
         : ''
       const res = await fetch(`/api/prices?sessionId=${sessionId}${pcParam}`)
-      const { price, label } = await res.json()
+      const { price, label, source, tickets } = await res.json()
+
+      // Une grille par tranche d'âge : même traitement que la grille live.
+      if (Array.isArray(tickets) && tickets.length) {
+        setSessionTickets(tickets)
+        setTicketUnitPrice(tickets[0].PriceInCents)
+        setPriceSource(source)
+        return
+      }
       if (price != null) {
         setTicketUnitPrice(price)
         if (label) setPriceLabel(label)
+        setPriceSource(source)
       }
     } catch {
       // aucune source — le prix reste null, on affichera la catégorie
@@ -737,6 +774,7 @@ export default function BookingFlow({ initialRoute }) {
     setTicketUnitPrice(null)
     setPriceLabel(null)
     setSessionTickets(null)
+    setPriceSource(null)
     setStep('seats')
 
     setLoadingSeats(true)
@@ -986,7 +1024,7 @@ export default function BookingFlow({ initialRoute }) {
                 return (
                   <div key={t.TicketTypeCode} className={`ticket-type-row ${qty > 0 ? 'is-active' : ''}`}>
                     <div className="ticket-type-desc">
-                      <span className="ticket-type-name">{t.Description}</span>
+                      <span className="ticket-type-name">{ticketLabel(t)}</span>
                       <span className="ticket-type-price">{formatPrice(t.PriceInCents)}</span>
                     </div>
                     <div className="ticket-stepper">
@@ -995,7 +1033,7 @@ export default function BookingFlow({ initialRoute }) {
                         className="ticket-step-btn"
                         onClick={() => adjustTicket(t.TicketTypeCode, -1)}
                         disabled={qty === 0}
-                        aria-label={tr('seats.removeTicket', { type: t.Description })}
+                        aria-label={tr('seats.removeTicket', { type: ticketLabel(t) })}
                       >−</button>
                       <span className="ticket-step-qty">{qty}</span>
                       <button
@@ -1003,13 +1041,27 @@ export default function BookingFlow({ initialRoute }) {
                         className="ticket-step-btn"
                         onClick={() => adjustTicket(t.TicketTypeCode, 1)}
                         disabled={assignedCount >= selectedSeats.length}
-                        aria-label={tr('seats.addTicket', { type: t.Description })}
+                        aria-label={tr('seats.addTicket', { type: ticketLabel(t) })}
                       >+</button>
                     </div>
                   </div>
                 )
               })}
             </div>
+
+            <div className="ticket-picker-foot">
+              <span className="ticket-picker-total-label">{t('seats.ticketTotal')}</span>
+              <span className="ticket-picker-total">
+                {ticketsTotalCents != null ? formatPrice(ticketsTotalCents) : '—'}
+              </span>
+            </div>
+
+            {/* Tant que le back-office ne publie pas ses tarifs, le montant
+                affiché est celui de l'affiche : on le dit plutôt que de le
+                laisser passer pour un prix arrêté. */}
+            {priceSource === 'reference' && (
+              <p className="ticket-picker-note">{t('seats.ticketRefSource')}</p>
+            )}
           </div>
         )}
 
@@ -1125,19 +1177,6 @@ export default function BookingFlow({ initialRoute }) {
 
   // ── Étape 4 — Paiement ───────────────────────────────────────────────────────
   if (step === 'payment' && selectedFilm) {
-    // Détail des billets choisis (issu de la grille tarifaire live), s'il existe
-    const ticketBreakdown = (sessionTickets || [])
-      .map(t => ({
-        code: t.TicketTypeCode,
-        description: t.Description,
-        priceInCents: t.PriceInCents,
-        qty: ticketCounts[t.TicketTypeCode] || 0,
-      }))
-      .filter(t => t.qty > 0)
-    const breakdownTotalCents = ticketBreakdown.length
-      ? ticketBreakdown.reduce((s, t) => s + t.qty * t.priceInCents, 0)
-      : null
-
     return (
       <PaymentForm
         film={selectedFilm}
@@ -1451,7 +1490,8 @@ export default function BookingFlow({ initialRoute }) {
           sessionLabel={formatTime(sessionTime(selectedSession))}
           screenName={selectedSession?.ScreenName || t('film.screenFallback', { id: selectedSession?.ScreenId })}
           seats={selectedSeats}
-          totalCents={bookingResult?.total_amount_cents ?? (ticketUnitPrice != null ? ticketUnitPrice * selectedSeats.length : null)}
+          ticketBreakdown={ticketBreakdown}
+          totalCents={bookingResult?.total_amount_cents ?? breakdownTotalCents ?? (ticketUnitPrice != null ? ticketUnitPrice * selectedSeats.length : null)}
           onReset={reset}
         />
       )}

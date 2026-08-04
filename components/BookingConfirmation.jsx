@@ -9,6 +9,7 @@ export default function BookingConfirmation({
   sessionLabel,
   screenName,
   seats,
+  ticketBreakdown,
   totalCents,
   onReset,
 }) {
@@ -146,6 +147,23 @@ export default function BookingConfirmation({
                 <span className="conf-detail-value">{value}</span>
               </div>
             ) : null)}
+
+            {/* Le détail par type de billet, tel qu'il a été composé au plan de
+                salle puis confirmé au paiement : le client retrouve sur son
+                billet exactement ce qu'il a choisi. */}
+            {ticketBreakdown?.length > 0 && (
+              <div className="conf-ticket-lines">
+                {ticketBreakdown.map(line => (
+                  <div key={line.code} className="conf-ticket-line">
+                    <span className="conf-ticket-line-qty">{line.qty}×</span>
+                    <span className="conf-ticket-line-name">{line.description}</span>
+                    <span className="conf-ticket-line-amount">
+                      {formatMGA(line.qty * line.priceInCents)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
