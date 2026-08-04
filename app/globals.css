@@ -1171,7 +1171,9 @@ body {
   .seat-group { gap: 2px; }
   .seating-area { gap: 4px; }
   .aisle { width: 12px; min-width: 12px; height: 22px; }
-  .row-label { width: 14px; min-width: 14px; font-size: 0.44rem; }
+  /* La lettre ne descend plus avec le siège : elle tient le même corps qu'en
+     tablette. C'est le repère qu'on cherche en premier sur un petit écran. */
+  .row-label { width: 14px; min-width: 14px; font-size: 0.52rem; }
   .seat::before { left: 4px; right: 4px; }
   .seat::after { height: 4px; left: -1px; right: -1px; }
   /* Pas de règle .screen-label ici : le clamp() de la règle de base gère
