@@ -12,6 +12,49 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   TUNNEL D'ACHAT — jetons de surface
+
+   Le parcours reste sur fond clair du premier écran au dernier. Les
+   étapes placement et paiement simulaient auparavant une salle éteinte :
+   joli, mais illisible, et posé en bloc noir au milieu d'un site blanc.
+
+   Le modèle est désormais le plan du guichet — celui que la caissière
+   retourne vers vous : du papier, de l'encre, l'écran tracé en barre
+   pleine, et chaque état de siège nommé par sa couleur. Les mêmes
+   jetons habillent le paiement et la confirmation, pour que les trois
+   écrans se lisent comme un seul document.
+
+   --t-ink-3 est le plancher lisible (4,7:1 sur --t-paper, 4,9:1 sur blanc) ;
+   sous ce palier, passer à --t-ink-2.
+═══════════════════════════════════════════════════════════════ */
+:root {
+  /* Surfaces */
+  --t-surface:  #ffffff;
+  --t-paper:    #f7f8fa;
+  --t-paper-2:  #f1f3f6;
+  --t-hover:    #eceef2;
+  --t-line:     #dfe2e8;
+  --t-line-2:   #ebedf1;
+
+  /* Encres */
+  --t-ink:      #14161a;
+  --t-ink-2:    #4d545e;
+  --t-ink-3:    #686f7a;
+
+  /* Accent unique : le rouge Cinepax. --t-red sert aux aplats et aux
+     filets, --t-red-ink aux textes rouges de petit corps (5,9:1). */
+  --t-red:      #e8192c;
+  --t-red-ink:  #c1121f;
+  --t-red-deep: #a20e19;
+  --t-red-w:    #fdecee;
+
+  /* États — sémantiques, pas décoratifs */
+  --t-ok:       #17693f;
+  --t-ok-line:  #57a97c;
+  --t-ok-w:     #e4f5ea;
+}
+
+/* ═══════════════════════════════════════════════════════════════
    NAVBAR
 ═══════════════════════════════════════════════════════════════ */
 .navbar {
@@ -1227,25 +1270,29 @@ body {
 }
 
 /* ══ HALL ══════════════════════════════════════════════════════ */
+/* Le plan est une feuille, pas une salle éteinte. Le sol se creuse à
+   peine vers le fond — juste de quoi orienter, sans jamais assombrir
+   les numéros de siège. */
 .cinema-hall {
   position: relative;
   width: 100%;
   max-width: 780px;
   overflow: hidden;
-  border-radius: 20px;
+  border-radius: 14px;
   padding: 40px 28px 32px;
-  /* Sol en dégradé — plus sombre vers le bas */
   background:
-    radial-gradient(ellipse 90% 35% at 50% 0%,   rgba(170,195,255,0.055) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 20% at 50% 100%,  rgba(0,0,0,0.3) 0%, transparent 70%),
-    linear-gradient(180deg, #07070e 0%, #0a0a16 50%, #0c0c1a 100%);
+    radial-gradient(ellipse 65% 24% at 50% 100%, rgba(20,22,26,0.05) 0%, transparent 74%),
+    linear-gradient(180deg, #fcfdfe 0%, var(--t-paper) 45%, #edeff3 100%);
+  border: 1px solid var(--t-line);
   box-shadow:
-    0 0 0 1px rgba(255,255,255,0.045),
-    0 30px 90px rgba(0,0,0,0.55),
-    inset 0 1px 0 rgba(255,255,255,0.06);
+    inset 0 1px 0 #fff,
+    0 1px 2px rgba(20,22,26,0.04),
+    0 18px 40px -26px rgba(20,22,26,0.4);
 }
 
-/* Faisceau de projecteur — cône lumineux en provenance de l'écran */
+/* Champ de projection — le cône n'est plus une lumière simulée, il est
+   tracé : une ombre douce qui s'ouvre depuis l'écran vers le gradin, et
+   qui dit dans quel sens se regarde le plan. */
 .projector-beam {
   position: absolute;
   top: 52px;
@@ -1256,9 +1303,9 @@ body {
   background: conic-gradient(
     from 270deg at 50% 0%,
     transparent 0deg,
-    rgba(200,215,255,0.018) 20deg,
-    rgba(210,225,255,0.032) 25deg,
-    rgba(200,215,255,0.018) 30deg,
+    rgba(20,32,64,0.028) 19deg,
+    rgba(20,32,64,0.055) 25deg,
+    rgba(20,32,64,0.028) 31deg,
     transparent 50deg
   );
   pointer-events: none;
@@ -1281,46 +1328,45 @@ body {
   transform-origin: top center;
 }
 
-/* Surface blanche de l'écran */
+/* L'écran est la marque la plus lourde de la feuille : sur papier, on ne
+   dessine pas une lumière, on trace une barre pleine. C'est elle qui
+   fixe le haut du plan sans avoir besoin d'être expliquée. */
 .screen-surface {
-  height: 10px;
+  height: 11px;
   border-radius: 3px 3px 1px 1px;
   background: linear-gradient(
     90deg,
-    rgba(180,195,230,0.5) 0%,
-    rgba(225,235,255,0.85) 20%,
-    rgba(245,250,255,0.98) 45%,
-    #fff 50%,
-    rgba(245,250,255,0.98) 55%,
-    rgba(225,235,255,0.85) 80%,
-    rgba(180,195,230,0.5) 100%
+    #495059 0%,
+    #22262d 16%,
+    var(--t-ink) 50%,
+    #22262d 84%,
+    #495059 100%
   );
-  box-shadow:
-    0 0 18px 6px  rgba(200,218,255,0.5),
-    0 0 50px 18px rgba(185,208,255,0.25),
-    0 0 120px 40px rgba(170,200,255,0.1);
+  box-shadow: 0 8px 18px -10px rgba(20,22,26,0.55);
 }
 
-/* Lueur projetée sous l'écran */
+/* Retombée de l'écran — le lavis qui tient lieu de lueur */
 .screen-halo {
   height: 44px;
   background: radial-gradient(
     ellipse 80% 100% at 50% 0%,
-    rgba(200,218,255,0.13) 0%,
-    rgba(185,208,255,0.05) 45%,
-    transparent 70%
+    rgba(20,22,26,0.10) 0%,
+    rgba(20,22,26,0.035) 45%,
+    transparent 72%
   );
   border-radius: 0 0 60% 60%;
   margin-top: -2px;
 }
 
+/* Sur fond noir, ce mot était un fantôme à 18 % d'opacité. Sur le plan,
+   c'est une légende : il se lit. */
 .screen-label {
   font-size: 0.5rem;
   font-weight: 700;
   letter-spacing: 14px;
-  color: rgba(170,195,255,0.18);
+  color: var(--t-ink-3);
   text-transform: uppercase;
-  margin-top: 8px;
+  margin-top: 10px;
   padding-left: 14px; /* compense letter-spacing */
 }
 
@@ -1340,14 +1386,16 @@ body {
   align-items: center;
 }
 
+/* Les lettres de rangée sont le repérage du plan : sur fond clair, elles
+   passent de décor quasi invisible à information lisible. */
 .row-label {
   width: 22px;
   min-width: 22px;
   text-align: center;
-  font-size: 0.6rem;
+  font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.5px;
-  color: rgba(255,255,255,0.18);
+  color: var(--t-ink-3);
   user-select: none;
   font-family: 'Courier New', monospace;
 }
@@ -1369,7 +1417,7 @@ body {
   bottom: 25%;
   left: 50%;
   width: 1px;
-  background: rgba(255,255,255,0.06);
+  background: rgba(20,22,26,0.10);
   border-radius: 1px;
 }
 
@@ -1394,7 +1442,7 @@ body {
     box-shadow 0.14s ease,
     background  0.1s  ease;
   /* Ombre portée = base du siège / épaisseur */
-  box-shadow: 0 3px 0 rgba(0,0,0,0.55);
+  box-shadow: 0 2px 0 rgba(20,22,26,0.13);
 }
 
 /* Ligne de séparation dossier / assise */
@@ -1405,12 +1453,14 @@ body {
   right: 7px;
   top: 57%;
   height: 1px;
-  background: rgba(0,0,0,0.4);
+  background: rgba(20,22,26,0.16);
   border-radius: 1px;
   pointer-events: none;
 }
 
-/* Accoudoirs — légèrement plus larges que le corps du siège */
+/* Accoudoirs — légèrement plus larges que le corps du siège. Sur des
+   aplats clairs, on les fonce à peine : un brightness(0.55) hérité du
+   thème sombre les transformait en deux barres noires. */
 .seat::after {
   content: '';
   position: absolute;
@@ -1420,7 +1470,7 @@ body {
   height: 7px;
   border-radius: 1px 1px 4px 4px;
   background: inherit;
-  filter: brightness(0.55) saturate(0.7);
+  filter: brightness(0.93) saturate(1.1);
   box-shadow: none;
   pointer-events: none;
   z-index: -1;
@@ -1434,30 +1484,43 @@ body {
   z-index: 1;
 }
 
+/* ── États ────────────────────────────────────────────────────
+   Chaque état est un lavis clair cerné d'un filet de sa teinte, et le
+   numéro est écrit dans la même teinte, assez foncée pour se lire
+   (≥ 4,5:1 sur son propre fond). La couleur ne porte jamais seule
+   l'information : la légende nomme chaque état, et un siège pris se
+   reconnaît en plus à ses hachures.
+
+   Un seul aplat plein dans tout le plan — le siège choisi. C'est la
+   seule chose que l'on décide sur cet écran. */
+
 /* ── Disponible ── */
 .seat.available {
-  background: linear-gradient(170deg, #1b4a33 0%, #112d20 100%);
-  border-color: #245c42;
-  color: #45c882;
+  background: linear-gradient(170deg, #eaf8f0 0%, #dcf1e6 100%);
+  border-color: var(--t-ok-line);
+  color: var(--t-ok);
 }
 .seat.available:hover {
-  background: linear-gradient(170deg, #226040 0%, #163d2a 100%);
-  border-color: #34956a;
+  background: linear-gradient(170deg, #d8f2e3 0%, #c6e9d5 100%);
+  border-color: #2f8d5d;
   transform: translateY(-5px) scale(1.15);
   box-shadow:
-    0 8px 22px rgba(40,190,110,0.45),
-    0 3px 0   rgba(0,0,0,0.6);
+    0 10px 18px -8px rgba(23,105,63,0.5),
+    0 2px 0   rgba(20,22,26,0.16);
 }
 
-/* ── Sélectionné ── */
+/* ── Sélectionné ──
+   Le rouge est descendu d'un cran par rapport au #e8192c des boutons : le
+   numéro est écrit en blanc dans le haut de la pastille, là où le dégradé
+   est le plus clair, et il doit s'y lire (4,5:1). */
 .seat.selected {
-  background: linear-gradient(170deg, #a31515 0%, #7a0d0d 100%);
-  border-color: #d42222;
+  background: linear-gradient(170deg, #d81527 0%, #b3101c 100%);
+  border-color: var(--t-red-deep);
   color: #fff;
   transform: translateY(-5px) scale(1.13);
   box-shadow:
-    0 8px 24px rgba(210,34,34,0.6),
-    0 3px 0   rgba(0,0,0,0.5);
+    0 10px 20px -8px rgba(193,18,31,0.65),
+    0 2px 0   rgba(20,22,26,0.2);
   cursor: pointer;
   animation: seat-select-pop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -1466,8 +1529,9 @@ body {
   60%  { transform: translateY(-7px) scale(1.18); }
   100% { transform: translateY(-5px) scale(1.13); }
 }
+.seat.selected::before { background: rgba(255,255,255,0.30); }
 .seat.selected:hover {
-  background: linear-gradient(170deg, #be1a1a 0%, #8e1010 100%);
+  background: linear-gradient(170deg, #e8192c 0%, #c1121f 100%);
 }
 
 /* ── Occupé ── */
@@ -1477,16 +1541,16 @@ body {
       -45deg,
       transparent 0px,
       transparent 4px,
-      rgba(255,255,255,0.055) 4px,
-      rgba(255,255,255,0.055) 5px
+      rgba(20,22,26,0.13) 4px,
+      rgba(20,22,26,0.13) 5px
     ),
-    linear-gradient(170deg, #32324a 0%, #22223a 100%);
-  border-color: #48486a;
-  color: #55556e;
+    linear-gradient(170deg, #e6e8ec 0%, #dcdfe5 100%);
+  border-color: #b9bfc8;
+  color: #646b75;
   cursor: not-allowed;
-  box-shadow: 0 2px 0 rgba(0,0,0,0.55);
+  box-shadow: 0 2px 0 rgba(20,22,26,0.10);
 }
-/* override the divider line to show diagonal stripes instead */
+/* Les hachures remplacent la ligne dossier / assise */
 .seat.taken::before {
   left: 0; right: 0; top: 0; bottom: 0;
   height: auto;
@@ -1496,20 +1560,20 @@ body {
 
 /* ── Maison / réservé ── */
 .seat.house {
-  background: linear-gradient(170deg, #6b4200 0%, #472b00 100%);
-  border-color: #a86400;
-  color: #d48800;
+  background: linear-gradient(170deg, #fdf1d9 0%, #f9e7c2 100%);
+  border-color: #d9a12a;
+  color: #8a5a00;
   cursor: not-allowed;
-  box-shadow: 0 2px 0 rgba(0,0,0,0.6);
+  box-shadow: 0 2px 0 rgba(20,22,26,0.10);
 }
 
 /* ── Hors service ── */
 .seat.broken {
-  background: #0c0c14;
-  border-color: #141420;
-  color: #1a1a28;
+  background: #eef0f3;
+  border-color: #c8ced7;
+  border-style: dashed;
+  color: #9aa1ab;
   cursor: not-allowed;
-  opacity: 0.2;
   box-shadow: none;
 }
 .seat.broken::before,
@@ -1517,47 +1581,49 @@ body {
 
 /* ── Accompagnateur ── */
 .seat.companion {
-  background: linear-gradient(170deg, #0c1050 0%, #080b3a 100%);
-  border-color: #1824b0;
-  color: #4d65f5;
+  background: linear-gradient(170deg, #e9edfd 0%, #dbe2fb 100%);
+  border-color: #7a8bea;
+  color: #2b3ba8;
   cursor: pointer;
 }
 .seat.companion:hover {
   transform: translateY(-4px) scale(1.12);
-  box-shadow: 0 6px 16px rgba(60,90,240,0.45), 0 3px 0 rgba(0,0,0,0.55);
+  box-shadow: 0 8px 16px -8px rgba(43,59,168,0.55), 0 2px 0 rgba(20,22,26,0.16);
 }
 
 /* ── PMR / accès fauteuil roulant (sélectionnable) ── */
 .seat.wheelchair {
-  background: linear-gradient(170deg, #05484c 0%, #032e31 100%);
-  border-color: #0a8f96;
-  color: #22d3ee;
+  background: linear-gradient(170deg, #e2f4f6 0%, #d0ecf0 100%);
+  border-color: #4aa9b3;
+  color: #0d6a74;
   cursor: pointer;
 }
 .seat.wheelchair:hover {
   transform: translateY(-4px) scale(1.12);
-  box-shadow: 0 6px 16px rgba(34,211,238,0.4), 0 3px 0 rgba(0,0,0,0.55);
+  box-shadow: 0 8px 16px -8px rgba(13,106,116,0.55), 0 2px 0 rgba(20,22,26,0.16);
 }
 
 /* ── Non disponible ── */
 .seat.unavailable {
-  background: linear-gradient(170deg, #241014 0%, #180a0d 100%);
-  border-color: #4a2027;
-  color: #7a3540;
+  background: linear-gradient(170deg, #fbe8ea 0%, #f7dade 100%);
+  border-color: #e0a0a8;
+  color: #9c3542;
   cursor: not-allowed;
-  box-shadow: 0 2px 0 rgba(0,0,0,0.6);
+  box-shadow: 0 2px 0 rgba(20,22,26,0.10);
 }
 
-/* ── Pas de données ── */
+/* ── Pas de données ──
+   Le plan est dessiné mais la salle n'a pas répondu : les sièges
+   restent en trait, sans couleur — rien n'est libre, rien n'est pris. */
 .seat.no-data {
-  background: #0e0e18;
-  border-color: #16162a;
-  color: #1c1c2c;
+  background: #f4f5f7;
+  border-color: #e2e5ea;
+  color: #bcc1c9;
   cursor: default;
-  box-shadow: 0 1px 0 rgba(0,0,0,0.5);
+  box-shadow: 0 1px 0 rgba(20,22,26,0.06);
 }
 .seat.no-data::before,
-.seat.no-data::after { opacity: 0.3; }
+.seat.no-data::after { opacity: 0.35; }
 
 /* ══ LÉGENDE & COMPTEUR ════════════════════════════════════════ */
 .seatmap-footer {
@@ -1584,42 +1650,44 @@ body {
   align-items: center;
   gap: 7px;
   font-size: 0.72rem;
-  color: #888;
+  color: var(--t-ink-2);
   font-weight: 500;
 }
 
-/* Chips de légende — séparés des .seat pour éviter les pseudo-elements */
+/* Chips de légende — séparés des .seat pour éviter les pseudo-elements.
+   Mêmes aplats et mêmes filets que les sièges : la légende doit être
+   l'échantillon exact, pas une approximation. */
 .legend-chip {
   width: 22px;
   height: 16px;
   border-radius: 4px 4px 2px 2px;
   border: 1px solid transparent;
   flex-shrink: 0;
-  box-shadow: 0 2px 0 rgba(0,0,0,0.45);
+  box-shadow: 0 1px 0 rgba(20,22,26,0.10);
 }
-.seat-chip--available  { background: linear-gradient(170deg,#1b4a33,#112d20); border-color:#245c42; }
-.seat-chip--selected   { background: linear-gradient(170deg,#a31515,#7a0d0d); border-color:#d42222; }
+.seat-chip--available  { background: linear-gradient(170deg,#eaf8f0,#dcf1e6); border-color: var(--t-ok-line); }
+.seat-chip--selected   { background: linear-gradient(170deg,#d81527,#b3101c); border-color:#a20e19; }
 .seat-chip--taken      {
   background:
     repeating-linear-gradient(
       -45deg,
       transparent 0px, transparent 4px,
-      rgba(255,255,255,0.055) 4px, rgba(255,255,255,0.055) 5px
+      rgba(20,22,26,0.13) 4px, rgba(20,22,26,0.13) 5px
     ),
-    linear-gradient(170deg,#32324a,#22223a);
-  border-color:#48486a;
+    linear-gradient(170deg,#e6e8ec,#dcdfe5);
+  border-color:#b9bfc8;
 }
-.seat-chip--house      { background: linear-gradient(170deg,#6b4200,#472b00); border-color:#a86400; }
-.seat-chip--broken     { background:#0c0c14; border-color:#141420; opacity:0.35; }
-.seat-chip--companion  { background: linear-gradient(170deg,#0c1050,#080b3a); border-color:#1824b0; }
-.seat-chip--wheelchair { background: linear-gradient(170deg,#05484c,#032e31); border-color:#0a8f96; }
-.seat-chip--unavailable{ background: linear-gradient(170deg,#241014,#180a0d); border-color:#4a2027; }
+.seat-chip--house      { background: linear-gradient(170deg,#fdf1d9,#f9e7c2); border-color:#d9a12a; }
+.seat-chip--broken     { background:#eef0f3; border-color:#c8ced7; border-style: dashed; }
+.seat-chip--companion  { background: linear-gradient(170deg,#e9edfd,#dbe2fb); border-color:#7a8bea; }
+.seat-chip--wheelchair { background: linear-gradient(170deg,#e2f4f6,#d0ecf0); border-color:#4aa9b3; }
+.seat-chip--unavailable{ background: linear-gradient(170deg,#fbe8ea,#f7dade); border-color:#e0a0a8; }
 
 .seat-counter { font-size: 0.82rem; text-align: right; }
-.counter-free  { color: #2ecc82; font-weight: 800; font-size: 1.05rem; }
-.counter-label { color: #999; }
-.counter-total { color: #bbb; }
-.counter-sep   { color: #ddd; margin: 0 2px; }
+.counter-free  { color: var(--t-ok); font-weight: 800; font-size: 1.05rem; }
+.counter-label { color: var(--t-ink-3); }
+.counter-total { color: var(--t-ink-2); }
+.counter-sep   { color: #aeb4bd; margin: 0 2px; }
 
 /* ═══════════════════════════════════════════════════════════════
    BARRE DE CONFIRMATION (inline)
@@ -1654,8 +1722,10 @@ body {
   flex-wrap: wrap;
 }
 
+/* La consigne « Sélectionnez vos places » est la seule chose que dit la
+   barre tant que rien n'est choisi : elle ne peut pas être un gris pâle. */
 .booking-bar-hint {
-  color: #bbb;
+  color: var(--t-ink-3);
   font-size: 0.85rem;
 }
 
@@ -1667,28 +1737,28 @@ body {
 }
 
 .booking-bar-sep {
-  color: #ccc;
+  color: #aeb4bd;
 }
 
 .booking-bar-price {
   font-weight: 800;
   font-size: 1rem;
-  color: #e8192c;
+  color: var(--t-red-ink);
   white-space: nowrap;
 }
 
 .booking-bar-unit {
   font-weight: 600;
   font-size: 0.82rem;
-  color: #999;
+  color: var(--t-ink-3);
 }
 
 .booking-bar-tarif {
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: #888;
-  background: #f4f4f4;
+  color: var(--t-ink-2);
+  background: var(--t-paper-2);
   border-radius: 4px;
   padding: 3px 8px;
   white-space: nowrap;
@@ -1696,7 +1766,7 @@ body {
 }
 
 .seats-list {
-  color: #e8192c;
+  color: var(--t-red-ink);
   font-weight: 600;
   font-size: 0.85rem;
   letter-spacing: 0.02em;
@@ -1708,6 +1778,19 @@ body {
   padding: 11px 22px;
   font-size: 0.82rem;
   letter-spacing: 0.04em;
+}
+
+/* Sous 560 px, le bouton ne se comprime pas et laissait au récapitulatif
+   une colonne de 60 px : « Sélectionnez vos places » tombait en quatre
+   morceaux. La barre passe donc en pile, le bouton pleine largeur. */
+@media (max-width: 560px) {
+  .booking-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 16px 18px;
+  }
+  .booking-bar-cta { width: 100%; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1850,7 +1933,7 @@ body {
 }
 .pay-ticket-qty {
   font-weight: 800;
-  color: #e8192c;
+  color: var(--t-red-ink);
   font-variant-numeric: tabular-nums;
 }
 .pay-ticket-name {
@@ -2347,7 +2430,10 @@ body {
   animation-delay: var(--sk-delay, 0s);
 }
 
-/* ── Shimmer sombre (fond dark) ── */
+/* ── Shimmer du plan de salle ──
+   Nom hérité du thème sombre ; le balayage est désormais celui du papier,
+   un cran plus contrasté que .sk-shine pour rester visible sur le fond
+   crème du hall. */
 @keyframes sk-sweep-dark {
   0%   { background-position: -600px 0; }
   100% { background-position: 600px 0; }
@@ -2356,13 +2442,13 @@ body {
 .sk-shine-dark {
   background: linear-gradient(
     105deg,
-    #181c28 0%,
-    #181c28 30%,
-    #252a3c 48%,
-    #2e3448 50%,
-    #252a3c 52%,
-    #181c28 70%,
-    #181c28 100%
+    #e9ebef 0%,
+    #e9ebef 30%,
+    #dcdfe5 48%,
+    #d4d8df 50%,
+    #dcdfe5 52%,
+    #e9ebef 70%,
+    #e9ebef 100%
   );
   background-size: 1200px 100%;
   animation: sk-sweep-dark 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
@@ -2477,26 +2563,15 @@ body {
 /* Le hall hérite du vrai .cinema-hall — on juste surcharge ce qui brille */
 .sk-hall { pointer-events: none; }
 
-/* L'écran pulsote doucement — pas de shimmer, juste une lueur qui respire */
+/* L'écran respire au lieu de scintiller : sur papier, c'est son encre qui
+   se dépose, pas une lampe qui s'allume. */
 .sk-screen-glow {
   animation: sk-screen-breathe 2s ease-in-out infinite !important;
 }
 
 @keyframes sk-screen-breathe {
-  0%, 100% {
-    box-shadow:
-      0 0 12px 4px  rgba(200,218,255,0.25),
-      0 0 32px 10px rgba(185,208,255,0.10),
-      0 0 80px 28px rgba(170,200,255,0.04);
-    opacity: 0.6;
-  }
-  50% {
-    box-shadow:
-      0 0 22px 8px  rgba(200,218,255,0.55),
-      0 0 60px 20px rgba(185,208,255,0.22),
-      0 0 130px 50px rgba(170,200,255,0.10);
-    opacity: 1;
-  }
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 0.85; }
 }
 
 /* Rangée squelette — même spacing que .seat-row */
@@ -2510,9 +2585,9 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Label de rangée — presque invisible comme le vrai */
+/* Label de rangée — en retrait, mais du même gris que le vrai */
 .sk-label-ghost {
-  opacity: 0.12;
+  opacity: 0.4;
 }
 
 /* Siège squelette — reprend exactement les dimensions du vrai .seat */
@@ -2525,13 +2600,13 @@ body {
   transition: none;
   background: linear-gradient(
     105deg,
-    #1e2235 0%,
-    #1e2235 30%,
-    #2a3050 48%,
-    #303660 50%,
-    #2a3050 52%,
-    #1e2235 70%,
-    #1e2235 100%
+    #e9ebef 0%,
+    #e9ebef 30%,
+    #dcdfe5 48%,
+    #d4d8df 50%,
+    #dcdfe5 52%,
+    #e9ebef 70%,
+    #e9ebef 100%
   );
   background-size: 1200px 100%;
   animation:
@@ -2540,12 +2615,12 @@ body {
   animation-delay:
     calc(var(--si, 0) * 0.04s),
     calc(var(--si, 0) * 0.08s);
-  box-shadow: 0 3px 0 rgba(0,0,0,0.6);
+  box-shadow: 0 2px 0 rgba(20,22,26,0.07);
 }
 
 @keyframes sk-seat-pulse {
-  0%, 100% { opacity: 0.55; }
-  50%       { opacity: 0.85; }
+  0%, 100% { opacity: 0.7; }
+  50%       { opacity: 1; }
 }
 
 /* Légende squelette */
@@ -3228,8 +3303,12 @@ body {
 /* ═══════════════════════════════════════════════════════════════
    PAYMENT PAGE
 ═══════════════════════════════════════════════════════════════ */
+/* Le paiement est le comptoir : à gauche le talon de ce qu'on achète, à
+   droite le formulaire. Les deux sur papier, séparés par un simple filet
+   — c'est là qu'on saisit une adresse et un numéro de carte, le pire
+   endroit du site pour baisser la lumière. */
 .payment-page {
-  min-height: 100vh; background: #0a0a0a;
+  min-height: 100vh; background: var(--t-surface);
   display: flex; align-items: stretch;
 }
 .payment-inner {
@@ -3241,18 +3320,21 @@ body {
 /* — Summary (left) — */
 .pay-summary {
   position: relative; overflow: hidden;
-  background: #0d0d0d; min-height: 100vh;
+  background: var(--t-paper); min-height: 100vh;
+  border-right: 1px solid var(--t-line);
 }
 .pay-summary-bg {
   position: absolute; inset: 0; z-index: 0;
 }
+/* L'affiche reste présente sans peser : très diffuse, très pâle, et
+   recouverte d'un voile blanc qui garantit le contraste du texte. */
 .pay-summary-bg img {
   width: 100%; height: 100%; object-fit: cover;
-  opacity: 0.18; filter: blur(4px); transform: scale(1.05);
+  opacity: 0.22; filter: blur(14px) saturate(0.8); transform: scale(1.1);
 }
 .pay-summary-bg-overlay {
   position: absolute; inset: 0;
-  background: linear-gradient(135deg, rgba(10,10,10,0.7) 0%, rgba(20,15,5,0.9) 100%);
+  background: linear-gradient(135deg, rgba(255,255,255,0.86) 0%, rgba(247,248,250,0.94) 100%);
 }
 .pay-summary-content {
   position: relative; z-index: 1;
@@ -3263,48 +3345,48 @@ body {
 .pay-poster {
   width: 64px; height: 92px; object-fit: cover;
   border-radius: 4px; flex-shrink: 0;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+  box-shadow: 0 6px 18px -8px rgba(20,22,26,0.45);
 }
 .pay-film-text { display: flex; flex-direction: column; gap: 6px; }
 .pay-film-eyebrow {
   font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em;
-  color: #e8192c; font-family: 'DM Sans', sans-serif;
+  color: var(--t-red-ink); font-family: 'DM Sans', sans-serif;
 }
 .pay-film-title {
-  font-size: 1.2rem; font-weight: 700; color: #fff;
+  font-size: 1.2rem; font-weight: 700; color: var(--t-ink);
   line-height: 1.2; letter-spacing: -0.01em;
 }
-.pay-film-meta { font-size: 0.78rem; color: #888; }
+.pay-film-meta { font-size: 0.78rem; color: var(--t-ink-3); }
 
-.pay-hr { border: none; border-top: 1px solid #222; }
+.pay-hr { border: none; border-top: 1px solid var(--t-line); }
 
 .pay-seats-section {}
-.pay-seats-count { font-size: 0.72rem; font-weight: 700; color: #666; letter-spacing: 0.08em; margin-bottom: 12px; }
+.pay-seats-count { font-size: 0.72rem; font-weight: 700; color: var(--t-ink-3); letter-spacing: 0.08em; margin-bottom: 12px; }
 .pay-seats-list { display: flex; flex-direction: column; gap: 8px; }
 .pay-seat-row {
   display: flex; align-items: center; gap: 10px;
   font-size: 0.82rem;
 }
 .pay-seat-badge {
-  background: #1a1a1a; border: 1px solid #333;
-  color: #e8192c; font-weight: 700; font-size: 0.72rem;
+  background: var(--t-red-w); border: 1px solid rgba(232,25,44,0.28);
+  color: var(--t-red-ink); font-weight: 700; font-size: 0.72rem;
   padding: 3px 8px; border-radius: 4px; letter-spacing: 0.04em;
   flex-shrink: 0;
 }
-.pay-seat-name { color: #888; flex: 1; }
-.pay-seat-price { color: #ccc; font-weight: 600; }
+.pay-seat-name { color: var(--t-ink-3); flex: 1; }
+.pay-seat-price { color: var(--t-ink-2); font-weight: 600; }
 
 .pay-total-row {
   display: flex; justify-content: space-between; align-items: center;
-  font-size: 0.85rem; color: #999;
+  font-size: 0.85rem; color: var(--t-ink-2);
 }
-.pay-total-amount { font-size: 1.3rem; font-weight: 700; color: #fff; }
-.pay-price-undefined { font-size: 0.8rem; color: #666; font-style: italic; }
-.pay-price-hint { font-size: 0.72rem; color: #555; line-height: 1.5; margin-top: -12px; }
+.pay-total-amount { font-size: 1.3rem; font-weight: 700; color: var(--t-ink); }
+.pay-price-undefined { font-size: 0.8rem; color: var(--t-ink-3); font-style: italic; }
+.pay-price-hint { font-size: 0.72rem; color: var(--t-ink-3); line-height: 1.5; margin-top: -12px; }
 
 /* — Form panel (right) — */
 .pay-form-panel {
-  background: #0f0f0f; border-left: 1px solid #1a1a1a;
+  background: var(--t-surface);
   overflow-y: auto;
 }
 .pay-form-inner {
@@ -3313,29 +3395,29 @@ body {
 }
 .pay-back-btn {
   display: inline-flex; align-items: center; gap: 6px;
-  background: none; border: none; color: #999;
+  background: none; border: none; color: var(--t-ink-3);
   font-size: 0.78rem; cursor: pointer;
   padding: 0; margin-bottom: 32px;
   transition: color 0.15s;
 }
-.pay-back-btn:hover { color: #ccc; }
+.pay-back-btn:hover { color: var(--t-ink); }
 .pay-form-title {
-  font-size: 1.5rem; font-weight: 700; color: #fff;
+  font-size: 1.5rem; font-weight: 700; color: var(--t-ink);
   letter-spacing: -0.02em; margin-bottom: 6px;
   font-family: 'DM Sans', sans-serif;
 }
-.pay-form-subtitle { font-size: 0.78rem; color: #555; margin-bottom: 36px; }
+.pay-form-subtitle { font-size: 0.78rem; color: var(--t-ink-3); margin-bottom: 36px; }
 
 .pay-section { margin-bottom: 32px; }
 .pay-section-title {
   display: flex; align-items: center; gap: 10px;
   font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
-  color: #888; text-transform: uppercase; margin-bottom: 18px;
+  color: var(--t-ink-2); text-transform: uppercase; margin-bottom: 18px;
 }
 .pay-section-num {
   width: 22px; height: 22px; border-radius: 50%;
-  background: #1a1a1a; border: 1px solid #333;
-  font-size: 0.62rem; color: #666;
+  background: var(--t-paper); border: 1px solid var(--t-line);
+  font-size: 0.62rem; color: var(--t-ink-3);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
@@ -3344,65 +3426,65 @@ body {
 .pay-field { display: flex; flex-direction: column; gap: 6px; }
 .pay-field--full  { grid-column: 1 / -1; }
 .pay-field--half  { grid-column: span 1; }
-.pay-field label  { font-size: 0.72rem; font-weight: 600; color: #777; letter-spacing: 0.04em; }
+.pay-field label  { font-size: 0.72rem; font-weight: 600; color: var(--t-ink-2); letter-spacing: 0.04em; }
 .pay-field input  {
-  background: #1a1a1a; border: 1.5px solid #2a2a2a;
-  color: #fff; border-radius: 6px; padding: 10px 14px;
+  background: var(--t-surface); border: 1.5px solid var(--t-line);
+  color: var(--t-ink); border-radius: 6px; padding: 10px 14px;
   font-size: 0.88rem; outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
   font-family: inherit;
 }
 .pay-field input:focus {
-  border-color: #e8192c;
-  box-shadow: 0 0 0 3px rgba(232,25,44,0.15);
+  border-color: var(--t-red);
+  box-shadow: 0 0 0 3px rgba(232,25,44,0.18);
 }
-.pay-field input::placeholder { color: #444; }
-.pay-field-hint { font-size: 0.68rem; color: #555; margin-top: -2px; }
+.pay-field input::placeholder { color: #a8aeb7; }
+.pay-field-hint { font-size: 0.68rem; color: var(--t-ink-3); margin-top: -2px; }
 .pay-field-hint--email {
   grid-column: 1 / -1;
   display: flex; align-items: center; gap: 6px;
-  color: #7a8494; margin-top: 0;
+  color: var(--t-ink-2); margin-top: 0;
 }
-.pay-field-hint--email svg { flex-shrink: 0; color: #e8192c; opacity: 0.8; }
-.pay-login-hint { font-size: 0.74rem; color: #555; margin-top: 10px; }
-.pay-login-link { color: #e8192c; text-decoration: none; }
+.pay-field-hint--email svg { flex-shrink: 0; color: var(--t-red); }
+.pay-login-hint { font-size: 0.74rem; color: var(--t-ink-3); margin-top: 10px; }
+.pay-login-link { color: var(--t-red-ink); text-decoration: none; font-weight: 600; }
 .pay-login-link:hover { text-decoration: underline; }
 
 /* User badge */
-.pay-user-section { padding: 14px 18px; background: #141414; border: 1px solid #222; border-radius: 8px; }
+.pay-user-section { padding: 14px 18px; background: var(--t-paper); border: 1px solid var(--t-line); border-radius: 8px; }
 .pay-user-badge { display: flex; align-items: center; gap: 12px; }
 .pay-user-avatar {
   width: 38px; height: 38px; border-radius: 50%;
-  background: #e8192c; color: #fff;
+  background: var(--t-red); color: #fff;
   font-weight: 700; font-size: 0.9rem;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.pay-user-name { font-size: 0.85rem; font-weight: 600; color: #ccc; }
-.pay-user-email { font-size: 0.72rem; color: #555; }
-.pay-logout-link { margin-left: auto; font-size: 0.72rem; color: #888; text-decoration: none; }
-.pay-logout-link:hover { color: #ccc; }
+.pay-user-name { font-size: 0.85rem; font-weight: 600; color: var(--t-ink); }
+.pay-user-email { font-size: 0.72rem; color: var(--t-ink-3); }
+.pay-logout-link { margin-left: auto; font-size: 0.72rem; color: var(--t-ink-2); text-decoration: none; }
+.pay-logout-link:hover { color: var(--t-ink); }
 
 /* Payment methods */
 .pay-methods-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .pay-method-btn {
   display: flex; flex-direction: column; align-items: center; gap: 8px;
-  background: #141414; border: 1.5px solid #222; border-radius: 8px;
+  background: var(--t-surface); border: 1.5px solid var(--t-line); border-radius: 8px;
   padding: 14px 8px; cursor: pointer;
   transition: all 0.15s; position: relative; overflow: hidden;
 }
-.pay-method-btn:hover { border-color: #444; background: #1a1a1a; }
+.pay-method-btn:hover { border-color: #b8bfc9; background: var(--t-paper); }
 .pay-method-btn.active {
   border-color: var(--mc, #e8192c);
-  background: color-mix(in srgb, var(--mc, #e8192c) 8%, #141414);
+  background: color-mix(in srgb, var(--mc, #e8192c) 6%, #fff);
   box-shadow: 0 0 0 1px var(--mc, #e8192c);
 }
 .pay-method-logo {
   width: 44px; height: 28px; object-fit: contain; border-radius: 3px;
 }
-.pay-method-label { font-size: 0.68rem; color: #888; font-weight: 600; text-align: center; }
+.pay-method-label { font-size: 0.68rem; color: var(--t-ink-2); font-weight: 600; text-align: center; }
 .pay-method-check {
   position: absolute; top: 6px; right: 6px;
-  background: var(--mc, #e8192c); color: #111;
+  background: var(--mc, #e8192c); color: #fff;
   width: 18px; height: 18px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
 }
@@ -3410,30 +3492,32 @@ body {
 /* Payment methods — temporarily unavailable (mobile money) */
 .pay-method-btn.soon {
   cursor: not-allowed;
-  background: #0f0f0f; border-style: dashed; border-color: #262626;
+  background: var(--t-paper); border-style: dashed; border-color: #d3d8df;
 }
-.pay-method-btn.soon:hover { border-color: #262626; background: #0f0f0f; }
-.pay-method-btn.soon .pay-method-logo { filter: grayscale(1); opacity: 0.45; }
-.pay-method-btn.soon .pay-method-label { color: #4d4d4d; }
+.pay-method-btn.soon:hover { border-color: #d3d8df; background: var(--t-paper); }
+/* Le logo grisé et le badge « bientôt » disent l'indisponibilité ; le nom
+   du service, lui, reste lisible — c'est encore l'information utile. */
+.pay-method-btn.soon .pay-method-logo { filter: grayscale(1); opacity: 0.5; }
+.pay-method-btn.soon .pay-method-label { color: var(--t-ink-3); }
 .pay-method-soon {
   position: absolute; top: 6px; right: 6px;
   font-size: 0.52rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
-  color: #8a8a8a; background: #1c1c1c; border: 1px solid #303030;
+  color: var(--t-ink-2); background: var(--t-hover); border: 1px solid var(--t-line);
   padding: 2px 7px; border-radius: 999px; line-height: 1.4;
   white-space: nowrap;
 }
 .pay-methods-note {
   display: flex; align-items: flex-start; gap: 7px;
-  margin-top: 12px; font-size: 0.7rem; line-height: 1.5; color: #6a6a6a;
+  margin-top: 12px; font-size: 0.7rem; line-height: 1.5; color: var(--t-ink-3);
 }
-.pay-methods-note svg { flex-shrink: 0; margin-top: 2px; color: #4d4d4d; }
+.pay-methods-note svg { flex-shrink: 0; margin-top: 2px; color: #a8aeb7; }
 
 /* Mobile money form */
 .pay-mobile-form { margin-top: 18px; }
 .pay-input-icon-wrap { position: relative; }
 .pay-input-icon {
   position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-  color: #555; pointer-events: none;
+  color: #a8aeb7; pointer-events: none;
 }
 .pay-input-with-icon { padding-left: 36px !important; }
 
@@ -3469,8 +3553,8 @@ body {
 /* Error */
 .pay-error-box {
   display: flex; align-items: center; gap: 8px;
-  background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
-  color: #f87171; border-radius: 6px;
+  background: #fdecee; border: 1px solid rgba(193,18,31,0.28);
+  color: #9c1420; border-radius: 6px;
   padding: 10px 14px; font-size: 0.8rem;
   margin-bottom: 16px;
 }
@@ -3498,13 +3582,18 @@ body {
 @keyframes spin { to { transform: rotate(360deg); } }
 .pay-secure-note {
   display: flex; align-items: center; justify-content: center; gap: 5px;
-  font-size: 0.68rem; color: #444; margin-top: 14px; text-align: center;
+  font-size: 0.68rem; color: var(--t-ink-3); margin-top: 14px; text-align: center;
 }
 
 /* Responsive */
 @media (max-width: 820px) {
   .payment-inner { grid-template-columns: 1fr; }
-  .pay-summary { min-height: auto; }
+  /* En pile, le filet qui séparait les deux colonnes doit passer dessous. */
+  .pay-summary {
+    min-height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--t-line);
+  }
   .pay-summary-content { padding: 32px 24px; min-height: auto; }
   .pay-form-inner { padding: 32px 24px 60px; }
   .pay-methods-grid { grid-template-columns: repeat(3, 1fr); }
@@ -3520,16 +3609,20 @@ body {
 /* ═══════════════════════════════════════════════════════════════
    BOOKING CONFIRMATION
 ═══════════════════════════════════════════════════════════════ */
+/* Le dernier écran est le billet lui-même : une carte blanche posée sur
+   le papier, perforation comprise. Il se garde, il se montre à l'entrée,
+   il s'imprime — trois raisons de plus de ne pas être noir. */
 .conf-page {
-  min-height: 100vh; background: #0a0a0a;
+  min-height: 100vh; background: var(--t-paper);
   display: flex; align-items: center; justify-content: center;
   padding: 40px 20px;
 }
 .conf-card {
-  background: #111; border: 1px solid #222;
+  background: var(--t-surface); border: 1px solid var(--t-line);
   border-radius: 16px; padding: 48px 40px;
   max-width: 480px; width: 100%;
   text-align: center;
+  box-shadow: 0 20px 44px -28px rgba(20,22,26,0.4);
   opacity: 0; transform: translateY(20px);
   transition: opacity 0.4s ease, transform 0.4s ease;
 }
@@ -3542,25 +3635,25 @@ body {
 @keyframes ring-in  { to { stroke-dashoffset: 0; } }
 @keyframes check-in { to { stroke-dashoffset: 0; } }
 
-.conf-title { font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
-.conf-subtitle { font-size: 0.82rem; color: #666; margin-bottom: 24px; }
+.conf-title { font-size: 1.5rem; font-weight: 700; color: var(--t-ink); margin-bottom: 6px; }
+.conf-subtitle { font-size: 0.82rem; color: var(--t-ink-3); margin-bottom: 24px; }
 
 .conf-ref-chip {
   display: inline-flex; align-items: center; gap: 10px;
-  background: #1a1a1a; border: 1px solid #2a2a2a;
+  background: var(--t-paper); border: 1px solid var(--t-line);
   border-radius: 8px; padding: 8px 16px;
   margin-bottom: 28px;
 }
-.conf-ref-label { font-size: 0.68rem; color: #555; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
-.conf-ref-code { font-family: 'Courier New', monospace; color: #e8192c; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.06em; }
+.conf-ref-label { font-size: 0.68rem; color: var(--t-ink-3); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.conf-ref-code { font-family: 'Courier New', monospace; color: var(--t-red-ink); font-size: 0.9rem; font-weight: 700; letter-spacing: 0.06em; }
 
 /* Enregistrement de la place au cinéma (Veezi) : loader → sceau confirmé */
 .conf-veezi {
   display: inline-flex; align-items: center; gap: 9px;
   padding: 8px 15px; border-radius: 999px;
-  border: 1px solid #2a2a2a; background: #161616;
+  border: 1px solid var(--t-line); background: var(--t-paper);
   margin: -14px 0 26px;
-  font-size: 0.78rem; font-weight: 600; color: #8a8a8a;
+  font-size: 0.78rem; font-weight: 600; color: var(--t-ink-2);
   animation: conf-veezi-in 0.35s ease both;
 }
 @keyframes conf-veezi-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
@@ -3569,61 +3662,60 @@ body {
 
 .conf-veezi-spinner {
   width: 13px; height: 13px; border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.14);
-  border-top-color: #22c55e;
+  border: 2px solid rgba(20,22,26,0.12);
+  border-top-color: #15803d;
   animation: spin 0.7s linear infinite;
   flex-shrink: 0;
 }
 
 .conf-veezi--reserved {
-  border-color: rgba(34,197,94,0.3);
-  background: rgba(34,197,94,0.08);
-  color: #4ade80;
+  border-color: rgba(21,128,61,0.32);
+  background: #e9f7ee;
+  color: #15803d;
 }
-.conf-veezi-check { color: #22c55e; flex-shrink: 0; }
+.conf-veezi-check { color: #15803d; flex-shrink: 0; }
 .conf-veezi-num {
   font-family: 'Courier New', monospace; font-weight: 700;
-  color: #22c55e; letter-spacing: 0.06em;
+  color: #15803d; letter-spacing: 0.06em;
   padding-left: 8px; margin-left: 3px;
-  border-left: 1px solid rgba(34,197,94,0.28);
+  border-left: 1px solid rgba(21,128,61,0.3);
 }
 
 .conf-qr-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 28px; }
 .conf-qr-frame {
-  background: #0d0d0d; border: 2px solid #2a2a2a;
+  background: #fff; border: 2px solid var(--t-line);
   border-radius: 12px; padding: 16px;
-  box-shadow: 0 0 30px rgba(232,25,44,0.08);
 }
-.conf-qr-hint { font-size: 0.72rem; color: #555; }
+.conf-qr-hint { font-size: 0.72rem; color: var(--t-ink-3); }
 
 .conf-ticket {
-  background: #0d0d0d; border: 1px solid #1e1e1e;
+  background: var(--t-paper); border: 1px solid var(--t-line);
   border-radius: 8px; overflow: hidden; margin-bottom: 20px;
   position: relative;
 }
 .conf-ticket-perforation {
-  border-top: 2px dashed #222; margin: 0;
+  border-top: 2px dashed #c9cfd8; margin: 0;
 }
 .conf-ticket-body { padding: 16px 20px; }
 .conf-detail-row {
   display: flex; justify-content: space-between; align-items: baseline;
-  padding: 6px 0; border-bottom: 1px solid #1a1a1a; gap: 16px;
+  padding: 6px 0; border-bottom: 1px solid var(--t-line-2); gap: 16px;
 }
 .conf-detail-row:last-child { border-bottom: none; }
-.conf-detail-label { font-size: 0.72rem; color: #555; flex-shrink: 0; }
-.conf-detail-value { font-size: 0.82rem; color: #ccc; font-weight: 500; text-align: right; }
+.conf-detail-label { font-size: 0.72rem; color: var(--t-ink-3); flex-shrink: 0; }
+.conf-detail-value { font-size: 0.82rem; color: var(--t-ink); font-weight: 600; text-align: right; }
 
-.conf-note { font-size: 0.72rem; color: #444; line-height: 1.6; margin-bottom: 24px; }
+.conf-note { font-size: 0.72rem; color: var(--t-ink-3); line-height: 1.6; margin-bottom: 24px; }
 
 .conf-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 .conf-print-btn {
   display: flex; align-items: center; gap: 6px;
-  background: #1a1a1a; border: 1.5px solid #333; color: #aaa;
+  background: var(--t-surface); border: 1.5px solid var(--t-line); color: var(--t-ink-2);
   border-radius: 6px; padding: 10px 18px;
   font-size: 0.78rem; font-weight: 600; cursor: pointer;
   transition: all 0.15s;
 }
-.conf-print-btn:hover { border-color: #555; color: #fff; }
+.conf-print-btn:hover { border-color: #aab1bb; color: var(--t-ink); }
 .conf-new-btn {
   background: #e8192c; color: #fff; border: none;
   border-radius: 6px; padding: 10px 22px;
@@ -3641,18 +3733,22 @@ body {
 /* ═══════════════════════════════════════════════════════════════
    ESPACES CLIENT ET ADMINISTRATION — jetons de design
    ───────────────────────────────────────────────────────────────
-   Ces deux espaces sont sombres à dessein : ils s'utilisent dans le
-   hall du cinéma, volontairement peu éclairé, au guichet ou sur un
-   téléphone avant la séance.
+   Un seul jeu de noms, deux jeux de valeurs, et la ligne de partage
+   est celle du public :
+
+   • ce que voit le client — connexion, inscription, mon compte —
+     reste clair, comme le reste du tunnel d'achat ;
+   • l'administration garde son fond sombre : c'est un outil de
+     guichet, utilisé dans le hall volontairement peu éclairé, sur
+     des écrans allumés toute la journée.
 
    Tous les neutres sont teintés vers la teinte de marque (27°) à très
-   faible chroma. Des gris purs sur fond quasi noir donnent l'aspect
-   plat et générique qu'on cherche à éviter, et les valeurs employées
-   auparavant (#555 sur #0a0a0a ≈ 3,4:1) passaient sous le seuil AA.
+   faible chroma. Des gris purs donnent l'aspect plat et générique
+   qu'on cherche à éviter.
 ═══════════════════════════════════════════════════════════════ */
+
+/* ── Jeu sombre : administration et scanner de billets ── */
 .admin-wrap,
-.compte-page,
-.auth-page,
 .qrs-overlay {
   /* Surfaces */
   --a-bg:        oklch(0.155 0.008 30);
@@ -3672,6 +3768,7 @@ body {
   --a-accent:    oklch(0.635 0.205 27);
   --a-accent-hi: oklch(0.705 0.190 27);
   --a-accent-w:  oklch(0.320 0.090 27);
+  --a-accent-ink: oklch(0.705 0.190 27);
 
   /* États — sémantiques, pas décoratifs */
   --s-ok:        oklch(0.780 0.150 152);
@@ -3682,7 +3779,47 @@ body {
   --s-dead-w:    oklch(0.300 0.075 22);
   --s-done:      oklch(0.760 0.100 265);
   --s-done-w:    oklch(0.300 0.055 265);
+}
 
+/* ── Jeu clair : espaces client ──
+   Le rouge de marque reste #e8192c partout où il est un aplat ou un
+   filet ; --a-accent-ink prend le relais pour les textes rouges de
+   petit corps, où 3,9:1 ne suffirait pas. */
+.compte-page,
+.auth-page {
+  /* Surfaces */
+  --a-bg:        oklch(1 0 0);
+  --a-panel:     oklch(0.978 0.003 45);
+  --a-surface:   oklch(1 0 0);
+  --a-hover:     oklch(0.960 0.004 45);
+  --a-line:      oklch(0.890 0.005 45);
+  --a-line-2:    oklch(0.935 0.004 45);
+
+  /* Encres — a-ink-3 est le plancher lisible (≈ 4,8:1 sur --a-bg) */
+  --a-ink:       oklch(0.200 0.010 45);
+  --a-ink-2:     oklch(0.450 0.012 45);
+  --a-ink-3:     oklch(0.560 0.014 45);
+
+  --a-accent:    oklch(0.585 0.230 27);
+  --a-accent-hi: oklch(0.500 0.200 27);
+  --a-accent-w:  oklch(0.965 0.020 27);
+  --a-accent-ink: oklch(0.505 0.200 27);
+
+  /* États — sémantiques, pas décoratifs */
+  --s-ok:        oklch(0.500 0.135 152);
+  --s-ok-w:      oklch(0.960 0.030 152);
+  --s-wait:      oklch(0.520 0.115 75);
+  --s-wait-w:    oklch(0.965 0.035 85);
+  --s-dead:      oklch(0.505 0.180 22);
+  --s-dead-w:    oklch(0.962 0.020 22);
+  --s-done:      oklch(0.500 0.130 265);
+  --s-done-w:    oklch(0.960 0.025 265);
+}
+
+.admin-wrap,
+.compte-page,
+.auth-page,
+.qrs-overlay {
   /* Échelle typographique — rapport ≥ 1,25 entre paliers */
   --ts-2xs: 0.6875rem;
   --ts-xs:  0.75rem;
@@ -3696,11 +3833,22 @@ body {
   --r-md: 10px;
   --r-lg: 14px;
 
-  --sh-1: 0 1px 2px oklch(0.10 0.01 30 / 0.45);
-  --sh-2: 0 10px 30px -8px oklch(0.08 0.01 30 / 0.6);
-
   /* ease-out-quart : sortie franche, sans rebond */
   --ez: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Les ombres suivent la surface : sur fond sombre elles creusent, sur
+   fond clair elles ne font que décoller — une ombre de thème sombre
+   posée sur du blanc noircit la page. */
+.admin-wrap,
+.qrs-overlay {
+  --sh-1: 0 1px 2px oklch(0.10 0.01 30 / 0.45);
+  --sh-2: 0 10px 30px -8px oklch(0.08 0.01 30 / 0.6);
+}
+.compte-page,
+.auth-page {
+  --sh-1: 0 1px 2px oklch(0.20 0.01 30 / 0.07);
+  --sh-2: 0 10px 30px -14px oklch(0.20 0.01 30 / 0.35);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -3799,23 +3947,26 @@ body {
 
 /* Bande de pellicule en filigrane — le seul ornement de la page, et il
    dit de quoi le produit parle. */
+/* Sur le panneau clair, la pellicule doit être une trame d'encre et non
+   un blanc sur blanc : les images sont un gris papier, les perforations
+   un gris plus soutenu, et l'opacité d'ensemble monte en conséquence. */
 .auth-film-strip {
   position: absolute; inset: 0; z-index: 1;
   display: flex; flex-direction: column; gap: 20px;
   transform: rotate(-14deg) scale(1.5);
-  opacity: 0.16; pointer-events: none;
+  opacity: 0.5; pointer-events: none;
   transition: transform 0.62s var(--ez);
 }
 .auth-film-frame {
   position: relative; height: 92px; flex-shrink: 0;
-  background: var(--a-surface);
-  border-top: 9px solid var(--a-bg);
-  border-bottom: 9px solid var(--a-bg);
+  background: oklch(0.915 0.005 45);
+  border-top: 9px solid var(--a-panel);
+  border-bottom: 9px solid var(--a-panel);
 }
 .auth-film-frame::before, .auth-film-frame::after {
   content: ''; position: absolute; left: 0; right: 0; height: 9px;
   background-image: repeating-linear-gradient(
-    to right, var(--a-ink-3) 0 8px, transparent 8px 22px
+    to right, oklch(0.855 0.006 45) 0 8px, transparent 8px 22px
   );
 }
 .auth-film-frame::before { top: -9px; }
@@ -3870,7 +4021,7 @@ body {
 
 .auth-artwork-eyebrow {
   font-size: var(--ts-2xs); font-weight: 700; letter-spacing: 0.16em;
-  text-transform: uppercase; color: var(--a-accent); margin-bottom: 14px;
+  text-transform: uppercase; color: var(--a-accent-ink); margin-bottom: 14px;
 }
 .auth-artwork-headline {
   font-family: 'Bebas Neue', 'Helvetica Neue', sans-serif;
@@ -3889,10 +4040,14 @@ body {
 }
 .auth-form-box { width: 100%; max-width: 380px; }
 /* Le logo est fourni avec son fond noir incrusté. Sur la navbar et le pied de
-   page (#000) il se fond tout seul ; ici les panneaux sont d'un noir chaud, et
-   le rectangle du fichier se verrait. « screen » neutralise le noir sans
-   toucher au fichier : noir → transparent, blanc et étoiles inchangés. */
-.auth-logo { height: 46px; width: auto; margin-bottom: 28px; mix-blend-mode: screen; }
+   page (#000) il se fond tout seul. Ici la page est blanche : « screen »
+   effacerait le logo entier au lieu de son fond. On assume donc le
+   rectangle et on en fait une plaque — comme le talon ACHAT, le seul
+   objet sombre d'un parcours clair. */
+.auth-logo {
+  height: 46px; width: auto; margin-bottom: 28px;
+  border-radius: 5px; display: block;
+}
 .auth-title {
   font-size: var(--ts-xl); font-weight: 700; color: var(--a-ink);
   letter-spacing: -0.02em; margin-bottom: 6px;
@@ -3915,7 +4070,7 @@ body {
   border-color: var(--a-accent);
   background: var(--a-hover);
 }
-.auth-field input::placeholder { color: oklch(0.48 0.012 45); }
+.auth-field input::placeholder { color: oklch(0.68 0.010 45); }
 .auth-input-disabled { opacity: 0.55; cursor: not-allowed; }
 
 .auth-error {
@@ -3965,7 +4120,7 @@ body {
 }
 
 .auth-link {
-  color: var(--a-accent); text-decoration: none; font-weight: 600;
+  color: var(--a-accent-ink); text-decoration: none; font-weight: 600;
   font-size: var(--ts-sm);
 }
 .auth-link:hover { text-decoration: underline; }
@@ -4988,62 +5143,66 @@ body {
 /* ─── BNI Pay — info card (sélection méthode carte) ─────────────────────────── */
 .bni-card-info {
   display: flex; gap: 16px; align-items: flex-start;
-  background: rgba(26,86,219,0.06); border: 1px solid rgba(26,86,219,0.18);
+  background: #eef3fd; border: 1px solid rgba(26,86,219,0.22);
   border-radius: 12px; padding: 18px; margin-top: 16px;
 }
 .bni-card-info-logo { flex-shrink: 0; }
 .bni-card-info-logo img { width: 72px; border-radius: 6px; display: block; }
 .bni-card-info-text { flex: 1; }
-.bni-card-info-title { font-size: 0.92rem; font-weight: 700; color: #e0e6f0; margin: 0 0 6px; }
-.bni-card-info-sub   { font-size: 0.82rem; color: #8892a4; line-height: 1.55; margin: 0 0 12px; }
+.bni-card-info-title { font-size: 0.92rem; font-weight: 700; color: #16346f; margin: 0 0 6px; }
+.bni-card-info-sub   { font-size: 0.82rem; color: #48546c; line-height: 1.55; margin: 0 0 12px; }
 .bni-card-info-badges { display: flex; flex-wrap: wrap; gap: 6px; }
 .bni-badge {
   display: inline-flex; align-items: center; gap: 4px;
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-  color: #9ba8bb; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em;
+  background: #fff; border: 1px solid rgba(26,86,219,0.20);
+  color: #3a4761; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em;
   padding: 3px 9px; border-radius: 20px;
 }
 
-/* ─── BNI Pay — page checkout avec iframe ───────────────────────────────────── */
+/* ─── BNI Pay — page checkout avec iframe ─────────────────────────────────────
+   La page de la banque s'affiche en clair : le formulaire bancaire arrive
+   sur fond blanc dans son iframe, et un cadre noir autour ne ferait que
+   souligner la couture. */
 .bni-checkout-page {
   min-height: 100vh;
-  background: #0d0d0d;
+  background: var(--t-paper);
   display: flex; justify-content: center; align-items: flex-start;
   padding: 32px 16px 64px;
 }
 .bni-checkout-inner {
   width: 100%; max-width: 560px;
-  background: #141414; border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--t-surface); border-radius: 16px;
+  border: 1px solid var(--t-line);
+  box-shadow: 0 18px 40px -30px rgba(20,22,26,0.45);
   overflow: hidden;
 }
 .bni-checkout-header {
   display: flex; align-items: center; gap: 12px;
-  padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.07);
-  background: rgba(255,255,255,0.02);
+  padding: 16px 20px; border-bottom: 1px solid var(--t-line);
+  background: var(--t-paper);
 }
 .bni-checkout-close {
   display: flex; align-items: center; gap: 6px;
-  background: transparent; border: none; color: #8892a4;
+  background: transparent; border: none; color: var(--t-ink-3);
   font-size: 0.82rem; cursor: pointer; padding: 0;
   transition: color 0.15s;
 }
-.bni-checkout-close:hover { color: #c8d0de; }
+.bni-checkout-close:hover { color: var(--t-ink); }
 .bni-checkout-title {
   flex: 1; font-size: 0.88rem; font-weight: 700;
-  color: #c8d0de; text-align: center;
+  color: var(--t-ink); text-align: center;
 }
 .bni-checkout-logo { width: 56px; border-radius: 4px; }
 .bni-checkout-summary {
   display: flex; align-items: center; justify-content: center;
   flex-wrap: wrap; gap: 6px;
-  padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 12px 20px; border-bottom: 1px solid var(--t-line-2);
   font-size: 0.82rem;
 }
-.bni-checkout-film   { color: #e0e6f0; font-weight: 600; }
-.bni-checkout-sep    { color: #3a3a4a; }
-.bni-checkout-seats  { color: #8892a4; }
-.bni-checkout-amount { color: #e8192c; font-weight: 700; }
+.bni-checkout-film   { color: var(--t-ink); font-weight: 600; }
+.bni-checkout-sep    { color: #c3c8cf; }
+.bni-checkout-seats  { color: var(--t-ink-3); }
+.bni-checkout-amount { color: var(--t-red-ink); font-weight: 700; }
 .bni-checkout-frame  { padding: 20px 16px; display: flex; justify-content: center; }
 .bni-checkout-frame iframe {
   width: 100% !important; max-width: 480px;
@@ -5053,19 +5212,19 @@ body {
 .bni-checkout-loading {
   display: flex; flex-direction: column; align-items: center;
   gap: 16px; min-height: 720px; justify-content: center;
-  padding: 48px 20px; color: #8892a4; font-size: 0.88rem;
+  padding: 48px 20px; color: var(--t-ink-2); font-size: 0.88rem;
 }
 .bni-checkout-spinner {
   width: 32px; height: 32px; border-radius: 50%;
-  border: 3px solid rgba(232,25,44,0.15);
+  border: 3px solid rgba(232,25,44,0.18);
   border-top-color: #e8192c;
   animation: spin 0.8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 .bni-checkout-note {
   display: flex; align-items: center; justify-content: center; gap: 5px;
-  padding: 12px 20px; font-size: 0.74rem; color: #4a5568;
-  border-top: 1px solid rgba(255,255,255,0.05);
+  padding: 12px 20px; font-size: 0.74rem; color: var(--t-ink-3);
+  border-top: 1px solid var(--t-line-2);
 }
 
 /* ─── Fallback : formulaire carte de test ──────────────────────────────────── */
@@ -5073,60 +5232,62 @@ body {
   display: flex; align-items: flex-start; gap: 10px;
   margin: 16px 20px 0;
   padding: 12px 14px;
-  background: rgba(245, 158, 11, 0.1);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: #fdf4e3;
+  border: 1px solid rgba(180, 83, 9, 0.28);
   border-radius: 8px;
-  color: #fbbf24; font-size: 0.8rem; line-height: 1.4;
+  color: #8a5300; font-size: 0.8rem; line-height: 1.4;
 }
 .card-test-banner svg { flex-shrink: 0; margin-top: 2px; }
-.card-test-banner strong { color: #fcd34d; }
-.card-test-reason { color: #b45309; opacity: 0.85; }
+.card-test-banner strong { color: #6b4000; }
+.card-test-reason { color: #9a6a1f; }
 
 .card-test-form {
   padding: 20px;
   display: flex; flex-direction: column; gap: 16px;
 }
-.card-test-form .pay-field label { color: #cbd5e1; }
+.card-test-form .pay-field label { color: var(--t-ink-2); }
 .card-test-form input {
-  background: #1a1a1a;
-  border: 1px solid rgba(255,255,255,0.12);
-  color: #f1f5f9;
+  background: var(--t-surface);
+  border: 1px solid var(--t-line);
+  color: var(--t-ink);
 }
-.card-test-form input::placeholder { color: #64748b; }
+.card-test-form input::placeholder { color: #a8aeb7; }
 .card-test-form input:focus {
   border-color: #1a56db;
+  box-shadow: 0 0 0 3px rgba(26,86,219,0.15);
   outline: none;
 }
-.card-test-form .pay-input-icon { color: #64748b; }
+.card-test-form .pay-input-icon { color: #a8aeb7; }
 
 /* ─── BNI Pay — page succès ─────────────────────────────────────────────────── */
 .bni-success-page {
-  min-height: 100vh; background: #0d0d0d;
+  min-height: 100vh; background: var(--t-paper);
   display: flex; justify-content: center; align-items: center;
   padding: 32px 16px;
 }
 .bni-success-card {
   width: 100%; max-width: 420px;
-  background: #141414; border: 1px solid rgba(255,255,255,0.08);
+  background: var(--t-surface); border: 1px solid var(--t-line);
   border-radius: 16px; padding: 40px 32px;
+  box-shadow: 0 20px 44px -30px rgba(20,22,26,0.4);
   text-align: center;
 }
 .bni-success-icon {
   width: 72px; height: 72px; border-radius: 50%;
-  background: rgba(74,222,128,0.1); border: 2px solid rgba(74,222,128,0.3);
+  background: #e9f7ee; border: 2px solid rgba(21,128,61,0.32);
   display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 24px; color: #4ade80;
+  margin: 0 auto 24px; color: #15803d;
 }
-.bni-success-title { font-size: 1.5rem; font-weight: 800; color: #e0e6f0; margin: 0 0 12px; }
-.bni-success-sub   { font-size: 0.88rem; color: #8892a4; line-height: 1.6; margin: 0 0 24px; }
+.bni-success-title { font-size: 1.5rem; font-weight: 800; color: var(--t-ink); margin: 0 0 12px; }
+.bni-success-sub   { font-size: 0.88rem; color: var(--t-ink-2); line-height: 1.6; margin: 0 0 24px; }
 .bni-success-ref {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
-  background: rgba(255,255,255,0.04); border-radius: 10px;
+  background: var(--t-paper); border: 1px solid var(--t-line); border-radius: 10px;
   padding: 14px 20px; margin-bottom: 20px;
 }
-.bni-success-ref-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #4a5568; }
-.bni-success-ref-val   { font-size: 1.05rem; font-weight: 700; color: #e0e6f0; letter-spacing: 0.06em; }
-.bni-success-hint { font-size: 0.8rem; color: #4a5568; margin: 0 0 28px; }
+.bni-success-ref-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--t-ink-3); }
+.bni-success-ref-val   { font-size: 1.05rem; font-weight: 700; color: var(--t-ink); letter-spacing: 0.06em; }
+.bni-success-hint { font-size: 0.8rem; color: var(--t-ink-3); margin: 0 0 28px; }
 .bni-success-btn {
   display: inline-flex; align-items: center; gap: 8px;
   background: #e8192c; color: #fff; font-size: 0.88rem; font-weight: 700;
@@ -5139,18 +5300,18 @@ body {
 .bni-veezi {
   display: flex; align-items: center; justify-content: center; gap: 10px;
   min-height: 44px;
-  background: rgba(255,255,255,0.04); border-radius: 10px;
+  background: var(--t-paper); border: 1px solid var(--t-line-2); border-radius: 10px;
   padding: 12px 18px; margin-bottom: 20px;
   animation: bni-veezi-in 0.3s ease both;
 }
 @keyframes bni-veezi-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-.bni-veezi-msg { font-size: 0.78rem; line-height: 1.4; color: #8892a4; text-align: left; }
-.bni-veezi--error { background: rgba(232,25,44,0.08); }
-.bni-veezi--error .bni-veezi-msg { color: #e88; }
-.bni-veezi-warn { color: #e8192c; flex-shrink: 0; }
+.bni-veezi-msg { font-size: 0.78rem; line-height: 1.4; color: var(--t-ink-2); text-align: left; }
+.bni-veezi--error { background: var(--t-red-w); border-color: rgba(193,18,31,0.24); }
+.bni-veezi--error .bni-veezi-msg { color: #9c1420; }
+.bni-veezi-warn { color: var(--t-red-ink); flex-shrink: 0; }
 .bni-veezi-spinner {
   width: 15px; height: 15px; flex-shrink: 0; border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.2); border-top-color: #e8192c;
+  border: 2px solid rgba(20,22,26,0.14); border-top-color: #e8192c;
   animation: bni-spin 0.7s linear infinite;
 }
 @keyframes bni-spin { to { transform: rotate(360deg); } }
@@ -5161,26 +5322,26 @@ body {
   margin-bottom: 24px;
 }
 .bni-qr-title {
-  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #4a5568;
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--t-ink-3);
 }
 .bni-qr-frame {
   padding: 12px; background: #fff; border-radius: 12px;
-  box-shadow: 0 4px 18px rgba(0,0,0,0.35);
+  border: 1px solid var(--t-line);
 }
-.bni-qr-hint { font-size: 0.75rem; color: #6b7280; margin: 0; line-height: 1.4; }
+.bni-qr-hint { font-size: 0.75rem; color: var(--t-ink-3); margin: 0; line-height: 1.4; }
 .bni-pdf-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   margin-top: 4px; padding: 10px 20px;
-  background: transparent; color: #e0e6f0;
-  border: 1px solid rgba(255,255,255,0.18); border-radius: 8px;
+  background: var(--t-surface); color: var(--t-ink-2);
+  border: 1px solid var(--t-line); border-radius: 8px;
   font-size: 0.82rem; font-weight: 600; cursor: pointer;
   transition: background 0.15s, border-color 0.15s, transform 0.15s;
 }
 .bni-pdf-btn:hover:not(:disabled) {
-  background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.32); transform: translateY(-1px);
+  background: var(--t-paper); border-color: #aab1bb; transform: translateY(-1px);
 }
 .bni-pdf-btn:disabled { opacity: 0.6; cursor: default; }
-.bni-pdf-btn .bni-veezi-spinner { border-top-color: #e0e6f0; }
+.bni-pdf-btn .bni-veezi-spinner { border-top-color: var(--t-ink-2); }
 
 /* ═══════════════════════════════════════════════════════════════
    CARROUSEL D'ACCUEIL — bande annonce plein cadre
@@ -6774,14 +6935,18 @@ body {
    La vente est un achat ferme et définitif, pas une réservation.
    Le bandeau emprunte sa forme au talon d'un billet de cinéma : la
    perforation tombe exactement entre ACHAT et TICKET EN LIGNE, ce qui
-   détache le mot qui doit être lu en premier. Une seule version
-   visuelle — surface sombre + liseré rouge — pour tenir aussi bien sur
-   le blanc des pages publiques que sur le #0f0f0f du panneau de paiement.
+   détache le mot qui doit être lu en premier.
+
+   Le bandeau est désormais la seule surface sombre du tunnel : tout le
+   reste est passé au clair. C'est ce qui en fait le repère — le talon
+   qu'on retrouve à chaque point d'engagement. Les encoches prennent la
+   couleur de la page, si bien qu'elles se lisent enfin comme des trous
+   poinçonnés et non comme deux points noirs.
 ═══════════════════════════════════════════════════════════════ */
 .achat-band {
   --ab-red:     #e8192c;
   --ab-surface: #161616;
-  --ab-punch:   #0a0a0a;
+  --ab-punch:   #fff;
 
   display: flex;
   /* ACHAT et TICKET EN LIGNE sont une seule phrase coupée par la
@@ -6952,5 +7117,5 @@ body {
   border-left: 2px solid #e8192c;
   font-size: 0.76rem;
   line-height: 1.5;
-  color: #9a9a9a;
+  color: var(--t-ink-2);
 }

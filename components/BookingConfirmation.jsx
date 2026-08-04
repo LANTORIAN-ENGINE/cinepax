@@ -75,10 +75,10 @@ export default function BookingConfirmation({
         <div className="conf-icon-wrap">
           <svg className="conf-check-svg" viewBox="0 0 60 60" fill="none">
             <circle className="conf-check-ring" cx="30" cy="30" r="28"
-              stroke="#22c55e" strokeWidth="2.5" />
+              stroke="#15803d" strokeWidth="2.5" />
             <path className="conf-check-path"
               d="M18 30L26 38L42 22"
-              stroke="#22c55e" strokeWidth="3"
+              stroke="#15803d" strokeWidth="3"
               strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
@@ -122,11 +122,13 @@ export default function BookingConfirmation({
         {/* QR Code */}
         <div className="conf-qr-wrap">
           <div className="conf-qr-frame">
+            {/* Encre sombre sur blanc : c'est ce que les lecteurs de code
+                attendent, et c'est ce qui sort d'une imprimante. */}
             <QRCodeSVG
               value={qrData}
               size={160}
-              bgColor="#0d0d0d"
-              fgColor="#e8192c"
+              bgColor="#ffffff"
+              fgColor="#14161a"
               level="M"
               includeMargin={false}
             />
