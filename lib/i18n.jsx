@@ -167,6 +167,13 @@ const DICT = {
       word: 'ACHAT',
       rest: 'TICKET EN LIGNE',
       note: 'Achat ferme et définitif. Vos sièges vous sont attribués nominativement dès le paiement.',
+      // Repère posé au-dessus des listes d'horaires. L'heure est le bouton
+      // d'achat, mais rien ne le dit tant qu'on ne l'a pas cliquée : la phrase
+      // est coupée en trois pour que le membre qui désigne l'horaire porte le
+      // rouge des pastilles de séance.
+      howToBefore: 'Pour acheter vos billets, cliquez sur ',
+      howToTarget: "l'horaire de la séance de votre choix",
+      howToAfter: '.',
     },
 
     hero: {
@@ -213,6 +220,12 @@ const DICT = {
       emptyDay: 'Aucune séance disponible ce jour.',
       screen: 'Salle : {name}',
       seatsAvailable: '{n} places disponibles',
+      // Seconde ligne de la pastille d'horaire : le verbe au survol, la
+      // mention quand la salle est prise. Les deux tiennent dans la même
+      // largeur — c'est ce qui garde les rangées d'horaires alignées.
+      soldOut: 'ÉPUISÉ',
+      buyShort: 'ACHETER',
+      buyAria: 'Acheter des billets — séance de {hour}',
     },
 
     seats: {
@@ -822,6 +835,9 @@ const DICT = {
       word: 'BUY',
       rest: 'TICKETS ONLINE',
       note: 'Final purchase. Your seats are assigned to you as soon as the payment clears.',
+      howToBefore: 'To buy your tickets, click ',
+      howToTarget: 'the showtime you want',
+      howToAfter: '.',
     },
 
     hero: {
@@ -868,6 +884,9 @@ const DICT = {
       emptyDay: 'No showtimes available for this day.',
       screen: 'Screen: {name}',
       seatsAvailable: '{n} seats available',
+      soldOut: 'SOLD OUT',
+      buyShort: 'BUY',
+      buyAria: 'Buy tickets — {hour} showtime',
     },
 
     seats: {

@@ -678,22 +678,118 @@ body {
   flex-wrap: wrap;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   PASTILLE D'HORAIRE
+
+   Une seule géométrie pour deux états. La pastille réserve deux
+   lignes : l'heure, centrée, et une seconde ligne posée hors flux
+   juste en dessous. Au survol d'une séance en vente, l'heure glisse
+   vers le haut et le verbe apparaît — le bouton dit alors ce qu'il
+   fait sans changer d'un pixel, la rangée ne bouge pas. Une séance
+   complète a sa seconde ligne déjà sortie : heure barrée, ÉPUISÉ.
+═══════════════════════════════════════════════════════════════ */
 .session-time-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 96px;
+  min-height: 46px;
+  padding: 8px 18px;
   background: #f0f0f0;
   border: none;
   border-radius: 2px;
-  padding: 12px 20px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #e8192c;
+  overflow: hidden;
   cursor: pointer;
-  letter-spacing: 0.02em;
-  transition: background 0.15s;
-  min-width: 90px;
+  /* Explicite : la pastille épuisée est un <span>, qui n'hérite pas du
+     centrage que le navigateur donne aux <button>. */
   text-align: center;
+  transition: background 0.18s;
 }
 
-.session-time-btn:hover { background: #e4e4e4; }
+.session-time-hour {
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: #e8192c;
+  font-variant-numeric: tabular-nums;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), color 0.18s;
+}
+
+/* Seconde ligne, hors flux : elle ne compte pas dans la hauteur. */
+.session-time-cta,
+.session-time-flag {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  margin-top: 5px;
+  font-family: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.58rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.session-time-cta {
+  color: #fff;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.18s, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.session-time-btn:hover,
+.session-time-btn:focus-visible {
+  background: #e8192c;
+}
+
+.session-time-btn:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: 2px;
+}
+
+.session-time-btn:hover .session-time-hour,
+.session-time-btn:focus-visible .session-time-hour {
+  color: #fff;
+  transform: translateY(-7px);
+}
+
+.session-time-btn:hover .session-time-cta,
+.session-time-btn:focus-visible .session-time-cta {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Séance complète. Le rouge est réservé à ce qui s'achète : la pastille
+   passe au gris, l'heure est barrée par l'élément <s> et la mention dit
+   pourquoi il n'y a rien à cliquer.
+
+   Le gris reste lisible (4.8:1 sur le fond de la pastille) : l'heure
+   épuisée est une information, pas un décor. Ce qui la retire de l'achat,
+   c'est la barre et la perte du rouge — pas un texte qu'on n'arrive plus
+   à lire. Seule la barre elle-même est plus claire, pour ne pas manger
+   les chiffres. */
+.session-time-btn.is-soldout {
+  background: #f5f5f5;
+  cursor: default;
+}
+
+.session-time-btn.is-soldout .session-time-hour {
+  color: #6e6e6e;
+  transform: translateY(-7px);
+  text-decoration-color: #a8a8a8;
+  text-decoration-thickness: 1.5px;
+}
+
+.session-time-flag { color: #6e6e6e; }
+
+@media (prefers-reduced-motion: reduce) {
+  .session-time-hour,
+  .session-time-cta { transition: none; }
+}
 
 /* ═══════════════════════════════════════════════════════════════
    EMPTY STATE
@@ -2320,9 +2416,11 @@ body {
   flex-wrap: wrap;
 }
 
+/* Mêmes mesures que .session-time-btn : le squelette doit se retirer
+   sans que les pastilles sautent. */
 .sk-session-pill {
-  height: 34px;
-  border-radius: 3px;
+  height: 46px;
+  border-radius: 2px;
 }
 
 /* ══════════════════════════════════════
@@ -6706,6 +6804,54 @@ body {
 
   .achat-band-body { padding: 11px 18px 15px; }
   .achat-band-rest { font-size: 1.3rem; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   REPÈRE D'ACHAT — « cliquez sur l'horaire »
+
+   Membre le plus léger de la famille ACHAT : même liseré rouge, même
+   DM Sans que la note du bandeau, mais posé sur le blanc de la page —
+   le bandeau dit ce qu'est la vente, cette ligne dit quoi faire. Elle
+   surmonte les deux seules listes d'horaires cliquables du site
+   (accueil, page film) et ne s'affiche que si la liste n'est pas vide.
+
+   Le mot rouge est le repère : c'est le seul autre rouge de la liste,
+   celui des pastilles de séance. L'œil relie la phrase à sa cible sans
+   flèche ni pictogramme.
+═══════════════════════════════════════════════════════════════ */
+/* Pas de max-width : la phrase tient sur une ligne et doit y rester —
+   un « choix. » orphelin sur la seconde ligne casse le repère. Quand
+   l'écran l'oblige quand même à passer à la ligne, text-wrap: pretty
+   équilibre la coupure plutôt que de lâcher un mot seul en bas. */
+.buy-hint {
+  margin: 24px 0 22px;
+  padding-left: 14px;
+  border-left: 2px solid #e8192c;
+  font-family: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: #4a4a4a;
+  text-wrap: pretty;
+}
+
+.buy-hint-target {
+  font-weight: 700;
+  color: #e8192c;
+}
+
+/* Au survol de la phrase, les pastilles qu'elle désigne s'entourent du
+   même rouge : la démonstration remplace l'explication. Les séances
+   complètes en sont exclues — la phrase ne parle que de ce qui s'achète.
+   Bonus au pointeur uniquement : au doigt, la phrase seule fait le travail. */
+@media (hover: hover) {
+  .buy-hint ~ .films-list .session-time-btn,
+  .buy-hint ~ .session-day-group .session-time-btn {
+    transition: background 0.18s, box-shadow 0.18s;
+  }
+  .buy-hint:hover ~ .films-list .session-time-btn:not(.is-soldout),
+  .buy-hint:hover ~ .session-day-group .session-time-btn:not(.is-soldout) {
+    box-shadow: inset 0 0 0 1.5px rgba(232, 25, 44, 0.45);
+  }
 }
 
 /* Rappel juridique posé juste au-dessus du bouton de validation : le

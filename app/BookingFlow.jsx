@@ -134,6 +134,78 @@ function DatePicker({ days, selected, onSelect }) {
   )
 }
 
+// ─── Séance complète ──────────────────────────────────────────────────────────
+// Veezi donne deux signaux concordants sur /v1/session, renseignés pour toutes
+// les séances quel que soit leur canal de vente :
+//
+//   TicketsSoldOut  drapeau du back-office ; il compte aussi les places
+//                   retenues dans les paniers en cours (SeatsHeld), pas
+//                   seulement les billets encaissés (SeatsSold)
+//   SeatsAvailable  places encore libres — 0 quand la salle est prise
+//
+// Sur la programmation observée les deux s'accordent exactement (par ex.
+// 81 vendues + 9 retenues = 90 places, SeatsAvailable 0, TicketsSoldOut true).
+// On lit quand même les deux : le premier qui dit « complet » suffit, et une
+// grille qui n'aurait pas le drapeau reste correctement fermée. L'égalité
+// stricte à 0 est voulue — un SeatsAvailable absent ne vaut pas complet.
+//
+// Même lecture que l'API du programme (app/api/programme/route.js).
+function isSoldOut(session) {
+  return session?.TicketsSoldOut === true || session?.SeatsAvailable === 0
+}
+
+// ─── Bouton de séance ─────────────────────────────────────────────────────────
+// L'heure *est* le bouton d'achat. Au survol elle glisse vers le haut et cède
+// la place au verbe : le bouton dit alors ce qu'il fait, sans changer de
+// taille — la seconde ligne est hors flux, rien ne bouge dans la rangée.
+//
+// Une séance complète occupe exactement la même géométrie, sa seconde ligne
+// déjà sortie : heure barrée, mention ÉPUISÉ, et plus rien à cliquer. Ce n'est
+// pas un bouton désactivé mais un simple libellé — il n'y a aucune action à
+// proposer, autant ne pas en annoncer une au clavier ni au lecteur d'écran.
+function SessionButton({ session, hour, onSelect }) {
+  const { t } = useI18n()
+
+  if (isSoldOut(session)) {
+    return (
+      <span className="session-time-btn is-soldout">
+        <s className="session-time-hour">{hour}</s>
+        <span className="session-time-flag">{t('sessions.soldOut')}</span>
+      </span>
+    )
+  }
+
+  return (
+    <button
+      className="session-time-btn"
+      onClick={() => onSelect(session)}
+      aria-label={t('sessions.buyAria', { hour })}
+    >
+      <span className="session-time-hour">{hour}</span>
+      <span className="session-time-cta" aria-hidden="true">{t('sessions.buyShort')}</span>
+    </button>
+  )
+}
+
+// ─── Repère d'achat ───────────────────────────────────────────────────────────
+// L'horaire *est* le bouton d'achat, mais rien ne le dit tant qu'on ne l'a pas
+// cliqué. Cette ligne le dit — et le montre : le membre de phrase qui désigne
+// l'horaire porte le rouge des pastilles de séance, seul autre rouge de la
+// liste. Au survol, les pastilles s'entourent du même rouge : la phrase
+// désigne alors littéralement ce dont elle parle (voir .buy-hint dans
+// globals.css). Posée au-dessus de chaque liste d'horaires cliquables :
+// l'accueil et la page film.
+function BuyHint() {
+  const { t } = useI18n()
+  return (
+    <p className="buy-hint">
+      {t('achat.howToBefore')}
+      <strong className="buy-hint-target">{t('achat.howToTarget')}</strong>
+      {t('achat.howToAfter')}
+    </p>
+  )
+}
+
 // ─── Skeleton: liste de films ─────────────────────────────────────────────────
 function FilmsListSkeleton() {
   return (
@@ -165,8 +237,8 @@ function FilmsListSkeleton() {
               </div>
               {/* Boutons séances */}
               <div className="sk-sessions-row">
-                {[72, 68, 74, 68].map((w, j) => (
-                  <div key={j} className="sk-session-pill sk-shine" style={{ width: w }} />
+                {[0, 1, 2, 3].map(j => (
+                  <div key={j} className="sk-session-pill sk-shine" />
                 ))}
               </div>
             </div>
@@ -268,8 +340,8 @@ function RestoringSkeleton({ step }) {
           <div className="sk-shine sk-title-line" style={{ width: '45%', marginTop: 6 }} />
           <div className="sk-shine sk-meta-line" style={{ marginTop: 14 }} />
           <div className="sk-sessions-row">
-            {[72, 68, 74, 68].map((w, j) => (
-              <div key={j} className="sk-session-pill sk-shine" style={{ width: w }} />
+            {[0, 1, 2, 3].map(j => (
+              <div key={j} className="sk-session-pill sk-shine" />
             ))}
           </div>
         </div>
@@ -1003,22 +1075,22 @@ export default function BookingFlow({ initialRoute }) {
         <h2 className="sessions-title">{t('sessions.title')}</h2>
         <hr className="section-divider" />
 
-        {allSessionsByDate.length === 0 && (
-          <p className="empty-state">{t('sessions.empty')}</p>
-        )}
+        {allSessionsByDate.length === 0
+          ? <p className="empty-state">{t('sessions.empty')}</p>
+          : <BuyHint />
+        }
 
         {allSessionsByDate.map(({ day, sessions }) => (
           <div key={day} className="session-day-group">
             <h3 className="session-day-label">{formatDateHeader(day)}</h3>
             <div className="film-sessions">
               {sessions.map(s => (
-                <button
+                <SessionButton
                   key={s.Id}
-                  className="session-time-btn"
-                  onClick={() => selectSession(s)}
-                >
-                  {formatHour(sessionTime(s))}
-                </button>
+                  session={s}
+                  hour={formatHour(sessionTime(s))}
+                  onSelect={selectSession}
+                />
               ))}
             </div>
           </div>
@@ -1207,6 +1279,8 @@ export default function BookingFlow({ initialRoute }) {
           )}
 
           {/* Liste de films */}
+          {!loading && visibleFilms.length > 0 && <BuyHint />}
+
           {loading && <FilmsListSkeleton />}
 
           {!loading && (
@@ -1279,13 +1353,12 @@ export default function BookingFlow({ initialRoute }) {
                         {/* Boutons de séances */}
                         <div className="film-sessions">
                           {filmSessions.map(s => (
-                            <button
+                            <SessionButton
                               key={s.Id}
-                              className="session-time-btn"
-                              onClick={() => selectSession(s)}
-                            >
-                              {formatHour(sessionTime(s))}
-                            </button>
+                              session={s}
+                              hour={formatHour(sessionTime(s))}
+                              onSelect={selectSession}
+                            />
                           ))}
                         </div>
                       </div>
