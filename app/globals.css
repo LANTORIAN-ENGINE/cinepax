@@ -1964,9 +1964,12 @@ body {
   flex-wrap: wrap;
 }
 
+/* La colonne se dimensionne sur son contenu : la largeur fixe de 280px coupait
+   l'adresse en deux, alors que c'est précisément elle qui doit tenir d'un
+   seul tenant. */
 .footer-left {
-  flex: 0 0 280px;
-  min-width: 200px;
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 .footer-logo {
@@ -1974,19 +1977,74 @@ body {
   width: auto;
   object-fit: contain;
   display: block;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
-.footer-address {
+/* Trois lignes, trois natures : la raison sociale nomme, l'adresse situe, le
+   numéro appelle. Les deux dernières sont des liens ; la première n'en est pas
+   un, et son absence de pictogramme le signale avant même le survol. */
+.footer-contact {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  font-style: normal;
+  margin-bottom: 16px;
+
+  /* ease-out-quint, comme la navigation */
+  --ft-ez: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.footer-entity {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.footer-contact-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  /* Une information par ligne, jamais coupée en deux. */
+  white-space: nowrap;
   font-size: 0.78rem;
-  color: #999;
-  line-height: 1.55;
-  margin-bottom: 18px;
+  line-height: 1.35;
+  color: #949494;
+  text-decoration: none;
+  /* Porte la cible tactile à 32px sans écarter les lignes du regard. */
+  padding: 6px 0;
+  border-radius: 3px;
+  transition: color 0.2s var(--ft-ez);
+}
+
+/* Un cran sous le texte, jamais plus : à #5a5a5a le pictogramme s'effaçait
+   du fond noir et la ligne semblait décalée sans raison. */
+.footer-contact-icon {
+  flex: 0 0 auto;
+  color: #6f6f6f;
+  transition: color 0.2s var(--ft-ez), transform 0.2s var(--ft-ez);
+}
+
+/* Le soulignement se colore au lieu d'apparaître : le texte ne bouge pas. */
+.footer-contact-text {
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s var(--ft-ez);
+}
+
+.footer-contact-line:hover { color: #fff; }
+.footer-contact-line:hover .footer-contact-text { border-color: #e8192c; }
+.footer-contact-line:hover .footer-contact-icon {
+  color: #e8192c;
+  transform: translateY(-1px);
 }
 
 .footer-social {
   display: flex;
-  gap: 14px;
+  gap: 6px;
+  margin-left: -8px;
 }
 
 .social-link {
@@ -1994,10 +2052,25 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.15s;
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  transition: color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.social-link:hover { color: #aaa; }
+.social-link:hover { color: #e8192c; }
+
+.footer-contact-line:focus-visible,
+.social-link:focus-visible,
+.footer-col a:focus-visible {
+  outline: 2px solid #e8192c;
+  outline-offset: 3px;
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-contact-line:hover .footer-contact-icon { transform: none; }
+}
 
 .footer-links {
   display: flex;
@@ -2096,6 +2169,17 @@ body {
   .footer-inner { flex-direction: column; gap: 28px; }
   .footer-left { flex: none; }
   .footer-links { justify-content: flex-start; gap: 32px; }
+
+  /* L'adresse doit rester d'un bloc jusqu'en bas de la gamme : on resserre le
+     corps plutôt que d'autoriser la coupure. */
+  .footer-contact-line { font-size: 0.72rem; gap: 8px; }
+}
+
+/* Sous 340px, plus aucun corps lisible ne fait tenir l'adresse d'une traite.
+   Elle se replie alors, plutôt que de pousser la page hors de l'écran. */
+@media (max-width: 340px) {
+  .footer-contact-line { white-space: normal; align-items: flex-start; }
+  .footer-contact-icon { margin-top: 1px; }
 }
 
 /* ═══════════════════════════════════════════════════════════════

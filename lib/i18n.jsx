@@ -145,6 +145,8 @@ const DICT = {
       colSoon: 'PROCHAINEMENT',
       colAbout: 'À PROPOS DE NOUS',
       colContact: 'CONTACTEZ NOUS',
+      openMaps: 'Voir sur Google Maps',
+      callUs: 'Appeler Cinepax',
     },
 
     auth_nav: {
@@ -800,6 +802,8 @@ const DICT = {
       colSoon: 'COMING SOON',
       colAbout: 'ABOUT US',
       colContact: 'CONTACT US',
+      openMaps: 'View on Google Maps',
+      callUs: 'Call Cinepax',
     },
 
     auth_nav: {

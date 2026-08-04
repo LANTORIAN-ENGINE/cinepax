@@ -202,6 +202,23 @@ export const IconMail = p => (
   </Icon>
 )
 
+// Adresse : la goutte du repère cartographique, pointe comprise — c'est la
+// pointe qui dit « ici », et non le disque, qu'on lirait comme un bouton.
+export const IconMapPin = p => (
+  <Icon {...p}>
+    <path d="M12 21.2c4.3-4.4 6.5-7.7 6.5-10.4a6.5 6.5 0 10-13 0c0 2.7 2.2 6 6.5 10.4z" />
+    <circle cx="12" cy="10.6" r="2.4" />
+  </Icon>
+)
+
+// Téléphone : le combiné plutôt que le mobile. Un rectangle à écran se lit
+// comme un appareil ; le combiné se lit comme l'action d'appeler.
+export const IconPhone = p => (
+  <Icon {...p}>
+    <path d="M6.4 3.6h3.1l1.5 3.9-2 1.3a11.6 11.6 0 005.2 5.2l1.3-2 3.9 1.5v3.1a1.8 1.8 0 01-2 1.8A16.4 16.4 0 014.6 5.6a1.8 1.8 0 011.8-2z" />
+  </Icon>
+)
+
 export const IconAlert = p => (
   <Icon {...p}>
     <circle cx="12" cy="12" r="8.2" />
