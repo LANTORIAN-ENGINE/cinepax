@@ -1174,7 +1174,8 @@ body {
   .row-label { width: 14px; min-width: 14px; font-size: 0.44rem; }
   .seat::before { left: 4px; right: 4px; }
   .seat::after { height: 4px; left: -1px; right: -1px; }
-  .screen-label { font-size: 0.4rem; letter-spacing: 8px; }
+  /* Pas de règle .screen-label ici : le clamp() de la règle de base gère
+     déjà la descente en taille, et un override figé la ré-écraserait. */
   .projector-beam { width: 480px; }
 }
 
@@ -1359,15 +1360,20 @@ body {
 }
 
 /* Sur fond noir, ce mot était un fantôme à 18 % d'opacité. Sur le plan,
-   c'est une légende : il se lit. */
+   c'est la légende de la marque la plus lourde de la feuille : elle doit
+   se lire de loin, comme l'annotation d'un plan d'architecte. L'écart
+   entre les lettres est exprimé en em pour rester proportionnel quelle
+   que soit la taille — le mot s'étire avec le corps, il ne se disloque
+   pas. Le padding-left compense l'espace que letter-spacing ajoute
+   après la dernière lettre et qui décentrerait le mot. */
 .screen-label {
-  font-size: 0.5rem;
+  font-size: clamp(0.8rem, 2.6vw, 1.05rem);
   font-weight: 700;
-  letter-spacing: 14px;
+  letter-spacing: 0.42em;
   color: var(--t-ink-3);
   text-transform: uppercase;
-  margin-top: 10px;
-  padding-left: 14px; /* compense letter-spacing */
+  margin-top: 12px;
+  padding-left: 0.42em;
 }
 
 /* ══ RANGÉES ═══════════════════════════════════════════════════ */
