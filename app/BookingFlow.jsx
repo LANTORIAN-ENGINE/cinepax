@@ -16,6 +16,7 @@ import RichText, { parseSynopsis, truncateSynopsis } from '@/lib/synopsis'
 import {
   bookingPath, parseBookingPath, findFilmByParam, homeQuery, parseHomeQuery,
 } from '@/lib/bookingRoutes'
+import { isSaleOpen, DEFAULTS as VENTE_DEFAUTS } from '@/lib/ventes'
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 const CINEMA_ID = '0000000309'
@@ -207,6 +208,28 @@ function BuyHint() {
       <strong className="buy-hint-target">{t('achat.howToTarget')}</strong>
       {t('achat.howToAfter')}
     </p>
+  )
+}
+
+// ─── Vente refermée ───────────────────────────────────────────────────────────
+// Une liste vide n'a pas toujours le même sens. « Aucune séance » est faux
+// quand il en reste trois ce soir et que seule la vente en ligne s'est
+// refermée : le client apprendrait que le cinéma ne joue plus, alors qu'il
+// peut encore y aller. Cette note prend la place de l'état vide dans ce cas
+// précis, dit combien de séances sont concernées, et renvoie à la caisse.
+function SaleClosedNote({ count, delay }) {
+  const { t, lang } = useI18n()
+  // Sans délai réglé, ce qui a disparu de la liste n'a pas été refermé
+  // d'avance : la séance a simplement commencé. Parler d'un délai qui vaut
+  // zéro donnerait « la vente s'arrête  avant le début ».
+  const key = delay > 0 ? 'ventes.noteLead' : 'ventes.noteStarted'
+  return (
+    <div className="sale-closed-note" role="status">
+      <p className="sale-closed-note-lead">
+        {t(key, { n: count, count, delay: formatDuration(delay, lang) })}
+      </p>
+      <p className="sale-closed-note-desk">{t('ventes.closedDesk')}</p>
+    </div>
   )
 }
 
@@ -413,6 +436,24 @@ export default function BookingFlow({ initialRoute }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
+  // ── Fermeture de la vente en ligne ──────────────────────────────────────────
+  // La vente se referme un délai avant la séance (réglé dans /admin/parametres).
+  // Le délai arrive avec les films ; d'ici là il vaut zéro, c'est-à-dire le
+  // comportement d'avant — mieux vaut montrer un horaire de trop pendant une
+  // seconde que faire clignoter la liste.
+  //
+  // L'heure courante est un état qui avance : une séance se referme pendant
+  // qu'on regarde la page, et la liste doit s'en apercevoir sans rechargement.
+  // Trente secondes suffisent — la minute est l'unité du réglage.
+  const [cutoffMinutes, setCutoffMinutes] = useState(VENTE_DEFAUTS.cutoffMinutes)
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30_000)
+    return () => clearInterval(id)
+  }, [])
+
+  const isOpenForSale = (s) => isSaleOpen(sessionTime(s), cutoffMinutes, now)
+
   const cartIdRef = useRef(generateCartId())
 
   // ─── Routage ────────────────────────────────────────────────────────────────
@@ -565,11 +606,22 @@ export default function BookingFlow({ initialRoute }) {
 
   useEffect(() => {
     setLoading(true)
-    Promise.all([veeziGet('/v4/film'), veeziGet('/v1/session')])
-      .then(([filmsData, sessionsData]) => {
-        const now = new Date()
+    // Le délai de fermeture accompagne le catalogue : il conditionne quelles
+    // séances sont montrées, autant l'avoir avant le premier rendu de la
+    // liste. Un échec de sa route ne compromet rien — on vend comme avant.
+    const reglages = fetch('/api/ventes')
+      .then(r => (r.ok ? r.json() : VENTE_DEFAUTS))
+      .catch(() => VENTE_DEFAUTS)
+
+    Promise.all([veeziGet('/v4/film'), veeziGet('/v1/session'), reglages])
+      .then(([filmsData, sessionsData, vente]) => {
+        const maintenant = Date.now()
+        const delai = vente?.cutoffMinutes ?? VENTE_DEFAUTS.cutoffMinutes
+        setCutoffMinutes(delai)
+        setNow(maintenant)
+
         const futureSessions = (Array.isArray(sessionsData) ? sessionsData : [sessionsData])
-          .filter(s => new Date(sessionTime(s)) > now)
+          .filter(s => new Date(sessionTime(s)).getTime() > maintenant)
           .sort((a, b) => new Date(sessionTime(a)) - new Date(sessionTime(b)))
 
         const filmIdsWithSessions = new Set(futureSessions.map(s => String(s.FilmId)))
@@ -579,13 +631,17 @@ export default function BookingFlow({ initialRoute }) {
         setFilms(upcomingFilms)
         setAllSessions(futureSessions)
 
-        if (futureSessions.length > 0) {
+        // La date d'ouverture est celle du premier horaire encore en vente :
+        // atterrir sur un jour dont tout est refermé donnerait une page vide.
+        const enVente = futureSessions.filter(s => isSaleOpen(sessionTime(s), delai, maintenant))
+        const premieres = enVente.length ? enVente : futureSessions
+        if (premieres.length > 0) {
           // Une date reçue par lien (?jour=) l'emporte, si elle est à l'affiche.
-          const days = new Set(futureSessions.map(s => toDateKey(sessionTime(s))))
+          const days = new Set(premieres.map(s => toDateKey(sessionTime(s))))
           const wanted = parseHomeQuery(window.location.search).selectedDay
           setSelectedDay(wanted && days.has(wanted)
             ? wanted
-            : toDateKey(sessionTime(futureSessions[0])))
+            : toDateKey(sessionTime(premieres[0])))
         }
       })
       .catch(e => setError(e.message))
@@ -651,9 +707,32 @@ export default function BookingFlow({ initialRoute }) {
     ? ticketBreakdown.reduce((s, tk) => s + tk.qty * tk.priceInCents, 0)
     : null
 
-  const availableDays = [...new Set(allSessions.map(s => toDateKey(sessionTime(s))))].sort()
+  // ── Ce qui est encore en vente ──────────────────────────────────────────────
+  // `allSessions` garde toutes les séances à venir : un lien partagé vers une
+  // séance refermée doit pouvoir l'expliquer plutôt que renvoyer une page
+  // vide. Tout ce qui s'affiche part en revanche de `openSessions`.
+  const openSessions = allSessions.filter(isOpenForSale)
+
+  const availableDays = [...new Set(openSessions.map(s => toDateKey(sessionTime(s))))].sort()
+  const availableDaysKey = availableDays.join('|')
+
+  // Le jour choisi peut se vider en cours de visite — la dernière séance du
+  // soir se referme et la date disparaît du sélecteur. On glisse alors au
+  // premier jour encore en vente au lieu de laisser une liste vide.
+  useEffect(() => {
+    if (!selectedDay || !availableDays.length) return
+    if (availableDays.includes(selectedDay)) return
+    setSelectedDay(availableDays[0])
+  }, [selectedDay, availableDaysKey])
 
   const sessionsByDay = (groupBy === 'film' || !selectedDay)
+    ? openSessions
+    : openSessions.filter(s => toDateKey(sessionTime(s)) === selectedDay)
+
+  // Séances du jour affiché toutes catégories confondues, refermées comprises.
+  // Sert à distinguer « plus rien ce jour-là » de « plus rien en ligne » : les
+  // deux donnent une liste vide, et ce ne sont pas les mêmes phrases à dire.
+  const anySessionsOnDay = (groupBy === 'film' || !selectedDay)
     ? allSessions
     : allSessions.filter(s => toDateKey(sessionTime(s)) === selectedDay)
 
@@ -678,13 +757,16 @@ export default function BookingFlow({ initialRoute }) {
   // Films mis en avant dans le carrousel d'accueil : tous ceux à l'affiche,
   // du plus proche au plus lointain. Indépendant du sélecteur de date, pour que
   // le carrousel ne se recompose pas quand on navigue dans les jours.
-  const heroFilms = [...films].sort((a, b) => {
-    const aFirst = allSessions.find(s => String(s.FilmId) === String(a.Id))
-    const bFirst = allSessions.find(s => String(s.FilmId) === String(b.Id))
-    if (!aFirst) return 1
-    if (!bFirst) return -1
-    return new Date(sessionTime(aFirst)) - new Date(sessionTime(bFirst))
-  })
+  const filmIdsOnSale = new Set(openSessions.map(s => String(s.FilmId)))
+  const heroFilms = films
+    .filter(f => filmIdsOnSale.has(String(f.Id)))
+    .sort((a, b) => {
+      const aFirst = openSessions.find(s => String(s.FilmId) === String(a.Id))
+      const bFirst = openSessions.find(s => String(s.FilmId) === String(b.Id))
+      if (!aFirst) return 1
+      if (!bFirst) return -1
+      return new Date(sessionTime(aFirst)) - new Date(sessionTime(bFirst))
+    })
 
   const sessionsForFilm = selectedFilm
     ? sessionsByDay.filter(s => String(s.FilmId) === String(selectedFilm.Id))
@@ -692,7 +774,14 @@ export default function BookingFlow({ initialRoute }) {
 
   // Toutes les séances du film sélectionné, groupées par jour
   const allSessionsForFilm = selectedFilm
-    ? allSessions.filter(s => String(s.FilmId) === String(selectedFilm.Id))
+    ? openSessions.filter(s => String(s.FilmId) === String(selectedFilm.Id))
+    : []
+
+  // Le même film a-t-il des séances à venir mais refermées ? La fiche le dit
+  // alors, au lieu d'annoncer « aucune séance » pour un film qui joue ce soir.
+  const closedSessionsForFilm = selectedFilm
+    ? allSessions.filter(s =>
+        String(s.FilmId) === String(selectedFilm.Id) && !isOpenForSale(s))
     : []
 
   const allSessionsByDate = availableDays
@@ -785,6 +874,20 @@ export default function BookingFlow({ initialRoute }) {
   }
 
   async function selectSession(session) {
+    // Séance déjà refermée — cas d'un lien profond périmé, ou d'un clic tombé
+    // à la seconde près. On la garde sélectionnée : l'écran qui suit explique
+    // la fermeture, ce qu'un retour muet vers la liste ne ferait pas.
+    if (!isOpenForSale(session)) {
+      if (!selectedFilm) {
+        const film = films.find(f => String(f.Id) === String(session.FilmId))
+        if (film) setSelectedFilm(film)
+      }
+      setSelectedSession(session)
+      setSelectedSeats([])
+      setStep('seats')
+      return
+    }
+
     // Si on clique depuis la liste des films sans passer par selectFilm(),
     // selectedFilm est null → page blanche. On le résout ici via FilmId.
     if (!selectedFilm) {
@@ -994,6 +1097,51 @@ export default function BookingFlow({ initialRoute }) {
     return <RestoringSkeleton step={pendingRoute.step} />
   }
 
+  // ── Séance refermée ──────────────────────────────────────────────────────────
+  // Trois chemins mènent ici : un lien partagé vers une séance dont le délai
+  // est passé, un onglet laissé ouvert pendant que l'heure avançait, et le
+  // retour du navigateur vers un écran qui n'a plus lieu d'être.
+  //
+  // La confirmation n'est jamais interceptée : un achat conclu appartient au
+  // client, l'horloge ne le lui reprend pas.
+  if (selectedFilm && selectedSession
+      && (step === 'seats' || step === 'payment')
+      && !isOpenForSale(selectedSession)) {
+    const backToShowtimes = () => {
+      setSelectedSession(null)
+      setSelectedSeats([])
+      setSeatPlanData(null)
+      setStep('sessions')
+    }
+    return (
+      <FilmHero
+        film={selectedFilm}
+        onBack={backToShowtimes}
+        backLabel={t('film.backToShowtimes')}
+        extraMeta={formatTime(sessionTime(selectedSession))}
+      >
+        <div className="sale-closed" role="status">
+          <h2 className="sale-closed-title">{t('ventes.closedTitle')}</h2>
+          <p className="sale-closed-text">
+            {/* La séance a-t-elle commencé, ou seulement franchi le délai ?
+                « Elle commence bientôt » serait faux une heure après le début,
+                et sans délai réglé il n'y a pas de délai à nommer. */}
+            {(cutoffMinutes > 0 && new Date(sessionTime(selectedSession)).getTime() > now)
+              ? t('ventes.closedText', {
+                  hour:  formatHour(sessionTime(selectedSession)),
+                  delay: formatDuration(cutoffMinutes, lang),
+                })
+              : t('ventes.closedStarted', { hour: formatHour(sessionTime(selectedSession)) })}
+          </p>
+          <p className="sale-closed-desk">{t('ventes.closedDesk')}</p>
+          <button className="btn-primary sale-closed-cta" onClick={backToShowtimes}>
+            {t('ventes.closedCta')}
+          </button>
+        </div>
+      </FilmHero>
+    )
+  }
+
   // ── Étape 3 — Plan de salle ───────────────────────────────────────────────────
   if (step === 'seats' && selectedFilm) {
     const screenLabel = selectedSession?.ScreenName || t('film.screenFallback', { id: selectedSession?.ScreenId })
@@ -1166,8 +1314,13 @@ export default function BookingFlow({ initialRoute }) {
         <h2 className="sessions-title">{t('sessions.title')}</h2>
         <hr className="section-divider" />
 
+        {/* Plus rien en vente, mais le film joue encore aujourd'hui : le dire.
+            « Aucune séance » serait faux — c'est la vente en ligne qui est
+            refermée, pas la salle qui est fermée. */}
         {allSessionsByDate.length === 0
-          ? <p className="empty-state">{t('sessions.empty')}</p>
+          ? (closedSessionsForFilm.length > 0
+              ? <SaleClosedNote count={closedSessionsForFilm.length} delay={cutoffMinutes} />
+              : <p className="empty-state">{t('sessions.empty')}</p>)
           : <BuyHint />
         }
 
@@ -1368,7 +1521,9 @@ export default function BookingFlow({ initialRoute }) {
           {!loading && (
             <div className="films-list">
               {visibleFilms.length === 0 && (
-                <p className="empty-state">{t('home.emptyDay')}</p>
+                anySessionsOnDay.length > 0
+                  ? <SaleClosedNote count={anySessionsOnDay.length} delay={cutoffMinutes} />
+                  : <p className="empty-state">{t('home.emptyDay')}</p>
               )}
 
               {visibleFilms.map((film, idx) => {
@@ -1507,7 +1662,9 @@ export default function BookingFlow({ initialRoute }) {
           )}
 
           {sessionsForFilm.length === 0
-            ? <p className="empty-state">{t('sessions.emptyDay')}</p>
+            ? (closedSessionsForFilm.length > 0
+                ? <SaleClosedNote count={closedSessionsForFilm.length} delay={cutoffMinutes} />
+                : <p className="empty-state">{t('sessions.emptyDay')}</p>)
             : (
               <div className="sessions-grid">
                 {sessionsForFilm.map(s => (

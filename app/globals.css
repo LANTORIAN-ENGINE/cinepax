@@ -9715,3 +9715,405 @@ body {
   pointer-events: none;
   color: var(--a-ink-3);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   VENTE EN LIGNE REFERMÉE
+
+   La vente s'arrête un délai avant la séance (réglé dans
+   /admin/parametres). Trois endroits doivent le dire, et aucun ne doit
+   le dire comme une erreur : la séance a lieu, la salle ouvre, c'est le
+   site qui cesse de vendre. Le gris plutôt que le rouge, et la caisse
+   nommée à chaque fois — une porte qui se ferme en montre une autre.
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Écran plein : on arrive sur une séance refermée ──
+   Un lien partagé, un onglet resté ouvert, un retour du navigateur. La
+   page garde son affiche et son fil d'Ariane : le film n'a pas disparu,
+   seule son heure la plus proche n'est plus à vendre ici. */
+.sale-closed {
+  max-width: 60ch;
+  margin: 26px 0 34px;
+  padding: 24px 26px;
+  background: var(--t-paper);
+  border: 1px solid var(--t-line);
+  border-left: 3px solid var(--t-ink-3);
+  border-radius: 8px;
+}
+
+.sale-closed-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--t-ink);
+  letter-spacing: -0.01em;
+  margin-bottom: 10px;
+  text-wrap: balance;
+}
+
+.sale-closed-text {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--t-ink-2);
+  text-wrap: pretty;
+}
+
+/* La phrase qui sauve la soirée du client : elle porte donc l'encre
+   pleine et un filet, là où l'explication reste en gris. */
+.sale-closed-desk {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--t-line-2);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  font-weight: 600;
+  color: var(--t-ink);
+  text-wrap: pretty;
+}
+
+.sale-closed-cta { margin-top: 20px; }
+
+/* ── Note en place d'un état vide ──
+   « Aucune séance » serait faux quand il en reste trois ce soir et que
+   seule la vente en ligne s'est refermée. Cette note prend sa place,
+   avec la même respiration verticale qu'un état vide. */
+.sale-closed-note {
+  max-width: 62ch;
+  margin: 34px auto;
+  padding: 22px 24px;
+  background: var(--t-paper);
+  border: 1px dashed var(--t-line);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.sale-closed-note-lead {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--t-ink-2);
+  text-wrap: pretty;
+}
+
+.sale-closed-note-desk {
+  margin-top: 10px;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  font-weight: 600;
+  color: var(--t-ink);
+  text-wrap: pretty;
+}
+
+/* ── Programme de la semaine ──
+   La page est un horaire, pas une caisse : la séance refermée y reste
+   lisible. Elle s'éteint d'un cran et prend la mention CAISSE — le même
+   traitement que « épuisé », qui dit lui aussi « pas ici, pas par le
+   site », sans effacer l'information. */
+.prog-time.is-closed {
+  background: transparent;
+  border-style: dashed;
+  border-color: #d2d2d2;
+}
+
+.prog-time.is-closed .prog-time-hour { color: #757575; font-weight: 600; }
+.prog-time.is-closed .prog-time-format { color: #a3a3a3; }
+
+.prog-time-closed {
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #8a8a8a;
+  text-transform: uppercase;
+}
+
+/* La légende n'apparaît que si au moins un horaire est grisé. Elle
+   montre l'objet dont elle parle avant de l'expliquer : la pastille
+   d'exemple est la même que celles de la grille, en modèle réduit. */
+.prog-legend {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin: 0 0 22px;
+  padding: 12px 14px;
+  background: #fafafa;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: #666;
+  text-wrap: pretty;
+}
+
+.prog-time--sample { flex-shrink: 0; padding: 4px 9px; }
+.prog-time--sample .prog-time-hour { font-size: 0.75rem; }
+
+/* ═══════════════════════════════════════════════════════════════
+   ADMINISTRATION — RÉGLAGES DE VENTE (/admin/parametres)
+
+   Un seul nombre à régler, mais qui décide de ce que voient tous les
+   visiteurs. L'écran est donc bâti autour de son effet, pas de son
+   champ : les paliers d'abord (on règle un cinéma en quarts d'heure),
+   la phrase en horaires ensuite, et l'aperçu des séances réellement
+   concernées en dessous — qui suit le champ avant même l'enregistrement.
+═══════════════════════════════════════════════════════════════ */
+.aset-loading { margin-top: 26px; }
+
+.aset-warn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 20px;
+  padding: 12px 15px;
+  background: var(--a-accent-w);
+  border-radius: var(--r-md);
+  font-size: var(--ts-sm);
+  line-height: 1.5;
+  color: var(--a-ink);
+}
+
+.aset-warn code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--ts-xs);
+}
+
+/* ── Paliers ── */
+.aset-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.aset-preset {
+  padding: 8px 15px;
+  background: var(--a-surface);
+  border: 1px solid var(--a-line);
+  border-radius: 999px;
+  color: var(--a-ink-2);
+  font-family: inherit;
+  font-size: var(--ts-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.aset-preset:hover { background: var(--a-hover); color: var(--a-ink); }
+
+.aset-preset.active {
+  background: var(--a-accent);
+  border-color: var(--a-accent);
+  color: #fff;
+}
+
+/* ── Champ libre ── */
+.aset-field { display: flex; flex-direction: column; gap: 8px; }
+
+.aset-label {
+  font-size: var(--ts-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--a-ink-2);
+}
+
+.aset-numwrap { display: flex; align-items: center; gap: 10px; }
+
+.aset-num {
+  width: 110px;
+  padding: 10px 12px;
+  background: var(--a-bg);
+  border: 1px solid var(--a-line);
+  border-radius: var(--r-sm);
+  color: var(--a-ink);
+  font-family: inherit;
+  font-size: var(--ts-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition: border-color 0.15s;
+}
+
+.aset-num:focus { outline: none; border-color: var(--a-accent); }
+
+.aset-unit { font-size: var(--ts-sm); color: var(--a-ink-3); }
+
+/* La phrase qu'on relit avant d'enregistrer. Elle est cadrée comme une
+   citation : c'est une conclusion, pas un libellé de champ. */
+.aset-example {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 18px;
+  padding: 13px 15px;
+  background: var(--a-panel);
+  border-left: 2px solid var(--a-accent);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-size: var(--ts-sm);
+  line-height: 1.55;
+  color: var(--a-ink);
+  text-wrap: pretty;
+}
+
+.aset-example svg { flex-shrink: 0; margin-top: 1px; color: var(--a-ink-3); }
+
+/* ── Aperçu ── */
+.aset-count {
+  font-size: var(--ts-xs);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--a-ink-3);
+  white-space: nowrap;
+}
+
+.aset-count.is-closed { color: var(--a-accent-ink); }
+
+.aset-preview {
+  list-style: none;
+  border: 1px solid var(--a-line-2);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.aset-prev-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 15px;
+  background: var(--a-surface);
+  font-size: var(--ts-sm);
+}
+
+.aset-prev-row + .aset-prev-row { border-top: 1px solid var(--a-line-2); }
+
+.aset-prev-hour {
+  font-weight: 700;
+  color: var(--a-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.aset-prev-title {
+  color: var(--a-ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aset-prev-state {
+  font-size: var(--ts-xs);
+  font-weight: 600;
+  color: var(--a-ink-3);
+  white-space: nowrap;
+}
+
+/* Retirée du site : la ligne s'éteint et son horaire se barre. On voit
+   d'un coup d'œil où tombe la coupe dans la soirée. */
+.aset-prev-row.is-closed { background: var(--a-panel); }
+.aset-prev-row.is-closed .aset-prev-hour {
+  color: var(--a-ink-3);
+  text-decoration: line-through;
+}
+.aset-prev-row.is-closed .aset-prev-title { color: var(--a-ink-3); }
+.aset-prev-row.is-closed .aset-prev-state { color: var(--a-accent-ink); }
+
+/* ── Interrupteur ── */
+.aset-toggle-row { margin-bottom: 4px; }
+
+.aset-toggle { display: flex; align-items: center; gap: 11px; cursor: pointer; }
+
+.aset-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 37px;
+  height: 21px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.aset-toggle-track {
+  flex-shrink: 0;
+  display: block;
+  width: 37px;
+  height: 21px;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--a-line);
+  transition: background 0.18s;
+}
+
+.aset-toggle-knob {
+  display: block;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--a-panel);
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.aset-toggle input:checked ~ .aset-toggle-track { background: var(--a-accent); }
+.aset-toggle input:checked ~ .aset-toggle-track .aset-toggle-knob { transform: translateX(16px); }
+.aset-toggle input:focus-visible ~ .aset-toggle-track { outline: 2px solid var(--a-accent-hi); outline-offset: 2px; }
+
+.aset-toggle-label {
+  font-size: var(--ts-sm);
+  font-weight: 600;
+  color: var(--a-ink);
+  line-height: 1.4;
+}
+
+/* L'aide dit l'état obtenu, pas la règle générale : elle change avec
+   l'interrupteur, et se lit comme sa conséquence. */
+.aset-hint {
+  margin-top: 8px;
+  padding-left: 48px;
+  font-size: var(--ts-2xs);
+  line-height: 1.5;
+  color: var(--a-ink-3);
+}
+
+/* ── Pied ── */
+.aset-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  padding: 11px 14px;
+  background: var(--a-accent-w);
+  border-radius: var(--r-md);
+  font-size: var(--ts-sm);
+  color: var(--a-ink);
+}
+
+.aset-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--a-line-2);
+}
+
+.aset-saved {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--ts-xs);
+  font-weight: 700;
+  color: var(--a-ink);
+}
+
+.aset-save {
+  padding: 10px 22px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--a-accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: var(--ts-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.aset-save:hover:not(:disabled) { background: var(--a-accent-hi); }
+.aset-save:disabled { opacity: 0.55; cursor: wait; }
+
+@media (max-width: 560px) {
+  .aset-prev-row { grid-template-columns: auto minmax(0, 1fr); row-gap: 4px; }
+  .aset-prev-state { grid-column: 2; text-align: left; }
+}

@@ -180,6 +180,12 @@ export default function PaymentForm({
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}))
+        // La vente s'est refermée entre l'arrivée sur ce formulaire et son
+        // envoi — le délai avant séance est passé. Le serveur est seul juge
+        // là-dessus ; on traduit son verdict plutôt que d'afficher son code.
+        if (errData.error === 'vente_close') {
+          throw new Error(t('ventes.closedDuringPayment'))
+        }
         throw new Error(errData.error || t('payment.genericError', { status: res.status }))
       }
 

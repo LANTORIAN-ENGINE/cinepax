@@ -165,6 +165,17 @@ export const IconCalendar = p => (
   </Icon>
 )
 
+// Réglages : trois curseurs, chacun sur sa course — on y lit qu'il y a
+// quelque chose à doser, là où une roue dentée ne dit que « technique ».
+export const IconSliders = p => (
+  <Icon {...p}>
+    <path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h9M17 17h3" />
+    <circle cx="15" cy="7" r="2" />
+    <circle cx="9" cy="12" r="2" />
+    <circle cx="15" cy="17" r="2" />
+  </Icon>
+)
+
 export const IconClock = p => (
   <Icon {...p}>
     <circle cx="12" cy="12" r="8.2" />

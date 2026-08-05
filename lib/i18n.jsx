@@ -403,6 +403,33 @@ const DICT = {
       buyAria: 'Acheter des billets — séance de {hour}',
     },
 
+    // Fermeture de la vente en ligne avant la séance. Le délai est réglé dans
+    // /admin/parametres ; ces phrases sont ce que le client en voit.
+    //
+    // Aucune ne dit « fermé » tout court : la séance a lieu, la salle ouvre,
+    // c'est le site qui cesse de vendre. Toutes renvoient donc à la caisse —
+    // une porte qui se ferme doit en montrer une autre.
+    ventes: {
+      closedTitle: 'La vente en ligne de cette séance est terminée',
+      closedText:  'La séance de {hour} commence bientôt : les billets ne s’achètent plus en ligne dans les {delay} qui la précèdent.',
+      closedStarted: 'La séance de {hour} a commencé.',
+      closedDesk:  'Les places restantes sont en vente à la caisse du cinéma, jusqu’au début de la séance.',
+      closedCta:   'Voir les autres horaires',
+      closedDuringPayment:
+        'La vente en ligne de cette séance vient de se terminer. Aucun paiement n’a été prélevé — les places restantes sont en vente à la caisse.',
+      noteLead: {
+        one:   'La dernière séance de ce jour n’est plus en vente en ligne : la vente s’arrête {delay} avant le début.',
+        other: 'Les {n} séances restantes de ce jour ne sont plus en vente en ligne : la vente s’arrête {delay} avant le début.',
+      },
+      noteStarted: {
+        one:   'La dernière séance de ce jour a commencé.',
+        other: 'Les séances restantes de ce jour ont commencé.',
+      },
+      // Programme de la semaine — l'horaire reste lisible, marqué.
+      deskShort:       'CAISSE',
+      programmeLegend: 'Les horaires grisés ne s’achètent plus en ligne — la vente s’arrête {delay} avant la séance. Ils restent disponibles à la caisse.',
+    },
+
     seats: {
       title: 'Choisir vos places',
       loadError: 'Impossible de charger le plan de salle.',
@@ -647,8 +674,52 @@ const DICT = {
       messages: 'Messages',
       pricing: 'Tarification',
       legal: 'Mentions légales',
+      settings: 'Vente en ligne',
       publicSite: 'Site public',
       logout: 'Déconnexion',
+    },
+
+    // /admin/parametres — fermeture de la vente en ligne
+    adminSettings: {
+      title:    'Vente en ligne',
+      subtitle: 'Jusqu’à quel moment le site vend les places d’une séance.',
+
+      cutoffTitle: 'Fermeture avant la séance',
+      cutoffLead:
+        'Une séance ouverte à la vente dans Veezi le reste jusqu’à son horaire exact. Ce délai la retire du site un peu avant, le temps qu’un client arrive et s’installe. Il vaut pour toutes les séances.',
+      cutoffLabel: 'Délai',
+      minutes:     'minutes avant la séance',
+      presetNone:  'Aucun délai',
+      example:     'Avec ce délai, une séance de {show} cesse d’être achetable en ligne à {close}.',
+      exampleNone: 'Sans délai, une séance de {show} reste achetable en ligne jusqu’à {show}.',
+
+      previewTitle: 'Ce que voient les clients en ce moment',
+      previewLead:
+        'Les prochaines séances de la programmation Veezi, telles que le délai choisi les traite. La liste suit le réglage avant même d’être enregistrée.',
+      previewCount: {
+        one:   '{n} séance retirée sur {total}',
+        other: '{n} séances retirées sur {total}',
+      },
+      previewLoading: 'Lecture de la programmation…',
+      previewEmpty:   'Aucune séance à venir dans la programmation.',
+      stateOpen:      'En vente',
+      stateClosesIn:  'Ferme dans {n} min',
+      stateClosed:    'Retirée du site',
+
+      progTitle: 'Programme de la semaine',
+      progLead:
+        'La page /programme est un horaire, pas une caisse : elle peut continuer de montrer les séances refermées, marquées « caisse », pour le client qui habite à dix minutes du cinéma.',
+      progHide:     'Masquer aussi ces séances du programme de la semaine',
+      progHintOn:   'Les séances refermées disparaissent du programme. Le site ne montre que ce qu’il vend.',
+      progHintOff:  'Les séances refermées restent affichées, grisées, avec la mention « caisse ».',
+
+      save:   'Enregistrer',
+      saving: 'Enregistrement…',
+      saved:  'Enregistré',
+      errLoad: 'Impossible de lire le réglage.',
+      errSave: 'L’enregistrement a échoué.',
+      errMigration:
+        'La table des réglages n’existe pas encore. Exécuter le script SQL dans Supabase :',
     },
 
     // /admin/legal — rédaction des documents légaux
@@ -1342,6 +1413,26 @@ const DICT = {
       buyAria: 'Buy tickets — {hour} showtime',
     },
 
+    ventes: {
+      closedTitle: 'Online sales for this showtime have closed',
+      closedText:  'The {hour} showtime starts soon: tickets are no longer sold online in the {delay} before it begins.',
+      closedStarted: 'The {hour} showtime has started.',
+      closedDesk:  'Any remaining seats are on sale at the cinema box office, right up to showtime.',
+      closedCta:   'See other showtimes',
+      closedDuringPayment:
+        'Online sales for this showtime have just closed. Nothing was charged — any remaining seats are on sale at the box office.',
+      noteLead: {
+        one:   'The last showtime today is no longer on sale online: sales close {delay} before the film starts.',
+        other: 'The {n} remaining showtimes today are no longer on sale online: sales close {delay} before the film starts.',
+      },
+      noteStarted: {
+        one:   'The last showtime today has started.',
+        other: 'The remaining showtimes today have started.',
+      },
+      deskShort:       'BOX OFFICE',
+      programmeLegend: 'Greyed-out times are no longer sold online — sales close {delay} before the showtime. They remain available at the box office.',
+    },
+
     seats: {
       title: 'Choose your seats',
       loadError: "Couldn't load the seat map.",
@@ -1578,8 +1669,51 @@ const DICT = {
       messages: 'Messages',
       pricing: 'Pricing',
       legal: 'Legal notices',
+      settings: 'Online sales',
       publicSite: 'Public site',
       logout: 'Log out',
+    },
+
+    adminSettings: {
+      title:    'Online sales',
+      subtitle: 'How late the website keeps selling seats for a showtime.',
+
+      cutoffTitle: 'Closing time before the showtime',
+      cutoffLead:
+        'A showtime released for sale in Veezi stays on sale until its exact start time. This delay pulls it off the website slightly earlier, giving customers time to arrive and settle in. It applies to every showtime.',
+      cutoffLabel: 'Delay',
+      minutes:     'minutes before the showtime',
+      presetNone:  'No delay',
+      example:     'With this delay, an {show} showtime stops being available online at {close}.',
+      exampleNone: 'With no delay, an {show} showtime stays available online until {show}.',
+
+      previewTitle: 'What customers see right now',
+      previewLead:
+        'The next showtimes in the Veezi schedule, as the chosen delay treats them. The list follows the setting before you even save it.',
+      previewCount: {
+        one:   '{n} showtime removed out of {total}',
+        other: '{n} showtimes removed out of {total}',
+      },
+      previewLoading: 'Reading the schedule…',
+      previewEmpty:   'No upcoming showtimes in the schedule.',
+      stateOpen:      'On sale',
+      stateClosesIn:  'Closes in {n} min',
+      stateClosed:    'Removed from the site',
+
+      progTitle: 'Weekly schedule',
+      progLead:
+        'The /programme page is a timetable, not a till: it can keep showing closed showtimes, marked “box office”, for the customer who lives ten minutes away.',
+      progHide:     'Hide these showtimes from the weekly schedule too',
+      progHintOn:   'Closed showtimes disappear from the schedule. The site only shows what it sells.',
+      progHintOff:  'Closed showtimes stay listed, greyed out, marked “box office”.',
+
+      save:   'Save',
+      saving: 'Saving…',
+      saved:  'Saved',
+      errLoad: 'Could not read the setting.',
+      errSave: 'Saving failed.',
+      errMigration:
+        'The settings table does not exist yet. Run the SQL script in Supabase:',
     },
 
     adminLegal: {

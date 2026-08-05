@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
-import { IconGauge, IconTicket, IconUsers, IconTag, IconHome, IconLogOut, IconMenu, IconMail, IconDoc } from '@/components/icons'
+import { IconGauge, IconTicket, IconUsers, IconTag, IconHome, IconLogOut, IconMenu, IconMail, IconDoc, IconSliders } from '@/components/icons'
 import { AdminChromeSkeleton } from '@/components/skeletons'
 
 const NAV = [
@@ -13,6 +13,7 @@ const NAV = [
   { href: '/admin/messages',     labelKey: 'adminNav.messages',     Icon: IconMail   },
   { href: '/admin/prix',         labelKey: 'adminNav.pricing',      Icon: IconTag    },
   { href: '/admin/legal',        labelKey: 'adminNav.legal',        Icon: IconDoc    },
+  { href: '/admin/parametres',   labelKey: 'adminNav.settings',     Icon: IconSliders },
 ]
 
 export default function AdminLayout({ children }) {

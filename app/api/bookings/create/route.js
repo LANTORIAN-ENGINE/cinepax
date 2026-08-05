@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase'
 import { ticketQrPayload } from '@/lib/ticket'
+import { venteOuverte } from '@/lib/ventesServeur'
 
 function generateBookingRef() {
   const now = new Date()
@@ -19,6 +20,24 @@ export async function POST(request) {
     body = await request.json()
   } catch {
     return Response.json({ error: 'Corps de requête invalide' }, { status: 400 })
+  }
+
+  // La vente en ligne se referme un délai avant la séance (/admin/parametres).
+  // Le tunnel masque déjà ces séances, mais un onglet ouvert depuis une heure
+  // ne le sait pas : le contrôle qui compte est celui-ci, sur l'horaire Veezi.
+  const vente = await venteOuverte({
+    sessionId:   body.sessionId,
+    sessionTime: body.sessionTime,
+  })
+  if (!vente.open) {
+    return Response.json(
+      {
+        error:         'vente_close',
+        cutoffMinutes: vente.cutoffMinutes,
+        closedAt:      vente.closesAt ? new Date(vente.closesAt).toISOString() : null,
+      },
+      { status: 409 },
+    )
   }
 
   // Get auth user from Authorization header if provided

@@ -138,6 +138,39 @@ npm run start   # Serveur production
 
 Accès réseau local autorisé depuis `192.168.1.74` (configuré dans `next.config.mjs`).
 
+## Fermeture de la vente en ligne avant la séance
+
+Une séance ouverte à la vente dans le back-office Veezi le reste jusqu'à son horaire exact. Le site la retire un **délai** avant — le temps qu'un client arrive et s'installe. Un seul nombre de minutes, valable pour toutes les séances, réglé dans `/admin/parametres` sans redéploiement.
+
+- **SQL** : `supabase/migration_sales_settings.sql` (table `sales_settings`, ligne unique `id=1`). Idempotent.
+- **Vocabulaire partagé** : `lib/ventes.js` — `isSaleOpen`, `splitSessions`, `normalizeCutoff`, paliers. Importable client *et* serveur.
+- **Lecture serveur** : `lib/ventesServeur.js` (mémo 30 s ; `venteOuverte()` pour le contrôle à l'écriture).
+
+### La règle
+
+`isSaleOpen(début, délai, maintenant)` → `maintenant < début − délai`. Avec 60 minutes, une séance qui commence dans exactement 60 minutes est **déjà** refermée : « d'ici une heure » inclut l'heure pile. Un horaire illisible reste ouvert — on ne refuse jamais une vente sur un doute (`new Date(null)` vaut 1970, d'où un test explicite dans `saleClosesAt`).
+
+### Où elle s'applique
+
+| Endroit | Effet |
+|---------|-------|
+| `BookingFlow` (accueil, fiche film, séances) | Les séances refermées disparaissent des listes. L'heure courante est un état qui avance toutes les 30 s : une séance se referme sans rechargement |
+| `BookingFlow` — étapes places / paiement | Lien partagé ou onglet resté ouvert : écran `.sale-closed`, qui renvoie à la caisse. L'étape `done` n'est jamais interceptée |
+| État vide | `SaleClosedNote` remplace « aucune séance » quand il en reste mais qu'elles sont refermées — les deux ne se disent pas pareil |
+| `/programme` | Par défaut les séances refermées **restent visibles**, grisées, mention « CAISSE » : la page est un horaire, pas une caisse. `hide_in_programme` les fait disparaître |
+| `/api/bookings/create` | **Seul contrôle serveur**, sur l'horaire Veezi et non celui envoyé par le client. Répond `409 vente_close` |
+
+`/api/veezi/reserve` ne revérifie rien volontairement : il court après l'encaissement, et refuser la place d'un client qui vient de payer le laisserait sans billet et sans argent.
+
+### Routes
+
+```
+GET       /api/ventes         { cutoffMinutes, hideInProgramme }  — public, cache 30 s
+GET|PATCH /api/admin/ventes   après is_admin, service role
+```
+
+Aucune policy d'écriture sur `sales_settings`. Si Supabase est injoignable, tout retombe sur `cutoffMinutes: 0` — comportement d'avant : une panne de base ne ferme pas la billetterie d'elle-même.
+
 ## Documents légaux, RGPD et consentements
 
 Quatre documents (`cgu`, `cgv`, `rgpd`, `pdd`) vivent **en base**, pas dans le code : l'administrateur les rédige dans `/admin/legal` avec un éditeur TipTap, et le site s'en sert immédiatement — aucun redéploiement.
