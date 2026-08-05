@@ -1,4 +1,5 @@
 import { createServiceClient } from '@/lib/supabase'
+import { ticketQrPayload } from '@/lib/ticket'
 
 function generateBookingRef() {
   const now = new Date()
@@ -30,12 +31,16 @@ export async function POST(request) {
   }
 
   const bookingRef = generateBookingRef()
-  const qrData = JSON.stringify({
-    ref: bookingRef,
-    film: body.filmTitle,
-    session: body.sessionId,
-    seats: (body.seats ?? []).map(s => s.displayKey),
-    ts: Date.now(),
+  // Contenu du QR : la référence d'abord — c'est elle que le scanner lit — puis
+  // le billet en clair, pour un contrôle fait à l'appareil photo d'un téléphone.
+  // Même forme que celle affichée par le tunnel et l'espace client (lib/ticket.js).
+  const qrData = ticketQrPayload({
+    ref:             bookingRef,
+    filmTitle:       body.filmTitle,
+    sessionTime:     body.sessionTime,
+    screenName:      body.screenName,
+    seats:           (body.seats ?? []).map(s => s.displayKey),
+    ticketBreakdown: body.ticketBreakdown,
   })
 
   const { data: booking, error } = await supabase

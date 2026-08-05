@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
 import { IconLogOut, IconTicket, IconQr, IconClose, IconMail } from '@/components/icons'
 import { AccountSkeleton } from '@/components/skeletons'
+import FinalSaleNotice from '@/components/FinalSaleNotice'
+import { ticketQrPayload, ticketRows } from '@/lib/ticket'
 
 const TZ = 'Etc/GMT-3'
 
@@ -365,10 +367,26 @@ function BookingCard({ booking, qrOpen, setQrOpen, onCancel, cancelBusy }) {
   const { t, locale, moneyLocale } = useI18n()
   const isOpen  = qrOpen === booking.id
   const status  = STATUS_CLS[booking.status] || STATUS_CLS.confirmed
-  const qrData  = booking.qr_code_data || booking.booking_ref
 
-  const seats = booking.booking_seats?.map(s => s.display_key).join(', ') || '—'
+  const seatKeys = (booking.booking_seats || []).map(s => s.display_key).filter(Boolean)
+  const seats = seatKeys.join(', ') || '—'
   const payLabel = PAY_METHOD_LABELS[booking.payment_method]
+
+  // Le billet, tel qu'il sera lu au contrôle — même contenu dans le QR et à
+  // côté de lui, et mêmes lignes que sur la confirmation d'achat.
+  const ticket = {
+    ref:             booking.booking_ref,
+    filmTitle:       booking.film_title,
+    sessionTime:     booking.session_time,
+    screenName:      booking.screen_name || t('film.screenFallback', { id: booking.screen_id }),
+    seats:           seatKeys,
+    ticketBreakdown: booking.ticket_breakdown,
+  }
+  const qrData = ticketQrPayload(ticket)
+  const rows = ticketRows(
+    { ...ticket, amount: booking.total_amount_cents > 0 ? formatMGA(booking.total_amount_cents, moneyLocale) : null },
+    t, locale,
+  )
 
   // Annulable = séance à venir, pas déjà annulée / utilisée
   const cancellable = onCancel &&
@@ -415,18 +433,33 @@ function BookingCard({ booking, qrOpen, setQrOpen, onCancel, cancelBusy }) {
 
       {isOpen && (
         <div className="bk-qr-panel">
+          {/* Encre sombre sur blanc : c'est ce qu'attendent les lecteurs de
+              code, et c'est ce qui sort d'une imprimante. Un QR rouge sur
+              fond transparent se scanne mal, surtout à l'entrée d'une salle. */}
           <div className="bk-qr-frame">
-            <QRCodeSVG value={qrData} size={148}
-              bgColor="transparent" fgColor="currentColor" level="M" />
+            <QRCodeSVG value={qrData} size={172}
+              bgColor="#ffffff" fgColor="#14161a" level="M" />
           </div>
           <div className="bk-qr-info">
             <p className="bk-qr-ref">{booking.booking_ref}</p>
             <p className="bk-qr-hint">{t('account.qrHint')}</p>
+
+            {/* Le billet en clair : film, jour, heure, salle, places, tarif. */}
+            <dl className="bk-ticket-rows">
+              {rows.map(([label, value]) => (
+                <div key={label} className="bk-ticket-row">
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
+                </div>
+              ))}
+            </dl>
+
             {booking.payment_method && (
               <p className="bk-pay-method">
                 {t('account.via')} {payLabel ? (payLabel.startsWith('account.') ? t(payLabel) : payLabel) : booking.payment_method}
               </p>
             )}
+            <FinalSaleNotice tone="quiet" className="bk-final-sale" />
           </div>
         </div>
       )}

@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
 import AchatBand from './AchatBand'
+import FinalSaleNotice from './FinalSaleNotice'
 
 function fixImageUrl(url) {
   if (!url) return null
@@ -312,6 +313,8 @@ export default function PaymentForm({
             )}
           </div>
 
+          <FinalSaleNotice when="before" className="bni-final-sale" />
+
           <div className="card-test-banner">
             <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
@@ -440,6 +443,8 @@ export default function PaymentForm({
               </>
             )}
           </div>
+
+          <FinalSaleNotice when="before" className="bni-final-sale" />
 
           {bniLoading ? (
             <div className="bni-checkout-loading">
@@ -727,7 +732,7 @@ export default function PaymentForm({
               {/* — Submit — */}
               {/* Dernier rappel avant l'engagement : le bouton valide un
                   achat, pas une mise en attente. */}
-              <p className="pay-final-sale">{t('payment.finalSaleNote')}</p>
+              <FinalSaleNotice when="before" tone="strong" className="pay-final-sale" />
 
               <button type="submit" className="pay-submit-btn" disabled={submitting || bniLoading}>
                 {(submitting || bniLoading)

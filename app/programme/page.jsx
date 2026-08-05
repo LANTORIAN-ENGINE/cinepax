@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useI18n, formatDuration } from '@/lib/i18n'
 import { fixImageUrl } from '@/lib/images'
 import { IconDownload } from '@/components/icons'
+import { ratingLabel } from '@/lib/classification'
 
 // ─── Programme de la semaine ──────────────────────────────────────────────────
 // cinepax.mg publie une affiche JPEG redéposée chaque semaine dans son CMS —
@@ -161,7 +162,7 @@ export default function ProgrammePage() {
                 <div className="prog-info">
                   <h3 className="prog-film-title">{film.title}</h3>
                   <p className="prog-film-meta">
-                    {[film.rating, film.duration && formatDuration(film.duration, lang), film.genre]
+                    {[ratingLabel(film.rating, t), film.duration && formatDuration(film.duration, lang), film.genre]
                       .filter(Boolean).join(' · ')}
                   </p>
 

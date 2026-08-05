@@ -7,7 +7,9 @@ import HeroSlider from '../components/HeroSlider'
 import PaymentForm from '../components/PaymentForm'
 import BookingConfirmation from '../components/BookingConfirmation'
 import AchatBand from '../components/AchatBand'
+import FinalSaleNotice from '../components/FinalSaleNotice'
 import { useI18n, formatDuration } from '@/lib/i18n'
+import { ratingLabel, ratingTitle } from '@/lib/classification'
 import { filmPoster, filmBackdrop } from '@/lib/images'
 import RichText, { parseSynopsis, truncateSynopsis } from '@/lib/synopsis'
 import {
@@ -925,7 +927,11 @@ export default function BookingFlow({ initialRoute }) {
               <span className="now-playing-badge">{t('film.nowPlaying')}</span>
 
               <div className="film-rating-row">
-                {film.Rating   && <span className="rating-badge">{film.Rating}</span>}
+                {ratingLabel(film.Rating, t) && (
+                  <span className="rating-badge" title={ratingTitle(film.Rating, t)}>
+                    {ratingLabel(film.Rating, t)}
+                  </span>
+                )}
                 {film.Advisory && <span className="advisory-text">{film.Advisory}</span>}
               </div>
 
@@ -1063,6 +1069,12 @@ export default function BookingFlow({ initialRoute }) {
               <p className="ticket-picker-note">{t('seats.ticketRefSource')}</p>
             )}
           </div>
+        )}
+
+        {/* Dernier écran avant le formulaire de paiement : le voyant se pose
+            au ras du bouton « Continuer », là où la décision se prend. */}
+        {!loadingSeats && selectedSeats.length > 0 && (
+          <FinalSaleNotice when="before" className="seats-final-sale" />
         )}
 
         {!loadingSeats && (
@@ -1316,8 +1328,14 @@ export default function BookingFlow({ initialRoute }) {
             />
           )}
 
-          {/* Liste de films */}
-          {!loading && visibleFilms.length > 0 && <BuyHint />}
+          {/* Liste de films — le bandeau d'achat dit la nature de la vente dès
+              le premier écran, avant même qu'un horaire soit cliqué. */}
+          {!loading && visibleFilms.length > 0 && (
+            <>
+              <AchatBand className="home-achat-band" />
+              <BuyHint />
+            </>
+          )}
 
           {loading && <FilmsListSkeleton />}
 
@@ -1375,8 +1393,10 @@ export default function BookingFlow({ initialRoute }) {
                         </h2>
 
                         <p className="film-meta">
-                          {film.Rating && <span>{film.Rating}</span>}
-                          {film.Rating && film.Duration && <span> | </span>}
+                          {ratingLabel(film.Rating, t) && (
+                            <span title={ratingTitle(film.Rating, t)}>{ratingLabel(film.Rating, t)}</span>
+                          )}
+                          {ratingLabel(film.Rating, t) && film.Duration && <span> | </span>}
                           {film.Duration && <span>{formatDuration(film.Duration, lang)}</span>}
                         </p>
 
@@ -1451,8 +1471,8 @@ export default function BookingFlow({ initialRoute }) {
                 <h2>{selectedFilm.Title}</h2>
                 <p className="meta">
                   {selectedFilm.Duration && formatDuration(selectedFilm.Duration, lang)}
-                  {selectedFilm.Duration && selectedFilm.Rating && ' · '}
-                  {selectedFilm.Rating}
+                  {selectedFilm.Duration && ratingLabel(selectedFilm.Rating, t) && ' · '}
+                  {ratingLabel(selectedFilm.Rating, t)}
                 </p>
               </div>
             </div>
@@ -1488,6 +1508,7 @@ export default function BookingFlow({ initialRoute }) {
           booking={bookingResult}
           filmTitle={selectedFilm?.Title}
           sessionLabel={formatTime(sessionTime(selectedSession))}
+          sessionISOTime={sessionTime(selectedSession)}
           screenName={selectedSession?.ScreenName || t('film.screenFallback', { id: selectedSession?.ScreenId })}
           seats={selectedSeats}
           ticketBreakdown={ticketBreakdown}

@@ -5,6 +5,7 @@ import { useI18n, formatDuration } from '@/lib/i18n'
 import { fixImageUrl } from '@/lib/images'
 import { youtubeId } from '@/components/HeroSlider'
 import RichText from '@/lib/synopsis'
+import { ratingLabel } from '@/lib/classification'
 
 // ─── Prochainement ────────────────────────────────────────────────────────────
 // Grille des films à venir, reprise de cinepax.mg/coming-soon. Les données
@@ -50,7 +51,7 @@ function FilmDialog({ film, onClose }) {
     }
   }, [onClose])
 
-  const meta = [film.rating, film.duration && formatDuration(film.duration, lang), film.genre]
+  const meta = [ratingLabel(film.rating, t), film.duration && formatDuration(film.duration, lang), film.genre]
     .filter(Boolean).join(' · ')
 
   return (

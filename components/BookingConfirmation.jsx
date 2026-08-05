@@ -2,24 +2,40 @@
 import { useEffect, useRef, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useI18n } from '@/lib/i18n'
+import { ticketQrPayload, ticketRows } from '@/lib/ticket'
+import FinalSaleNotice from './FinalSaleNotice'
 
 export default function BookingConfirmation({
   booking,
   filmTitle,
   sessionLabel,
+  sessionISOTime,
   screenName,
   seats,
   ticketBreakdown,
   totalCents,
   onReset,
 }) {
-  const { t, moneyLocale } = useI18n()
+  const { t, locale, moneyLocale } = useI18n()
   const [visible, setVisible] = useState(false)
   // Enregistrement de la place au cinéma (Veezi) : pending → reserved | processing | off
   const [veezi, setVeezi] = useState({ state: 'pending', number: null })
   const veeziStarted = useRef(false)
-  // Le QR encode la référence : l'admin la scanne pour retrouver et valider la place.
-  const qrData = booking?.booking_ref || 'CINEPAX'
+  // Le QR porte la référence — c'est elle que le scanner d'admin lit pour
+  // retrouver et valider la place — et, autour d'elle, tout ce que le contrôle
+  // a besoin de vérifier à l'œil : film, jour, heure, salle, places, tarif.
+  // Voir lib/ticket.js.
+  const seatKeys = (seats || []).map(s => s.displayKey).filter(Boolean)
+  const qrData = booking?.booking_ref
+    ? ticketQrPayload({
+        ref:             booking.booking_ref,
+        filmTitle,
+        sessionTime:     sessionISOTime,
+        screenName,
+        seats:           seatKeys,
+        ticketBreakdown,
+      })
+    : 'CINEPAX'
 
   useEffect(() => {
     // Trigger entrance animation
@@ -59,12 +75,25 @@ export default function BookingConfirmation({
     card:     t('confirmation.payCard'),
   }
 
+  // Le billet se lit dans l'ordre du contrôle : film, jour, heure, salle,
+  // places, tarif, montant. Même ordre et mêmes libellés que sur le PDF et
+  // dans l'espace client. `sessionLabel` sert de repli tant qu'une étape ne
+  // transmet pas l'heure ISO de la séance.
   const details = [
-    { label: t('confirmation.film'),    value: filmTitle },
-    { label: t('confirmation.session'), value: sessionLabel },
-    { label: t('confirmation.screen'),  value: screenName },
-    { label: t('confirmation.seats'),   value: seats?.map(s => s.displayKey).join(', ') || '—' },
-    ...(totalCents ? [{ label: t('confirmation.amount'), value: formatMGA(totalCents) }] : []),
+    ...ticketRows({
+      filmTitle,
+      sessionTime: sessionISOTime,
+      screenName,
+      seats:       seatKeys,
+      ticketBreakdown,
+      amount:      totalCents ? formatMGA(totalCents) : null,
+      // Le détail par type de billet est affiché juste dessous, avec ses
+      // montants : la ligne « Tarif » ne servirait qu'à le répéter.
+    }, t, locale, { withTariff: !ticketBreakdown?.length })
+      .map(([label, value]) => ({ label, value })),
+    ...(!sessionISOTime && sessionLabel
+      ? [{ label: t('confirmation.session'), value: sessionLabel }]
+      : []),
     ...(booking?.payment_method ? [{ label: t('confirmation.payment'), value: paymentLabels[booking.payment_method] || booking.payment_method }] : []),
   ]
 
@@ -125,9 +154,11 @@ export default function BookingConfirmation({
           <div className="conf-qr-frame">
             {/* Encre sombre sur blanc : c'est ce que les lecteurs de code
                 attendent, et c'est ce qui sort d'une imprimante. */}
+            {/* Agrandi depuis que le code porte tout le billet : plus de
+                modules à lire, donc plus de pixels par module. */}
             <QRCodeSVG
               value={qrData}
-              size={160}
+              size={190}
               bgColor="#ffffff"
               fgColor="#14161a"
               level="M"
@@ -150,9 +181,11 @@ export default function BookingConfirmation({
 
             {/* Le détail par type de billet, tel qu'il a été composé au plan de
                 salle puis confirmé au paiement : le client retrouve sur son
-                billet exactement ce qu'il a choisi. */}
+                billet exactement ce qu'il a choisi, et le contrôle voit à quel
+                tarif chaque place a été payée. */}
             {ticketBreakdown?.length > 0 && (
               <div className="conf-ticket-lines">
+                <span className="conf-ticket-lines-label">{t('ticket.tariff')}</span>
                 {ticketBreakdown.map(line => (
                   <div key={line.code} className="conf-ticket-line">
                     <span className="conf-ticket-line-qty">{line.qty}×</span>
@@ -166,6 +199,9 @@ export default function BookingConfirmation({
             )}
           </div>
         </div>
+
+        {/* Le voyant reste sur le billet imprimé : c'est là qu'on le relit. */}
+        <FinalSaleNotice className="conf-final-sale" />
 
         <p className="conf-note">
           {t('confirmation.note')}

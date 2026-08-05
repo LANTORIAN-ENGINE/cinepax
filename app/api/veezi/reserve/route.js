@@ -92,6 +92,9 @@ export async function POST(request) {
     totalCents:    booking.total_amount_cents,
     paymentMethod: booking.payment_method,
     guestName:     booking.guest_name,
+    // Détail par type de billet — l'intitulé du tarif est lu au contrôle
+    // ([{ code, description, priceInCents, qty }]).
+    ticketBreakdown: Array.isArray(booking.ticket_breakdown) ? booking.ticket_breakdown : null,
   }
 
   // Idempotent — déjà réservé côté Veezi

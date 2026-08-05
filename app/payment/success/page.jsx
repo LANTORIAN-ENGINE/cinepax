@@ -4,8 +4,8 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { QRCodeCanvas } from 'qrcode.react'
 import { useI18n } from '@/lib/i18n'
-
-const TZ = 'Etc/GMT-3' // Fuseau Madagascar
+import { ticketQrPayload, ticketRows } from '@/lib/ticket'
+import FinalSaleNotice from '@/components/FinalSaleNotice'
 
 // Charge une image same-origin et la renvoie en PNG data-URL + dimensions,
 // pour l'embarquer dans le PDF (jsPDF a besoin des dimensions pour l'échelle).
@@ -61,23 +61,31 @@ function SuccessContent() {
     return new Intl.NumberFormat(moneyLocale, { style: 'currency', currency: 'MGA' }).format(cents / 100)
   }
 
-  function fmtSession(iso) {
-    if (!iso) return null
-    const d = new Date(iso)
-    if (Number.isNaN(d.getTime())) return String(iso)
-    return new Intl.DateTimeFormat(locale, {
-      weekday: 'short', day: '2-digit', month: 'short',
-      hour: '2-digit', minute: '2-digit', timeZone: TZ,
-    }).format(d)
-  }
+  // Le billet, dans l'ordre du contrôle — mêmes lignes que sur la confirmation
+  // d'achat et dans l'espace client (lib/ticket.js).
+  const details = booking
+    ? ticketRows({
+        filmTitle:       booking.filmTitle,
+        sessionTime:     booking.sessionTime,
+        screenName:      booking.screenName,
+        seats:           booking.seats,
+        ticketBreakdown: booking.ticketBreakdown,
+        amount:          fmtMGA(booking.totalCents),
+      }, t, locale)
+    : []
 
-  const details = booking ? [
-    [t('paySuccess.ticketFilm'),    booking.filmTitle],
-    [t('paySuccess.ticketSession'), fmtSession(booking.sessionTime)],
-    [t('paySuccess.ticketScreen'),  booking.screenName],
-    [t('paySuccess.ticketSeats'),   booking.seats?.length ? booking.seats.join(', ') : null],
-    [t('paySuccess.ticketAmount'),  fmtMGA(booking.totalCents)],
-  ].filter(([, v]) => v) : []
+  // Le QR porte la référence — lue par le scanner d'admin — et, autour d'elle,
+  // le billet en clair pour un contrôle fait à l'appareil photo.
+  const qrValue = ref
+    ? ticketQrPayload({
+        ref,
+        filmTitle:       booking?.filmTitle,
+        sessionTime:     booking?.sessionTime,
+        screenName:      booking?.screenName,
+        seats:           booking?.seats,
+        ticketBreakdown: booking?.ticketBreakdown,
+      })
+    : ''
 
   // Génère un billet PDF téléchargeable (QR + détails). Import dynamique de
   // jsPDF pour garder la lib hors du bundle initial.
@@ -88,68 +96,128 @@ function SuccessContent() {
     try {
       const { jsPDF } = await import('jspdf')
       const qrPng = canvas.toDataURL('image/png')
-      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [90, 150] })
-
-      // Bandeau titre — fond noir + logo Cinepax, comme le header du site.
-      const bannerH = 18
-      doc.setFillColor(0, 0, 0)
-      doc.rect(0, 0, 90, bannerH, 'F')
       const logo = await loadImageData('/logo2.png').catch(() => null)
-      if (logo) {
-        const logoH = 11
-        const logoW = logoH * (logo.w / logo.h)
-        doc.addImage(logo.dataUrl, 'PNG', (90 - logoW) / 2, (bannerH - logoH) / 2, logoW, logoH)
-      } else {
-        // Repli texte si le logo ne charge pas.
-        doc.setTextColor(255, 255, 255)
-        doc.setFont('helvetica', 'bold'); doc.setFontSize(15)
-        doc.text('CINEPAX', 45, 9.5, { align: 'center' })
-        doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5)
-        doc.text('MADAGASCAR', 45, 13, { align: 'center' })
-      }
 
-      let y = bannerH + 6
-      doc.setTextColor(25, 25, 25)
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(11)
-      doc.text(t('paySuccess.ticketDocTitle'), 45, y, { align: 'center' })
-      y += 4
+      // Le talon fait 90 mm de large ; sa hauteur, elle, dépend du billet —
+      // un titre de film qui passe à la ligne, un tarif à deux catégories, un
+      // n° Veezi présent ou non. On compose donc deux fois : une première
+      // passe muette mesure la hauteur réelle, la seconde dessine sur une
+      // page taillée à cette mesure. Ni débordement sur une seconde feuille,
+      // ni long blanc en pied de page.
+      const pageW = 90, mid = pageW / 2
 
-      // QR
-      const qrSize = 40
-      doc.addImage(qrPng, 'PNG', (90 - qrSize) / 2, y, qrSize, qrSize)
-      y += qrSize + 6
+      function compose(doc, draw) {
+        const put = fn => { if (draw) fn() }
 
-      // Référence
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(120, 120, 120)
-      doc.text(t('paySuccess.reference').toUpperCase(), 45, y, { align: 'center' }); y += 4.5
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(232, 25, 44)
-      doc.text(String(ref), 45, y, { align: 'center' }); y += 7
+        // Bandeau titre — fond noir + logo Cinepax, comme le header du site.
+        const bannerH = 18
+        put(() => {
+          doc.setFillColor(0, 0, 0)
+          doc.rect(0, 0, pageW, bannerH, 'F')
+          if (logo) {
+            const logoH = 11
+            const logoW = logoH * (logo.w / logo.h)
+            doc.addImage(logo.dataUrl, 'PNG', (pageW - logoW) / 2, (bannerH - logoH) / 2, logoW, logoH)
+          } else {
+            // Repli texte si le logo ne charge pas.
+            doc.setTextColor(255, 255, 255)
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(15)
+            doc.text('CINEPAX', mid, 9.5, { align: 'center' })
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5)
+            doc.text('MADAGASCAR', mid, 13, { align: 'center' })
+          }
+        })
 
-      // N° billet Veezi
-      if (veezi.number) {
-        doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(120, 120, 120)
-        doc.text(t('paySuccess.veeziNum').toUpperCase(), 45, y, { align: 'center' }); y += 4.5
-        doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(25, 25, 25)
-        doc.text(String(veezi.number), 45, y, { align: 'center' }); y += 7
-      }
+        let y = bannerH + 6
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(11)
+        put(() => {
+          doc.setTextColor(25, 25, 25)
+          doc.text(t('paySuccess.ticketDocTitle'), mid, y, { align: 'center' })
+        })
+        y += 4
 
-      // Séparateur + détails
-      if (details.length) {
-        doc.setDrawColor(220, 220, 220); doc.line(8, y, 82, y); y += 6
-        doc.setFontSize(8)
-        for (const [label, value] of details) {
-          doc.setFont('helvetica', 'normal'); doc.setTextColor(130, 130, 130)
-          doc.text(String(label), 8, y)
-          doc.setFont('helvetica', 'bold'); doc.setTextColor(35, 35, 35)
-          const vlines = doc.splitTextToSize(String(value), 44)
-          doc.text(vlines, 82, y, { align: 'right' })
-          y += 4.6 * vlines.length + 1.4
+        // QR
+        const qrSize = 40
+        put(() => doc.addImage(qrPng, 'PNG', (pageW - qrSize) / 2, y, qrSize, qrSize))
+        y += qrSize + 6
+
+        // Référence
+        put(() => {
+          doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(120, 120, 120)
+          doc.text(t('paySuccess.reference').toUpperCase(), mid, y, { align: 'center' })
+        })
+        y += 4.5
+        put(() => {
+          doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(232, 25, 44)
+          doc.text(String(ref), mid, y, { align: 'center' })
+        })
+        y += 7
+
+        // N° billet Veezi
+        if (veezi.number) {
+          put(() => {
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(120, 120, 120)
+            doc.text(t('paySuccess.veeziNum').toUpperCase(), mid, y, { align: 'center' })
+          })
+          y += 4.5
+          put(() => {
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(25, 25, 25)
+            doc.text(String(veezi.number), mid, y, { align: 'center' })
+          })
+          y += 7
         }
+
+        // Séparateur + le billet : film, jour, heure, salle, places, tarif,
+        // montant. C'est ce que lit le contrôle à l'entrée.
+        if (details.length) {
+          put(() => { doc.setDrawColor(220, 220, 220); doc.line(8, y, 82, y) })
+          y += 6
+          doc.setFontSize(8)
+          for (const [label, value] of details) {
+            doc.setFont('helvetica', 'bold')
+            const vlines = doc.splitTextToSize(String(value), 44)
+            put(() => {
+              doc.setFont('helvetica', 'normal'); doc.setTextColor(130, 130, 130)
+              doc.text(String(label), 8, y)
+              doc.setFont('helvetica', 'bold'); doc.setTextColor(35, 35, 35)
+              doc.text(vlines, 82, y, { align: 'right' })
+            })
+            y += 4.6 * vlines.length + 1.4
+          }
+        }
+
+        // Voyant d'achat définitif — encadré, pour qu'il se distingue du reste
+        // de la fiche même sur une photocopie en noir et blanc.
+        y += 2
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(7)
+        const saleLines = doc.splitTextToSize(t('achat.finalSale'), 68)
+        const saleH = 4 * saleLines.length + 5
+        put(() => {
+          doc.setDrawColor(200, 200, 200); doc.setFillColor(248, 248, 248)
+          doc.roundedRect(8, y, 74, saleH, 1.5, 1.5, 'FD')
+          doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(90, 90, 90)
+          doc.text(saleLines, mid, y + 5.2, { align: 'center' })
+        })
+        y += saleH + 7
+
+        // Pied de page
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5)
+        const footLines = doc.splitTextToSize(t('paySuccess.ticketFooter'), 74)
+        put(() => {
+          doc.setTextColor(150, 150, 150)
+          doc.text(footLines, mid, y, { align: 'center' })
+        })
+        return y + 3 * footLines.length + 5
       }
 
-      // Pied de page
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(150, 150, 150)
-      doc.text(doc.splitTextToSize(t('paySuccess.ticketFooter'), 74), 45, 144, { align: 'center' })
+      // 1re passe : mesure, sur une page volontairement trop haute.
+      const height = compose(
+        new jsPDF({ orientation: 'portrait', unit: 'mm', format: [pageW, 400] }),
+        false,
+      )
+      // 2e passe : le vrai billet, à la hauteur mesurée.
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [pageW, Math.ceil(height)] })
+      compose(doc, true)
 
       doc.save(`billet-cinepax-${ref}.pdf`)
     } finally {
@@ -213,16 +281,34 @@ function SuccessContent() {
             <div className="bni-qr-frame">
               <QRCodeCanvas
                 ref={qrRef}
-                value={ref}
+                value={qrValue}
                 size={480}
                 level="M"
                 marginSize={2}
                 bgColor="#ffffff"
                 fgColor="#0d0d0d"
-                style={{ width: 168, height: 168, display: 'block', borderRadius: 6 }}
+                /* Affiché plus grand depuis que le code porte tout le billet et
+                   non plus la seule référence : ~53 modules au lieu de ~25, il
+                   faut garder assez de pixels par module pour se scanner sur
+                   un écran de téléphone, à bout de bras, dans un hall. */
+                style={{ width: 190, height: 190, display: 'block', borderRadius: 6 }}
               />
             </div>
             <p className="bni-qr-hint">{t('paySuccess.qrHint')}</p>
+
+            {/* Le billet en clair, sous le QR : le contrôle vérifie film,
+                jour, heure, salle, places et tarif sans rien scanner. */}
+            {details.length > 0 && (
+              <dl className="bni-ticket-rows">
+                {details.map(([label, value]) => (
+                  <div key={label} className="bni-ticket-row">
+                    <dt>{label}</dt>
+                    <dd>{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+
             <button type="button" className="bni-pdf-btn" onClick={downloadPdf} disabled={pdfBusy}>
               {pdfBusy ? (
                 <>
@@ -241,6 +327,8 @@ function SuccessContent() {
             </button>
           </div>
         )}
+
+        <FinalSaleNotice className="bni-final-sale" />
 
         <p className="bni-success-hint">
           {t('paySuccess.hint')}

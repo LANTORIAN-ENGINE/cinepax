@@ -2,6 +2,30 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ═══════════════════════════════════════════════════════════════
+   CORPS DE RÉFÉRENCE
+
+   Toutes les tailles du site sont exprimées en rem — les 280 déclarations
+   de font-size comme l'échelle --ts-* des espaces client et administration.
+   Une seule valeur commande donc la lisibilité de l'ensemble.
+
+   Elle passe de 16 à 18 px : le texte courant du site (0,82 à 0,9 rem)
+   montait à 13-14 px, sous le seuil confortable de lecture sur écran, et
+   les mentions secondaires descendaient à 11 px. À 18 px de référence, le
+   texte courant se lit à 15-16 px et rien ne descend sous 12 px.
+
+   Les gouttières et les hauteurs fixes restent en px : la mise en page ne
+   bouge pas, seul le texte grandit dans les blocs qui l'accueillent.
+═══════════════════════════════════════════════════════════════ */
+html { font-size: 112.5%; }
+
+/* Sous 480 px la largeur est comptée : on garde le gain de lisibilité, un
+   cran plus bas (17 px), pour ne pas ajouter de pression sur des rangées
+   déjà à l'étroit. */
+@media (max-width: 480px) {
+  html { font-size: 106.25%; }
+}
+
 body {
   font-family: 'Helvetica Neue', Arial, sans-serif;
   background: #fff;
@@ -3769,6 +3793,15 @@ body {
   flex-direction: column;
   gap: 5px;
 }
+/* L'intitulé du bloc chiffré : au contrôle, « Tarif » nomme ce qu'on lit.
+   La carte de confirmation centre son contenu ; ce bloc-ci est une liste, il
+   se lit aligné à gauche comme les lignes d'information au-dessus. */
+.conf-ticket-lines { text-align: left; }
+.conf-ticket-lines-label {
+  font-size: 0.72rem;
+  color: var(--t-ink-3);
+  letter-spacing: 0.04em;
+}
 .conf-ticket-line {
   display: flex; align-items: baseline; gap: 10px;
   font-size: 0.78rem;
@@ -3800,10 +3833,54 @@ body {
 }
 .conf-new-btn:hover { background: #ff3044; }
 
+/* ── Le billet imprimé ────────────────────────────────────────────────────
+   Deux écrans mènent à une impression : la confirmation d'achat (bouton
+   « Imprimer le billet ») et la carte d'achat de l'espace client, QR ouvert.
+   Dans les deux cas la feuille doit porter la même chose que l'écran — film,
+   jour, heure, salle, places, tarif, référence, et la mention d'achat
+   définitif — en encre franche sur blanc, sans dégradé ni aplat sombre qui
+   noircirait la cartouche et brouillerait le QR. */
 @media print {
   .conf-actions, .navbar, .site-footer { display: none !important; }
   .conf-page { background: #fff; }
   .conf-card { background: #fff; color: #000; border: none; box-shadow: none; }
+
+  /* Le billet doit tenir sur une feuille : la coche de succès, le
+     sous-titre et les marges d'écran ne sont là que pour rassurer à
+     l'instant de l'achat — sur papier ils repoussent la mention d'achat
+     définitif sur une deuxième page. */
+  .conf-icon-wrap, .conf-subtitle { display: none !important; }
+  .conf-page { padding: 0 !important; display: block !important; }
+  .conf-card { padding: 0 !important; max-width: none !important; opacity: 1 !important; transform: none !important; }
+  .conf-title { font-size: 1.25rem; margin-bottom: 14px; }
+  .conf-ref-chip, .conf-veezi { margin-bottom: 16px; }
+  .conf-qr-wrap { margin-bottom: 16px; }
+  .conf-ticket, .final-sale { break-inside: avoid; }
+
+  /* Le voyant garde son liseré : c'est un texte contractuel, il reste lisible
+     même quand l'imprimante ignore les fonds. */
+  .final-sale {
+    color: #000 !important;
+    background: transparent !important;
+    border-left: 2px solid #000 !important;
+    break-inside: avoid;
+  }
+  .final-sale-icon { color: #000 !important; }
+
+  .bni-ticket-row dd, .bk-ticket-row dd, .conf-detail-value { color: #000 !important; }
+  .bni-ticket-row dt, .bk-ticket-row dt, .conf-detail-label { color: #333 !important; }
+
+  /* Espace client : on n'imprime que la carte dont le QR est ouvert. */
+  .compte-tabs-wrap,
+  .compte-header,
+  .bk-qr-toggle, .bk-cancel-btn { display: none !important; }
+  .bk-card:not(.bk-card--open) { display: none !important; }
+  .bk-card--open { border: none !important; box-shadow: none !important; break-inside: avoid; }
+  .bk-qr-frame {
+    background: #fff !important;
+    border: 1px solid #999 !important;
+    color: #000 !important;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -4379,7 +4456,25 @@ body {
   letter-spacing: 0.06em;
 }
 .bk-qr-hint { font-size: var(--ts-xs); color: var(--a-ink-3); margin-top: 6px; line-height: 1.5; }
-.bk-pay-method { font-size: var(--ts-xs); color: var(--a-ink-3); margin-top: 4px; }
+.bk-pay-method { font-size: var(--ts-xs); color: var(--a-ink-3); margin-top: 8px; }
+
+/* Le billet en clair, à côté du QR — mêmes lignes que sur la confirmation
+   d'achat, pour que le contrôle retrouve la même fiche d'un écran à l'autre. */
+.bk-ticket-rows { margin-top: 10px; }
+.bk-ticket-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--a-line-2);
+}
+.bk-ticket-row:last-child { border-bottom: none; }
+.bk-ticket-row dt { font-size: var(--ts-xs); color: var(--a-ink-3); flex-shrink: 0; }
+.bk-ticket-row dd {
+  font-size: var(--ts-sm); color: var(--a-ink); font-weight: 600;
+  text-align: right; min-width: 0;
+}
 
 /* ── Pastilles d'état ────────────────────────────────────────── */
 .bk-status, .admin-badge {
@@ -5405,6 +5500,31 @@ body {
   border: 1px solid var(--t-line);
 }
 .bni-qr-hint { font-size: 0.75rem; color: var(--t-ink-3); margin: 0; line-height: 1.4; }
+
+/* Le billet en clair, sous le QR : film, jour, heure, salle, places, tarif.
+   Ce que le contrôle vérifie à l'œil quand le scanner ne répond pas. */
+.bni-ticket-rows {
+  width: 100%;
+  margin: 4px 0 0;
+  border-top: 1.5px dashed #c9cfd8;
+  text-align: left;
+}
+.bni-ticket-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--t-line-2);
+}
+.bni-ticket-row:last-child { border-bottom: none; }
+.bni-ticket-row dt {
+  font-size: 0.72rem; color: var(--t-ink-3); flex-shrink: 0;
+}
+.bni-ticket-row dd {
+  font-size: 0.82rem; color: var(--t-ink); font-weight: 600;
+  text-align: right; min-width: 0;
+}
 .bni-pdf-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   margin-top: 4px; padding: 10px 20px;
@@ -7498,13 +7618,70 @@ body {
   }
 }
 
-/* Rappel juridique posé juste au-dessus du bouton de validation : le
-   liseré rouge le rattache au bandeau ACHAT sans en refaire un bloc. */
-.pay-final-sale {
-  margin: 0 0 14px;
-  padding: 10px 0 10px 12px;
-  border-left: 2px solid #e8192c;
-  font-size: 0.76rem;
+/* ═══════════════════════════════════════════════════════════════
+   VOYANT D'ACHAT DÉFINITIF
+
+   « Achat définitif : billet non échangeable et non remboursable. »
+
+   Membre le plus discret de la famille ACHAT, et le plus répété : il
+   suit le client partout où l'achat s'engage ou se relit — plan de
+   salle, paiement, page bancaire, confirmation, billet, espace client.
+   Même liseré rouge que le bandeau et que le repère d'achat, mais posé
+   à même la page : le bandeau annonce, le repère explique, le voyant
+   rappelle. Il ne crie pas — une mention qui crie à six endroits
+   devient un bruit qu'on cesse de lire.
+
+   Trois tons :
+     default  la mention courante, sur fond de page
+     strong   au ras du bouton qui engage — fond teinté, texte plein
+     quiet    rappel sur un écran où l'achat est déjà fait
+═══════════════════════════════════════════════════════════════ */
+.final-sale {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 14px 0;
+  padding: 9px 0 9px 12px;
+  border-left: 2px solid var(--t-red);
+  font-family: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.8rem;
   line-height: 1.5;
   color: var(--t-ink-2);
+  /* Les cartes de confirmation centrent leur contenu ; une mention de deux
+     lignes centrée se lit mal, et son icône se détache du texte. */
+  text-align: left;
 }
+
+.final-sale-icon {
+  flex-shrink: 0;
+  margin-top: 0.15em;
+  color: var(--t-red-ink);
+}
+
+.final-sale-text { min-width: 0; }
+
+.final-sale--strong {
+  padding: 11px 13px 11px 12px;
+  background: var(--t-red-w);
+  border-radius: 0 4px 4px 0;
+  color: var(--t-ink);
+  font-weight: 600;
+}
+
+.final-sale--quiet {
+  border-left-color: var(--t-line);
+  color: var(--t-ink-3);
+  font-size: 0.75rem;
+}
+.final-sale--quiet .final-sale-icon { color: var(--t-ink-3); }
+
+/* Placements — seul l'espacement change d'un écran à l'autre. */
+.pay-final-sale   { margin: 0 0 14px; }
+.seats-final-sale { margin: 16px 0 0; }
+.conf-final-sale  { margin: 18px 0 14px; }
+.bni-final-sale   { margin: 0 0 16px; }
+.bk-final-sale    { margin: 10px 0 0; }
+
+/* Le bandeau d'achat sur l'accueil : il ouvre la liste des films, donc il
+   respire un peu plus que dans le tunnel. */
+.home-achat-band { margin-top: 20px; }

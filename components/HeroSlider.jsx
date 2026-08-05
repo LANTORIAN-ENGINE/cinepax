@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useI18n, formatDuration } from '@/lib/i18n'
 import { parseSynopsis, flattenSynopsis, renderSynopsis } from '@/lib/synopsis'
+import { ratingLabel } from '@/lib/classification'
 
 // ─── Carrousel d'accueil ──────────────────────────────────────────────────────
 // Reproduit le slider vidéo plein cadre de cinepax.mg, alimenté uniquement par
@@ -330,7 +331,7 @@ export default function HeroSlider({ films, loading, onSelectFilm }) {
             const cover     = coverImage(film, videoId)
             const isActive  = i === index
             const synopsis  = film.Synopsis || film.ShortSynopsis || ''
-            const meta      = [film.Rating, film.Duration && formatDuration(film.Duration, lang), film.Genre?.trim()]
+            const meta      = [ratingLabel(film.Rating, t), film.Duration && formatDuration(film.Duration, lang), film.Genre?.trim()]
               .filter(Boolean).join(' · ')
 
             return (
