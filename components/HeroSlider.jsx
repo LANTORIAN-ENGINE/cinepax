@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useI18n, formatDuration } from '@/lib/i18n'
 import { parseSynopsis, flattenSynopsis, renderSynopsis } from '@/lib/synopsis'
-import { ratingLabel } from '@/lib/classification'
+import { ratingLabel, genreLabel } from '@/lib/classification'
 
 // ─── Carrousel d'accueil ──────────────────────────────────────────────────────
 // Reproduit le slider vidéo plein cadre de cinepax.mg, alimenté uniquement par
@@ -181,7 +181,7 @@ const IconChevron = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentCo
 // on compare la hauteur réelle du texte à celle du cadre, remesurée à chaque
 // redimensionnement et une fois les polices chargées (leurs métriques
 // déplacent la dernière ligne).
-function HeroSynopsis({ text, title, onExpand }) {
+function HeroSynopsis({ text, title, lang, onExpand }) {
   const { t } = useI18n()
   const ref = useRef(null)
   const [clamped, setClamped] = useState(false)
@@ -203,7 +203,7 @@ function HeroSynopsis({ text, title, onExpand }) {
 
   return (
     <>
-      <p className="hero-synopsis" ref={ref}>{renderSynopsis(nodes)}</p>
+      <p className="hero-synopsis" ref={ref} lang={lang || undefined}>{renderSynopsis(nodes)}</p>
       {clamped && (
         <button
           type="button"
@@ -220,7 +220,7 @@ function HeroSynopsis({ text, title, onExpand }) {
 }
 
 // ─── Carrousel ────────────────────────────────────────────────────────────────
-export default function HeroSlider({ films, loading, onSelectFilm }) {
+export default function HeroSlider({ films, loading, synopses, onSelectFilm }) {
   const { t, lang } = useI18n()
   const reducedMotion = usePrefersReducedMotion()
 
@@ -330,8 +330,11 @@ export default function HeroSlider({ films, loading, onSelectFilm }) {
           {slides.map(({ film, videoId }, i) => {
             const cover     = coverImage(film, videoId)
             const isActive  = i === index
-            const synopsis  = film.Synopsis || film.ShortSynopsis || ''
-            const meta      = [ratingLabel(film.Rating, t), film.Duration && formatDuration(film.Duration, lang), film.Genre?.trim()]
+            // Le synopsis résolu dans la langue courante l'emporte sur le texte
+            // brut de la fiche Veezi, qui n'est pas toujours dans la bonne langue.
+            const resolu    = synopses?.[String(film.Id)]
+            const synopsis  = resolu?.texte || film.Synopsis || film.ShortSynopsis || ''
+            const meta      = [ratingLabel(film.Rating, t), film.Duration && formatDuration(film.Duration, lang), genreLabel(film.Genre, t)]
               .filter(Boolean).join(' · ')
 
             return (
@@ -376,6 +379,7 @@ export default function HeroSlider({ films, loading, onSelectFilm }) {
                     <HeroSynopsis
                       text={synopsis}
                       title={film.Title}
+                      lang={resolu?.langue}
                       onExpand={() => onSelectFilm?.(film)}
                     />
                   </div>

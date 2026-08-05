@@ -9,18 +9,19 @@ Ce guide couvre deux choses, **dans cet ordre** :
 
 ## Étape 1 — Exécuter les migrations
 
-Dans **Supabase Dashboard → SQL Editor → New query**, exécuter les 3 fichiers **dans l'ordre** :
+Dans **Supabase Dashboard → SQL Editor → New query**, exécuter les 4 fichiers **dans l'ordre** :
 
 | Ordre | Fichier | Contenu |
 |-------|---------|---------|
 | 1 | `supabase/migration.sql` | 6 tables, trigger profil, RLS, catégories de sièges |
 | 2 | `supabase/migration_veezi_reservation.sql` | Colonnes Veezi sur `bookings` (`ticket_breakdown`, `veezi_booking_number`, …) |
 | 3 | `supabase/migration_contact_messages.sql` | Table `contact_messages` + rattachement des messages au compte client par l'e-mail |
+| 4 | `supabase/migration_film_translations.sql` | Table `film_translations` : cache des synopsis traduits (voir plus bas) |
 
-Pour chaque fichier : coller tout le contenu → **Run**. Les trois scripts sont idempotents (`IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`, `CREATE OR REPLACE`) — sans risque à ré-exécuter.
+Pour chaque fichier : coller tout le contenu → **Run**. Les quatre scripts sont idempotents (`IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`, `CREATE OR REPLACE`) — sans risque à ré-exécuter.
 
-**Vérification** : dans **Table Editor**, les 7 tables doivent apparaître :
-`profiles`, `price_cards`, `seat_categories`, `session_prices`, `bookings`, `booking_seats`, `contact_messages` — et `bookings` doit avoir la colonne `veezi_status`.
+**Vérification** : dans **Table Editor**, les 8 tables doivent apparaître :
+`profiles`, `price_cards`, `seat_categories`, `session_prices`, `bookings`, `booking_seats`, `contact_messages`, `film_translations` — et `bookings` doit avoir la colonne `veezi_status`.
 
 > Tant que la migration 3 n'est pas passée, le formulaire de la page **Contact** répond « le message n'a pas pu être enregistré » et `/admin/messages` reste vide : la table n'existe pas encore.
 
@@ -34,6 +35,16 @@ La page Contact récolte les demandes dans `contact_messages`. L'**e-mail est le
 Résultat : le client retrouve ses demandes dans **Mon compte → Mes demandes** (« je vous avais déjà écrit à ce sujet »), et l'administration voit **tous** les messages, rattachés ou non, dans **/admin/messages**.
 
 Les messages contiennent des données personnelles : ils ne sont jamais lus avec la clé anon. `/admin/messages` passe par `/api/admin/messages`, qui vérifie `is_admin` côté serveur avec la `service_role`.
+
+### Ce que fait la migration 4
+
+Veezi ne stocke qu'un synopsis par fiche film, dans la langue où le distributeur l'a saisi : sur le catalogue relevé, **32 % sont en anglais**, y compris sur des fiches VF. `film_translations` garde la version traduite pour que chaque langue du site affiche bien sa langue.
+
+La clé de cache est l'**empreinte du texte source**, pas l'identifiant du film : les fiches VF, VO et 3D d'une même œuvre portent souvent le même synopsis au caractère près et se partagent donc une seule traduction — et si le distributeur corrige son texte dans Veezi, l'empreinte change et la traduction se régénère d'elle-même.
+
+La table est **strictement serveur** : RLS activé sans aucune politique, ce qui la ferme à la clé anon. Seules les routes Next.js y accèdent, via la `service_role`.
+
+> Tant que la migration 4 n'est pas passée, rien ne casse : le site affiche le synopsis Veezi d'origine, dans sa langue de saisie. C'est exactement le comportement d'avant.
 
 ---
 

@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cinepax Madagascar - Traduction automatique des synopsis</title>
+<style>
+  :root{
+    --ink:#16110f; --ink-2:#4a3f3b; --ink-3:#7d706b;
+    --paper:#ffffff; --panel:#faf7f5; --panel-2:#f3eeeb;
+    --line:#e3dad5; --line-2:#cfc2bb;
+    --accent:#d81f2a; --accent-soft:#fdeced;
+    --ok:#1c7c4a; --ok-soft:#e8f4ed;
+    --warn:#9a6207; --warn-soft:#fdf3e2;
+    --info:#1c5c8c; --info-soft:#e9f2f9;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--panel-2); color:var(--ink);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    font-feature-settings:"kern" 1;
+  }
+  .sheet{
+    max-width:980px; margin:0 auto; background:var(--paper);
+    padding:0 0 72px; box-shadow:0 1px 3px rgba(0,0,0,.06),0 12px 40px rgba(0,0,0,.07);
+  }
+
+  header.masthead{
+    background:linear-gradient(160deg,#1a1211 0%,#2b1a19 60%,#3a1d1e 100%);
+    color:#f7f2ef; padding:44px 56px 38px; border-bottom:4px solid var(--accent);
+  }
+  .brand{
+    display:inline-block; font-size:11px; letter-spacing:.22em; text-transform:uppercase;
+    color:#e9b7ba; border:1px solid rgba(255,255,255,.22); border-radius:3px;
+    padding:5px 11px; margin-bottom:22px;
+  }
+  header.masthead h1{
+    margin:0 0 12px; font-size:31px; line-height:1.22; font-weight:650; letter-spacing:-.015em;
+  }
+  header.masthead p.sub{ margin:0; color:#c9b6b2; font-size:15px; max-width:64ch }
+  .meta{
+    display:flex; flex-wrap:wrap; gap:0 40px; margin-top:26px;
+    padding-top:20px; border-top:1px solid rgba(255,255,255,.14); font-size:13px;
+  }
+  .meta div{min-width:130px}
+  .meta dt{color:#9d8a86; font-size:11px; letter-spacing:.12em; text-transform:uppercase; margin-bottom:3px}
+  .meta dd{margin:0; color:#f2e9e6}
+
+  main{padding:0 56px}
+  section{padding-top:44px}
+  h2{
+    font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:var(--accent);
+    margin:0 0 6px; font-weight:700;
+  }
+  h2 + .h2sub{ margin:0 0 20px; font-size:23px; font-weight:640; letter-spacing:-.012em; line-height:1.3 }
+  h3{ font-size:17px; margin:30px 0 10px; font-weight:640; letter-spacing:-.008em }
+  h4{ font-size:14.5px; margin:20px 0 6px; font-weight:640 }
+  p{margin:0 0 14px; color:var(--ink-2)}
+  strong{color:var(--ink); font-weight:640}
+  ul,ol{margin:0 0 14px; padding-left:22px; color:var(--ink-2)}
+  li{margin-bottom:6px}
+  li::marker{color:var(--ink-3)}
+  hr.rule{border:0; border-top:1px solid var(--line); margin:44px 0 0}
+  code{
+    font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    background:var(--panel-2); border:1px solid var(--line); border-radius:3px;
+    padding:1px 5px; color:#7a2a2f;
+  }
+  pre{
+    font:12.5px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    background:#1f1614; color:#f0e6e2; padding:16px 18px; border-radius:5px;
+    overflow-x:auto; margin:0 0 18px;
+  }
+  pre code{background:none; border:0; padding:0; color:inherit}
+
+  .callout{
+    border-left:3px solid var(--accent); background:var(--panel);
+    padding:18px 22px; margin:0 0 20px; border-radius:0 4px 4px 0;
+  }
+  .callout.ok{border-left-color:var(--ok); background:var(--ok-soft)}
+  .callout.warn{border-left-color:var(--warn); background:var(--warn-soft)}
+  .callout.info{border-left-color:var(--info); background:var(--info-soft)}
+  .callout p:last-child{margin-bottom:0}
+  .callout .lbl{
+    display:block; font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    font-weight:700; margin-bottom:7px; color:var(--ink);
+  }
+
+  .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line); border:1px solid var(--line); margin:0 0 8px}
+  .kpi{background:var(--paper); padding:18px 16px}
+  .kpi b{display:block; font-size:26px; font-weight:660; letter-spacing:-.02em; color:var(--ink); line-height:1.1}
+  .kpi span{display:block; font-size:12px; color:var(--ink-3); margin-top:5px; line-height:1.4}
+  .kpi-note{font-size:12px; color:var(--ink-3); margin:0 0 14px}
+
+  .tw{overflow-x:auto; margin:0 0 18px; border:1px solid var(--line); border-radius:4px}
+  table{border-collapse:collapse; width:100%; font-size:14px; min-width:560px}
+  th,td{text-align:left; padding:11px 14px; border-bottom:1px solid var(--line); vertical-align:top}
+  thead th{
+    background:var(--panel); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink-3); font-weight:700; border-bottom:1px solid var(--line-2);
+  }
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:nth-child(even){background:#fcfaf9}
+  td.num,th.num{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap}
+  td.ctr,th.ctr{text-align:center; white-space:nowrap}
+  tfoot td{
+    background:var(--panel); font-weight:660; color:var(--ink);
+    border-top:2px solid var(--line-2); border-bottom:0;
+  }
+
+  .tag{
+    display:inline-block; font-size:11px; font-weight:660; letter-spacing:.03em;
+    padding:2px 8px; border-radius:20px; white-space:nowrap;
+  }
+  .tag.base{background:var(--panel-2); color:var(--ink-2); border:1px solid var(--line-2)}
+  .tag.no{background:var(--accent-soft); color:#a3161f; border:1px solid #f2c4c8}
+  .tag.ok{background:var(--ok-soft); color:var(--ok); border:1px solid #bfe0cd}
+  .tag.wait{background:var(--warn-soft); color:var(--warn); border:1px solid #eed9b0}
+  .tag.fr{background:#e9f2f9; color:#1c5c8c; border:1px solid #c4dcee}
+  .tag.en{background:#f5efe4; color:#8a6410; border:1px solid #e6d5b4}
+
+  .flow{display:flex; flex-wrap:wrap; align-items:stretch; gap:8px; margin:0 0 18px}
+  .flow .st{
+    flex:1 1 150px; border:1px solid var(--line); border-radius:4px; background:var(--panel);
+    padding:12px 13px; font-size:13px;
+  }
+  .flow .st b{display:block; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); margin-bottom:4px}
+  .flow .st span{color:var(--ink-2)}
+
+  .qa{border:1px solid var(--line); border-radius:5px; overflow:hidden; margin:0 0 20px}
+  .qa .q{padding:14px 20px; border-bottom:1px solid var(--line)}
+  .qa .q:last-child{border-bottom:0}
+  .qa .q:nth-child(even){background:#fcfaf9}
+  .qa .q b{display:block; margin-bottom:5px; font-size:14.5px}
+  .qa .q p{margin:0; font-size:14px}
+
+  .signoff{margin-top:44px; padding-top:22px; border-top:1px solid var(--line); font-size:13px; color:var(--ink-3)}
+  .signoff b{color:var(--ink)}
+  .srcs{font-size:13px; color:var(--ink-3)}
+  .srcs a{color:var(--info)}
+
+  @media (max-width:820px){
+    header.masthead{padding:32px 24px 28px}
+    header.masthead h1{font-size:25px}
+    main{padding:0 24px}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+  }
+  @media print{
+    body{background:#fff}
+    .sheet{box-shadow:none; max-width:none}
+    header.masthead{background:#1a1211 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    section{page-break-inside:avoid}
+    .tw{overflow:visible}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<header class="masthead">
+  <span class="brand">Cinepax Madagascar × eTech</span>
+  <h1>Traduction automatique des synopsis<br>Étude d'opportunité et architecture</h1>
+  <p class="sub">Réponse au retour client « modifier automatiquement le synopsis FR en synopsis FR et EN en EN, pour ne pas le faire à la main à chaque création de version du film ». Mesures sur le catalogue Veezi réel, revue des moteurs disponibles, architecture retenue et chiffrage.</p>
+  <dl class="meta">
+    <div><dt>Projet</dt><dd>Billetterie en ligne cinepax.mg</dd></div>
+    <div><dt>Date</dt><dd>5 août 2026</dd></div>
+    <div><dt>Statut</dt><dd>Étude - avant tout développement</dd></div>
+    <div><dt>Volume mesuré</dt><dd>≈ 16 000 caractères / mois</dd></div>
+  </dl>
+</header>
+
+<main>
+
+<!-- ══════════════════ 1 ══════════════════ -->
+<section>
+  <h2>1 - L'essentiel</h2>
+  <p class="h2sub">Trois points, si vous ne lisez que ceci</p>
+
+  <div class="callout warn">
+    <span class="lbl">Point 1 - Le problème est plus large que l'anglais : le site français affiche déjà de l'anglais</span>
+    <p>Sur les 2 371 synopsis du catalogue Veezi, <strong>757 (32 %) sont rédigés en anglais</strong>, y compris sur des versions françaises. Aujourd'hui, un visiteur francophone de cinepax.mg lit le synopsis de <em>Des Minions et des Monstres VF</em> et de <em>La Pat'Patrouille - Mission Dino VF</em> <strong>en anglais</strong>, parce que c'est ce que le distributeur a saisi dans Veezi. La demande client se lit donc dans les deux sens : il ne s'agit pas d'« ajouter l'anglais », mais de <strong>garantir que chaque langue du site affiche bien sa langue</strong>, quelle que soit la langue de saisie.</p>
+  </div>
+
+  <div class="callout info">
+    <span class="lbl">Point 2 - Le volume est si faible que le prix n'est pas un critère de choix</span>
+    <p>Le catalogue produit <strong>≈ 190 000 caractères de nouveaux synopsis par an</strong>, soit <strong>16 000 caractères par mois</strong> - l'équivalent de six pages de texte. Toutes les solutions étudiées traitent ce volume <strong>pour moins de 1 € par mois</strong>, plusieurs gratuitement. Le choix doit donc se faire sur la <strong>qualité de rendu, le respect de la mise en forme et la simplicité d'exploitation</strong>, pas sur le tarif au caractère.</p>
+  </div>
+
+  <div class="callout ok">
+    <span class="lbl">Point 3 - Recommandation : un gisement gratuit, puis une traduction en cache</span>
+    <p>Veezi contient déjà, <strong>pour 402 films sur 1 097</strong>, les deux versions du synopsis - la VF porte le texte français, la VO le texte anglais. Ce gisement est <strong>gratuit, humain et immédiat</strong> : on l'exploite d'abord. Pour le reste, une traduction automatique appelée <strong>une seule fois par film</strong> et stockée en base (Supabase) suffit. Coût réel estimé : <strong>≈ 1,50 € de reprise initiale, puis 0,10 à 0,25 € par mois</strong>. Charge de développement : <strong>2,5 JH</strong> (3,5 JH avec écran de relecture en back-office).</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ══════════════════ 2 ══════════════════ -->
+<section>
+  <h2>2 - Ce que contient réellement le catalogue Veezi</h2>
+  <p class="h2sub">Mesures faites le 5 août 2026 sur <code>/v4/film</code> et <code>/v1/session</code></p>
+
+  <p>Toutes les décisions qui suivent reposent sur le catalogue réel, pas sur des hypothèses. Voici ce qu'il contient.</p>
+
+  <div class="kpis">
+    <div class="kpi"><b>2 412</b><span>fiches films dans le catalogue Veezi</span></div>
+    <div class="kpi"><b>2 371</b><span>fiches portant un synopsis (98 %)</span></div>
+    <div class="kpi"><b>488</b><span>caractères en moyenne par synopsis (médiane 429, max 3 552)</span></div>
+    <div class="kpi"><b>32 %</b><span>des synopsis sont rédigés en anglais</span></div>
+  </div>
+  <p class="kpi-note">Détection de langue par mots-outils (le, la, des, dans, qui… / the, and, of, with, when…) : 1 606 fiches en français, 757 en anglais, 8 indéterminées.</p>
+
+  <h3>2.1 - L'affiche du jour, film par film</h3>
+
+  <p>Quatorze fiches ont des séances dans la fenêtre courante. La colonne « langue » est celle du texte saisi dans Veezi, pas celle de la version projetée - et les deux ne coïncident pas toujours.</p>
+
+  <div class="tw">
+  <table>
+    <thead>
+      <tr><th>Fiche Veezi</th><th class="ctr">Langue du synopsis</th><th class="num">Caractères</th><th>Conséquence aujourd'hui</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>TOY STORY 5 VF</td><td class="ctr"><span class="tag fr">FR</span></td><td class="num">321</td><td>Site EN : texte français</td></tr>
+      <tr><td>DES MINIONS ET DES MONSTRES VF</td><td class="ctr"><span class="tag en">EN</span></td><td class="num">1 359</td><td><strong>Site FR : texte anglais</strong></td></tr>
+      <tr><td>VAIANA LA LÉGENDE 2D VF</td><td class="ctr"><span class="tag fr">FR</span></td><td class="num">253</td><td>Site EN : texte français</td></tr>
+      <tr><td>DHAMAAL 4 VO</td><td class="ctr"><span class="tag en">EN</span></td><td class="num">203</td><td><strong>Site FR : texte anglais</strong></td></tr>
+      <tr><td>COCKTAIL 2 VO</td><td class="ctr"><span class="tag en">EN</span></td><td class="num">177</td><td><strong>Site FR : texte anglais</strong></td></tr>
+      <tr><td>SPIDER-MAN : BRAND NEW DAY VF</td><td class="ctr"><span class="tag fr">FR</span></td><td class="num">825</td><td>Site EN : texte français</td></tr>
+      <tr><td>SPIDER-MAN : BRAND NEW DAY VO</td><td class="ctr"><span class="tag en">EN</span></td><td class="num">708</td><td><strong>Paire complète : rien à traduire</strong></td></tr>
+      <tr><td>CHARLIE ET LES KANGOUROUS VF</td><td class="ctr"><span class="tag fr">FR</span></td><td class="num">582</td><td>Site EN : texte français</td></tr>
+      <tr><td>SPIDER-MAN : BRAND NEW DAY 3D VF</td><td class="ctr"><span class="tag fr">FR</span></td><td class="num">825</td><td>Site EN : texte français</td></tr>
+      <tr><td>SPIDER-MAN : BRAND NEW DAY 3D VO</td><td class="ctr"><span class="tag fr">FR</span></td><td class="num">825</td><td>Fiche VO portant le texte FR</td></tr>
+      <tr><td>N121 - BUS DE NUIT VF</td><td class="ctr"><span class="tag fr">FR</span></td><td class="num">207</td><td>Site EN : texte français</td></tr>
+      <tr><td>L'ODYSSÉE VF</td><td class="ctr"><span class="tag fr">FR</span></td><td class="num">393</td><td>Site EN : texte français</td></tr>
+      <tr><td>L'ODYSSÉE VO</td><td class="ctr"><span class="tag en">EN</span></td><td class="num">343</td><td><strong>Paire complète : rien à traduire</strong></td></tr>
+      <tr><td>LA PAT'PATROUILLE - MISSION DINO VF</td><td class="ctr"><span class="tag en">EN</span></td><td class="num">647</td><td><strong>Site FR : texte anglais</strong></td></tr>
+    </tbody>
+    <tfoot>
+      <tr><td>Total affiche</td><td class="ctr">8 FR / 6 EN</td><td class="num">7 668</td><td>4 fiches en défaut côté français</td></tr>
+    </tfoot>
+  </table>
+  </div>
+
+  <div class="callout">
+    <span class="lbl">Lecture</span>
+    <p>Deux œuvres sur quatorze (<em>Spider-Man</em>, <em>L'Odyssée</em>) ont <strong>déjà les deux langues</strong> réparties entre leurs fiches VF et VO. Quatre fiches affichent <strong>de l'anglais à un public francophone</strong>. C'est exactement le travail manuel que le client demande à supprimer - et c'est aussi un défaut visible en production aujourd'hui.</p>
+  </div>
+
+  <h3>2.2 - Le gisement bilingue déjà présent dans Veezi</h3>
+
+  <p>Les 2 412 fiches se regroupent en <strong>1 097 œuvres distinctes</strong> (2,2 fiches par œuvre en moyenne : VF, VO, 3D, IMAX…). En regardant chaque groupe :</p>
+
+  <div class="tw">
+  <table>
+    <thead>
+      <tr><th>Situation du groupe de fiches</th><th class="num">Œuvres</th><th class="num">Part</th><th>Ce qu'on peut en faire</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Synopsis FR <strong>et</strong> EN présents sur des fiches sœurs</td><td class="num">402</td><td class="num">37 %</td><td><span class="tag ok">Aucune traduction</span> - on prend le bon texte selon la langue affichée</td></tr>
+      <tr><td>Synopsis français seul</td><td class="num">528</td><td class="num">48 %</td><td>Traduire FR → EN une fois</td></tr>
+      <tr><td>Synopsis anglais seul</td><td class="num">161</td><td class="num">15 %</td><td>Traduire EN → FR une fois <em>(défaut actuel du site FR)</em></td></tr>
+    </tbody>
+    <tfoot><tr><td>Total</td><td class="num">1 091</td><td class="num">100 %</td><td>6 œuvres sans synopsis exploitable</td></tr></tfoot>
+  </table>
+  </div>
+
+  <h3>2.3 - Le rythme réel de production</h3>
+
+  <p>C'est le chiffre qui décide du coût. Sur les douze derniers mois, Veezi a enregistré <strong>387 nouvelles fiches</strong> (168 œuvres distinctes), soit <strong>190 061 caractères de synopsis à l'année</strong> - environ <strong>16 000 caractères par mois</strong>. À traduire dans une seule direction, une seule fois, avec mise en cache définitive.</p>
+
+  <p>À titre de comparaison, une reprise complète du catalogue historique représenterait 1,16 million de caractères - mais elle n'est pas nécessaire : seuls l'affiche (7 700 caractères), les films à venir (8 700 caractères sur 24 œuvres) et l'historique récent ont vocation à être vus.</p>
+</section>
+
+<hr class="rule">
+
+<!-- ══════════════════ 3 ══════════════════ -->
+<section>
+  <h2>3 - Trois contraintes propres au projet</h2>
+  <p class="h2sub">Elles éliminent la moitié des solutions du marché avant même de comparer les prix</p>
+
+  <h3>3.1 - Les synopsis portent une mise en forme qu'aucun traducteur ne connaît</h3>
+
+  <p>Les distributeurs saisissent leurs textes avec la syntaxe légère des notes de presse, et <code>lib/synopsis.jsx</code> l'interprète à l'affichage : <code>**gras**</code>, <code>*italique*</code> (les titres de films), lignes vides pour les paragraphes. Deux pièges déjà rencontrés en production et documentés dans ce fichier :</p>
+
+  <ul>
+    <li><strong>« Thunderbolts* »</strong> - l'astérisque fait partie du titre du film, elle n'ouvre pas une emphase ;</li>
+    <li><strong>« taleb_kant, guy_kalou_babiwood »</strong> - les pseudos Instagram du casting sont pleins de tirets bas.</li>
+  </ul>
+
+  <p>Exemple réel, synopsis de <em>Spider-Man : Brand New Day VF</em> :</p>
+  <pre><code>Après le succès mondial historique de *Spider-Man: No Way Home*, *Spider-Man:
+Brand New Day* poursuit l'histoire de **Peter Parker**…</code></pre>
+
+  <p>Un moteur de traduction classique traite ces astérisques comme du texte : il les déplace, les dédouble ou les perd, et le rendu casse. Il traduit aussi volontiers les titres de films - <em>Spider-Man: No Way Home</em> deviendrait <em>Spider-Man : Pas de chemin vers la maison</em>. <strong>Cette contrainte pèse lourd dans le choix du moteur</strong> : elle avantage nettement un moteur à qui l'on peut donner des consignes en langage naturel.</p>
+
+  <h3>3.2 - Veezi est en lecture seule : la traduction doit être stockée chez nous</h3>
+
+  <p>L'API Veezi V1 expose le catalogue en lecture. Nous ne pouvons pas réécrire le champ <code>Synopsis</code> d'une fiche, ni ajouter un champ « synopsis anglais ». <strong>La traduction doit donc vivre dans notre propre stockage</strong> - Supabase est déjà en place et déjà utilisé pour les commandes, les tarifs et les messages de contact. C'est aussi une bonne nouvelle : cela ouvre la possibilité d'une <strong>correction humaine</strong> en back-office, impossible si l'on écrivait dans Veezi.</p>
+
+  <h3>3.3 - Le changement de langue est côté client, la traduction doit être servie prête</h3>
+
+  <p>La langue est stockée dans le navigateur (<code>localStorage</code>, clé <code>cinepax_lang</code>) et le basculement FR/EN est instantané, sans rechargement. Deux conséquences :</p>
+
+  <ul>
+    <li>on ne peut pas traduire <em>au moment du rendu</em> : le visiteur verrait un texte apparaître avec deux secondes de retard à chaque bascule ;</li>
+    <li>traduire à la volée exposerait la clé du moteur et multiplierait les appels par le nombre de visiteurs.</li>
+  </ul>
+
+  <p>La traduction doit donc être <strong>calculée en amont, côté serveur, et servie depuis un cache</strong>. C'est aussi ce qui rend le coût dérisoire : une traduction par film, pas une par visiteur.</p>
+
+  <div class="callout warn">
+    <span class="lbl">Ce que cette contrainte élimine</span>
+    <p>Les solutions de traduction <strong>dans le navigateur du visiteur</strong> (transformers.js + modèles OPUS-MT convertis en ONNX) imposent le téléchargement d'un modèle de <strong>107 Mo par visiteur et par direction de traduction</strong> (encodeur quantifié 50 Mo + décodeur fusionné 57 Mo). Sur les débits mobiles de Tananarive, c'est rédhibitoire pour un site dont l'enjeu est de vendre un billet en trois écrans.</p>
+    <p>Cette contrainte <strong>ne concerne que le navigateur</strong> : la même bibliothèque tourne aussi dans Node, en amont, sur une machine de développement ou un job planifié. Cette variante est étudiée à part (piste F2 au chapitre suivant) - elle reste, elle, parfaitement compatible avec l'architecture retenue.</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ══════════════════ 4 ══════════════════ -->
+<section>
+  <h2>4 - Les huit pistes étudiées</h2>
+  <p class="h2sub">Ce qui existe, ce que ça vaut ici</p>
+
+  <div class="tw">
+  <table>
+    <thead>
+      <tr><th>Piste</th><th>Coût pour notre volume</th><th>Mise en forme<br>et titres</th><th>Exploitation</th><th class="ctr">Verdict</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>A - Appariement VF / VO Veezi</strong><br><span style="font-size:13px;color:var(--ink-3)">Regrouper les fiches d'une même œuvre et prendre le synopsis déjà rédigé dans la langue voulue</span></td>
+        <td><strong>Gratuit</strong></td>
+        <td>Parfaite - texte humain d'origine</td>
+        <td>Aucune dépendance externe, aucune clé</td>
+        <td class="ctr"><span class="tag ok">Retenu</span><br>couvre 37 %</td>
+      </tr>
+      <tr>
+        <td><strong>B - Traduction par modèle de langage</strong><br><span style="font-size:13px;color:var(--ink-3)">API Claude (Anthropic), appelée côté serveur, résultat mis en cache</span></td>
+        <td>≈ 1,50 € de reprise<br>puis 0,10-0,25 €/mois</td>
+        <td><strong>Consignes possibles</strong> : conserver <code>**</code>/<code>*</code>, ne pas traduire les titres, garder le ton distributeur</td>
+        <td>Une clé API ; lot de nuit possible (-50 %)</td>
+        <td class="ctr"><span class="tag ok">Retenu</span><br>pour les 63 % restants</td>
+      </tr>
+      <tr>
+        <td><strong>C - DeepL API</strong></td>
+        <td><strong>Gratuit</strong> (500 000 car./mois offerts, on en consomme 3 %) ; Pro à 5,49 $/million</td>
+        <td>Bonne qualité de langue, mais <strong>la syntaxe astérisque n'est pas gérée</strong> ; contournement possible en la convertissant en balises XML avant/après</td>
+        <td>Une clé API, très simple</td>
+        <td class="ctr"><span class="tag wait">Repli</span><br>solide</td>
+      </tr>
+      <tr>
+        <td><strong>D - Google Cloud Translation v3</strong></td>
+        <td><strong>Gratuit</strong> (500 000 car./mois, quota permanent) ; 20 $/million au-delà</td>
+        <td>Même limite que DeepL sur la mise en forme ; traduit les titres de films</td>
+        <td>Nécessite un compte Google Cloud avec facturation activée <em>(dépassement facturé sans alerte)</em></td>
+        <td class="ctr"><span class="tag base">Possible</span></td>
+      </tr>
+      <tr>
+        <td><strong>E - LibreTranslate / Argos Translate</strong><br><span style="font-size:13px;color:var(--ink-3)">Open source, auto-hébergeable</span></td>
+        <td>Gratuit en licence, mais <strong>impose un serveur</strong> (conteneur Docker) hors de Vercel</td>
+        <td>Qualité inférieure sur le texte marketing ; mise en forme non gérée</td>
+        <td>Un service de plus à héberger, surveiller et mettre à jour</td>
+        <td class="ctr"><span class="tag no">Écarté</span><br>coût d'exploitation &gt; gain</td>
+      </tr>
+      <tr>
+        <td><strong>F1 - transformers.js + OPUS-MT, dans le navigateur</strong></td>
+        <td><strong>Gratuit, aucune clé</strong></td>
+        <td>Qualité moyenne ; balisage et titres non protégés</td>
+        <td><strong>107 Mo de modèle téléchargés par visiteur et par direction</strong> (50 Mo encodeur + 57 Mo décodeur quantifiés), mis en cache ensuite dans le navigateur</td>
+        <td class="ctr"><span class="tag no">Écarté</span><br>bande passante</td>
+      </tr>
+      <tr>
+        <td><strong>F2 - transformers.js + OPUS-MT, dans Node en amont</strong><br><span style="font-size:13px;color:var(--ink-3)">Même bibliothèque, exécutée hors ligne sur une machine de développement ou un job planifié, qui écrit le résultat dans Supabase</span></td>
+        <td><strong>Gratuit, aucune clé, aucun compte à ouvrir</strong></td>
+        <td>Qualité en retrait sur du texte marketing (modèle Marian de ~74 M de paramètres, corpus OPUS) ; <strong>aucune consigne possible</strong> : le balisage <code>**</code>/<code>*</code> et les titres de films doivent être masqués par un pré-traitement puis réinjectés</td>
+        <td>Le modèle est téléchargé une fois sur la machine qui exécute le script. <strong>Ne peut pas tourner dans une fonction Vercel</strong> (bindings natifs <code>onnxruntime-node</code> absents, poids du modèle contre la limite de taille) - donc script local ou action CI, jamais dans le chemin d'affichage</td>
+        <td class="ctr"><span class="tag wait">Repli</span><br>« zéro dépendance »</td>
+      </tr>
+      <tr>
+        <td><strong>G - MyMemory / Lingva</strong><br><span style="font-size:13px;color:var(--ink-3)">API publiques gratuites sans inscription</span></td>
+        <td>Gratuit sous quota (5 000 car./jour anonyme, 50 000 avec e-mail)</td>
+        <td>Mémoire de traduction collaborative : résultats <strong>inégaux et non reproductibles</strong></td>
+        <td>Aucun engagement de service</td>
+        <td class="ctr"><span class="tag no">Écarté</span><br>pas pour la production</td>
+      </tr>
+      <tr>
+        <td><strong>H - TMDB (base de films)</strong><br><span style="font-size:13px;color:var(--ink-3)">Récupérer le synopsis anglais d'origine plutôt que de traduire</span></td>
+        <td>API gratuite</td>
+        <td>Texte humain, mais <strong>pas celui du distributeur local</strong> ; appariement par titre + année à fiabiliser</td>
+        <td><strong>La licence gratuite exclut l'usage commercial</strong> ; un site de vente de billets exige un accord séparé avec TMDB, plus l'affichage de leur logo</td>
+        <td class="ctr"><span class="tag no">Écarté</span><br>blocage juridique</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout info">
+    <span class="lbl">Pourquoi un modèle de langage plutôt qu'un traducteur spécialisé</span>
+    <p>À ce volume, l'écart de prix entre les deux est de l'ordre de <strong>quelques centimes par mois</strong> : il ne pèse rien. Ce qui pèse, c'est que le synopsis n'est pas du texte neutre - il contient une syntaxe de mise en forme, des titres d'œuvres à ne pas traduire, des noms propres et des pseudos de réseaux sociaux. Un modèle de langage accepte ces règles <strong>en consigne écrite</strong> et les respecte ; un traducteur automatique classique impose de les protéger par un pré-traitement fragile. <strong>DeepL reste un repli parfaitement viable</strong> si le client préfère un fournisseur de traduction identifié comme tel : l'architecture décrite plus bas ne change pas, seul le connecteur change.</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ══════════════════ 5 ══════════════════ -->
+<section>
+  <h2>5 - Architecture retenue</h2>
+  <p class="h2sub">Trois couches, une seule traduction par film, jamais de calcul au moment du rendu</p>
+
+  <div class="flow">
+    <div class="st"><b>1 - Détection</b><span>Langue du synopsis Veezi, par mots-outils. Validé sur 2 371 textes : 8 cas indéterminés.</span></div>
+    <div class="st"><b>2 - Appariement</b><span>Si une fiche sœur (VF/VO/3D) porte déjà le texte dans la langue voulue, on le prend. Gratuit, humain.</span></div>
+    <div class="st"><b>3 - Cache</b><span>Sinon, on cherche la traduction en base, indexée sur l'empreinte du texte source.</span></div>
+    <div class="st"><b>4 - Traduction</b><span>En dernier recours seulement : un appel au moteur, puis écriture en base. Une fois pour toutes.</span></div>
+    <div class="st"><b>5 - Repli</b><span>Si le moteur est indisponible, on affiche le texte d'origine. Le site ne casse jamais.</span></div>
+  </div>
+
+  <h3>5.1 - Stockage</h3>
+
+  <p>Une table, sur le modèle des migrations existantes dans <code>supabase/</code> :</p>
+
+  <pre><code>create table public.film_translations (
+  film_id     text        not null,   -- Veezi Film.Id
+  lang        text        not null,   -- 'fr' | 'en'
+  source_hash text        not null,   -- SHA-256 du synopsis d'origine
+  source_lang text        not null,
+  body        text        not null,   -- la traduction
+  engine      text        not null,   -- moteur + version, pour tracer
+  reviewed    boolean     not null default false,  -- relu en back-office
+  created_at  timestamptz not null default now(),
+  primary key (film_id, lang)
+);</code></pre>
+
+  <p>L'empreinte du texte source (<code>source_hash</code>) est la pièce importante : <strong>si le distributeur corrige son synopsis dans Veezi, l'empreinte change et la traduction se régénère toute seule</strong>. Sans elle, une correction en amont resterait invisible côté site.</p>
+
+  <p>Le champ <code>reviewed</code> protège les corrections humaines : une traduction relue en back-office n'est jamais écrasée par une régénération automatique.</p>
+
+  <h3>5.2 - Exposition</h3>
+
+  <p>Une route serveur unique, dans l'esprit des routes existantes (<code>/api/films/coming-soon</code>, <code>/api/programme</code>) :</p>
+
+  <pre><code>GET /api/synopsis?ids=1234,1235,1236&amp;lang=en
+    → { "1234": { text, source: "veezi" },
+        "1235": { text, source: "machine" },
+        "1236": { text, source: "fallback", lang: "fr" } }</code></pre>
+
+  <p>Les composants d'affichage (<code>BookingFlow</code>, <code>HeroSlider</code>, page <em>Prochainement</em>) demandent le lot de synopsis correspondant à la langue courante et le passent à <code>RichText</code> exactement comme aujourd'hui. <strong>Le module de mise en forme <code>lib/synopsis.jsx</code> n'est pas touché</strong> : il reçoit du texte à la même syntaxe, simplement dans la bonne langue.</p>
+
+  <h3>5.3 - Alimentation</h3>
+
+  <p>Deux modes complémentaires :</p>
+
+  <ul>
+    <li><strong>Reprise initiale</strong> - un script lancé une fois, qui traite l'affiche, les films à venir et les sorties des douze derniers mois (≈ 200 000 caractères). En traitement par lot, cette reprise coûte environ <strong>1,50 €</strong> et prend quelques minutes.</li>
+    <li><strong>Entretien</strong> - à chaque rafraîchissement du catalogue (les routes sont déjà en <code>revalidate</code> de 10 à 60 minutes), les fiches nouvelles ou modifiées sont mises en file et traduites en arrière-plan. Le visiteur qui arrive avant la traduction voit le texte d'origine, pas une page vide.</li>
+  </ul>
+
+  <div class="callout ok">
+    <span class="lbl">Propriété importante</span>
+    <p>Le moteur de traduction n'est <strong>jamais</strong> dans le chemin d'affichage. S'il est en panne, lent, ou si sa clé expire, <strong>le site continue de fonctionner exactement comme aujourd'hui</strong> : il affiche le synopsis Veezi d'origine. La traduction est une amélioration, pas une dépendance critique du tunnel d'achat.</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ══════════════════ 6 ══════════════════ -->
+<section>
+  <h2>6 - Le coût réel</h2>
+  <p class="h2sub">Deux scénarios de moteur, mêmes volumes</p>
+
+  <div class="tw">
+  <table>
+    <thead>
+      <tr><th>Poste</th><th class="num">Caractères</th><th class="num">Moteur LLM (Claude)</th><th class="num">DeepL</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Reprise initiale (affiche + à venir + 12 mois)</td><td class="num">≈ 200 000</td><td class="num">≈ 1,50 €<br><span style="font-size:12px;color:var(--ink-3)">≈ 0,75 € en traitement par lot</span></td><td class="num">0 €<br><span style="font-size:12px;color:var(--ink-3)">dans le quota gratuit</span></td></tr>
+      <tr><td>Entretien mensuel (nouveaux films)</td><td class="num">≈ 16 000</td><td class="num">0,10 - 0,25 €</td><td class="num">0 €</td></tr>
+      <tr><td>Reprise du catalogue historique complet <em>(optionnelle)</em></td><td class="num">1 156 195</td><td class="num">≈ 8,70 €<br><span style="font-size:12px;color:var(--ink-3)">≈ 4,40 € par lot</span></td><td class="num">0 €<br><span style="font-size:12px;color:var(--ink-3)">sur 3 mois de quota</span></td></tr>
+    </tbody>
+    <tfoot>
+      <tr><td>Coût annuel d'exploitation</td><td class="num">≈ 190 000</td><td class="num"><strong>≈ 2 à 3 €</strong></td><td class="num"><strong>0 €</strong></td></tr>
+    </tfoot>
+  </table>
+  </div>
+
+  <p class="kpi-note">Estimations au 5 août 2026. Base LLM : 5 $ / million de jetons en entrée, 25 $ en sortie, ≈ 4 caractères par jeton, texte de sortie de longueur comparable à l'entrée. Base DeepL : palier gratuit de 500 000 caractères par mois, 5,49 $ par million au-delà. Le quota gratuit Google Cloud (500 000 caractères / mois) donnerait le même résultat que DeepL, mais exige un compte de facturation actif.</p>
+
+  <p class="kpi-note">La piste F2 (OPUS-MT exécuté dans Node) est à <strong>0 € sur toutes les lignes</strong>, y compris la reprise complète du catalogue : le modèle est téléchargé une fois sur la machine qui exécute le script, et rien ne transite ensuite par un service payant. Son coût se déplace vers le développement : masquage du balisage et des titres avant traduction, réinjection après - à quoi s'ajoute une qualité de rendu en retrait qu'il faut accepter ou relire.</p>
+
+  <div class="callout">
+    <span class="lbl">À retenir</span>
+    <p>Sur le poste « traduction », <strong>l'écart annuel entre la solution la plus chère et la plus économique est inférieur à 3 €</strong>. Le coût du projet est <strong>entièrement dans le développement</strong>, pas dans la consommation - ce qui vaut aussi contre la piste gratuite : économiser 3 € par an en échange d'une demi-journée de pré-traitement et d'une qualité moindre n'est pas un bon échange.</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ══════════════════ 7 ══════════════════ -->
+<section>
+  <h2>7 - Le voisinage du sujet</h2>
+  <p class="h2sub">Ce qui est en anglais sur le site français, et qui ne relève pas de la traduction automatique</p>
+
+  <p>En instruisant la demande, deux champs voisins apparaissent dans le même défaut - mais ils se règlent par un dictionnaire, pas par un moteur.</p>
+
+  <h3>7.1 - Les genres sont affichés bruts, en anglais</h3>
+
+  <p>Le champ <code>Genre</code> de Veezi est rendu tel quel dans <code>BookingFlow</code>, <code>HeroSlider</code> et la page <em>Prochainement</em>. Un visiteur francophone lit donc <em>Action</em>, <em>Drama</em>, <em>Comedy</em>, <em>Animated</em>, <em>Horror</em>, <em>Adventure</em>… Le catalogue ne compte que <strong>34 écritures distinctes</strong>, dont dix couvrent 95 % des films :</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Écriture Veezi</th><th class="num">Films</th><th>Rendu français attendu</th><th>Rendu anglais</th></tr></thead>
+    <tbody>
+      <tr><td>Action</td><td class="num">534</td><td>Action</td><td>Action</td></tr>
+      <tr><td>Drama</td><td class="num">356</td><td>Drame</td><td>Drama</td></tr>
+      <tr><td>Comedy</td><td class="num">346</td><td>Comédie</td><td>Comedy</td></tr>
+      <tr><td>Animated</td><td class="num">246</td><td>Animation</td><td>Animation</td></tr>
+      <tr><td>Horror</td><td class="num">241</td><td>Épouvante</td><td>Horror</td></tr>
+      <tr><td>Adventure</td><td class="num">205</td><td>Aventure</td><td>Adventure</td></tr>
+      <tr><td>Thriller</td><td class="num">146</td><td>Thriller</td><td>Thriller</td></tr>
+      <tr><td>Biography</td><td class="num">62</td><td>Biographie</td><td>Biography</td></tr>
+      <tr><td>Documentary</td><td class="num">47</td><td>Documentaire</td><td>Documentary</td></tr>
+      <tr><td>Science Fiction / Sci-Fi</td><td class="num">47</td><td>Science-fiction</td><td>Science Fiction</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>Un dictionnaire de 34 entrées dans <code>lib/i18n.jsx</code> suffit, sur le modèle de ce qui est déjà fait pour les classifications d'âge. <strong>Aucun appel réseau, aucun coût, résultat stable.</strong> Charge : quelques heures.</p>
+
+  <h3>7.2 - Les classifications sont déjà traitées</h3>
+
+  <p>Le champ <code>Rating</code> connaissait le même défaut (vingt-quatre écritures pour une dizaine de sens : <code>TBC</code>, <code>INT - 12</code>, <code>12A</code>, <code>PG</code>…). Il est déjà normalisé et traduit par <code>lib/classification.js</code>. <strong>Rien à faire.</strong></p>
+
+  <h3>7.3 - Les titres de films restent tels quels</h3>
+
+  <p>Le titre est celui déposé par le distributeur pour l'exploitation malgache : c'est celui qui figure sur le billet, dans la caisse Veezi et sur l'affiche du hall. <strong>Il ne doit pas être traduit</strong>, quelle que soit la langue du site. À confirmer avec le client, mais c'est la pratique de tous les exploitants.</p>
+</section>
+
+<hr class="rule">
+
+<!-- ══════════════════ 8 ══════════════════ -->
+<section>
+  <h2>8 - Plan de mise en œuvre</h2>
+  <p class="h2sub">Chiffrage à l'étape</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Étape</th><th>Contenu</th><th class="num">Charge</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>1 - Détection et appariement</strong></td>
+        <td>Détection de langue par mots-outils ; regroupement des fiches d'une même œuvre (la fonction existe déjà dans <code>/api/films/coming-soon</code>) ; sélection du meilleur texte disponible. <strong>Livre déjà 37 % du résultat, sans dépendance externe.</strong></td>
+        <td class="num">0,5 JH</td>
+      </tr>
+      <tr>
+        <td><strong>2 - Table et route</strong></td>
+        <td>Migration <code>film_translations</code> ; route <code>/api/synopsis</code> ; connecteur du moteur avec les consignes de mise en forme ; repli sur le texte d'origine.</td>
+        <td class="num">1 JH</td>
+      </tr>
+      <tr>
+        <td><strong>3 - Intégration à l'affichage</strong></td>
+        <td>Branchement dans <code>BookingFlow</code>, <code>HeroSlider</code>, page <em>Prochainement</em> ; dictionnaire des 34 genres dans <code>lib/i18n.jsx</code>.</td>
+        <td class="num">0,5 JH</td>
+      </tr>
+      <tr>
+        <td><strong>4 - Reprise et entretien</strong></td>
+        <td>Script de reprise initiale ; mise en file automatique des fiches nouvelles ou modifiées.</td>
+        <td class="num">0,5 JH</td>
+      </tr>
+      <tr>
+        <td><strong>5 - Relecture en back-office</strong> <em>(optionnel)</em></td>
+        <td>Écran <code>/admin</code> listant les traductions automatiques, permettant de corriger un texte et de le marquer comme relu - il devient alors intouchable par la régénération.</td>
+        <td class="num">1 JH</td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr><td>Total</td><td>Étapes 1 à 4</td><td class="num"><strong>2,5 JH</strong></td></tr>
+      <tr><td></td><td>Avec écran de relecture</td><td class="num"><strong>3,5 JH</strong></td></tr>
+    </tfoot>
+  </table>
+  </div>
+
+  <p>Les étapes sont indépendantes et livrables dans l'ordre. <strong>L'étape 1 seule corrige déjà quatre des quatorze fiches en défaut sur l'affiche du jour</strong>, sans clé API, sans base et sans coût : elle peut être livrée immédiatement pendant que le choix du moteur se décide.</p>
+</section>
+
+<hr class="rule">
+
+<!-- ══════════════════ 9 ══════════════════ -->
+<section>
+  <h2>9 - Décisions à prendre avant de coder</h2>
+  <p class="h2sub">Quatre questions, dont deux au client</p>
+
+  <div class="qa">
+    <div class="q">
+      <b>1 - Quel moteur : modèle de langage, DeepL, ou OPUS-MT hors ligne ?</b>
+      <p>Recommandation : <strong>modèle de langage</strong>, pour la conservation de la mise en forme et des titres de films. <strong>DeepL</strong> est un repli viable et gratuit à ce volume. <strong>OPUS-MT dans Node (F2)</strong> est le repli du cas « aucun service externe, aucune clé, aucun compte » : gratuit pour toujours, mais qualité en retrait et masquage manuel du balisage à écrire. Les trois se branchent sur la même architecture - <strong>le connecteur est le seul élément qui change</strong>, ce qui permet de trancher plus tard, voire d'en essayer deux sur le même corpus.</p>
+    </div>
+    <div class="q">
+      <b>2 - Faut-il signaler qu'une traduction est automatique ?</b>
+      <p>Une mention discrète (« Traduction automatique ») est la pratique de la plupart des plateformes. Elle protège l'image en cas de formulation maladroite, mais alourdit la fiche. <em>Décision client.</em></p>
+    </div>
+    <div class="q">
+      <b>3 - Cinepax veut-il pouvoir corriger une traduction ?</b>
+      <p>Si oui, l'étape 5 (écran de relecture) est à retenir : +1 JH. Si non, on économise cette charge - au prix d'une correction qui passerait obligatoirement par le développeur. <em>Décision client.</em></p>
+    </div>
+    <div class="q">
+      <b>4 - Reprend-on tout le catalogue historique ?</b>
+      <p>Recommandation : <strong>non</strong>. L'affiche, les films à venir et les douze derniers mois couvrent tout ce qu'un visiteur peut atteindre. Une reprise complète coûterait moins de 9 € mais traduirait 900 films que personne n'ouvrira. <em>Décision technique.</em></p>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ══════════════════ 10 ══════════════════ -->
+<section>
+  <h2>10 - Sources</h2>
+  <p class="h2sub">Tarifs et limites relevés le 5 août 2026</p>
+
+  <ul class="srcs">
+    <li><a href="https://support.deepl.com/hc/en-us/articles/360021200939-DeepL-API-plans">DeepL API plans</a> et <a href="https://support.deepl.com/hc/en-us/articles/360020685720-Usage-count-and-billing-in-DeepL-API">décompte des caractères</a> - palier gratuit de 500 000 caractères / mois, Pro à 5,49 $ / million.</li>
+    <li><a href="https://chatscontrol.com/blog/google-cloud-translation-api-pricing-limits-2026">Google Cloud Translation - tarifs et limites 2026</a> - 500 000 caractères / mois gratuits (quota permanent, facturation à activer), 20 $ / million au-delà.</li>
+    <li><a href="https://github.com/LibreTranslate/LibreTranslate">LibreTranslate</a> et <a href="https://github.com/argosopentech/argos-translate">Argos Translate</a> - moteur open source auto-hébergeable.</li>
+    <li><a href="https://mymemory.translated.net/doc/usagelimits.php">MyMemory - limites d'usage</a> - 5 000 caractères / jour en anonyme, 50 000 avec adresse e-mail.</li>
+    <li><a href="https://www.themoviedb.org/api-terms-of-use">TMDB - conditions d'utilisation de l'API</a> - usage commercial soumis à accord séparé, attribution obligatoire.</li>
+    <li><a href="https://huggingface.co/Xenova/opus-mt-fr-en/tree/main/onnx">Modèles OPUS-MT (Helsinki-NLP) convertis en ONNX</a> - tailles relevées pour <code>fr → en</code> : encodeur quantifié 50,1 Mo, décodeur fusionné quantifié 57,4 Mo, soit <strong>107 Mo par direction</strong> (214 Mo pour les deux sens). Exécution possible en <a href="https://huggingface.co/docs/transformers.js/en/tutorials/node">Node côté serveur</a>, sans clé API.</li>
+    <li>Mesures catalogue : API Veezi <code>/v4/film</code> (2 412 fiches) et <code>/v1/session</code>, relevées le 5 août 2026.</li>
+  </ul>
+</section>
+
+<hr class="rule">
+
+<!-- ══════════════════ 11 ══════════════════ -->
+<section>
+  <h2>11 - État de la mise en œuvre</h2>
+  <p class="h2sub">Ce qui est en place au 5 août 2026</p>
+
+  <p>L'architecture décrite au chapitre 5 est développée et vérifiée sur le catalogue réel. Le moteur retenu est le <strong>palier gratuit de l'API Gemini</strong> (voir chapitre 9, décision 1) : sans carte bancaire, et seul moteur gratuit capable de respecter le balisage sur consigne.</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Couche</th><th>Fichier</th><th class="ctr">État</th></tr></thead>
+    <tbody>
+      <tr><td>Détection de langue et appariement VF/VO</td><td><code>lib/langue.js</code></td><td class="ctr"><span class="tag ok">Livré</span></td></tr>
+      <tr><td>Connecteur Gemini, cache et file de traduction</td><td><code>lib/traduction.js</code></td><td class="ctr"><span class="tag ok">Livré</span></td></tr>
+      <tr><td>Catalogue Veezi mémorisé côté serveur</td><td><code>lib/veeziCatalogue.js</code></td><td class="ctr"><span class="tag ok">Livré</span></td></tr>
+      <tr><td>Route de résolution</td><td><code>app/api/synopsis/route.js</code></td><td class="ctr"><span class="tag ok">Livré</span></td></tr>
+      <tr><td>Préchauffage quotidien (cron Vercel, 3 h du matin)</td><td><code>app/api/synopsis/refresh/route.js</code></td><td class="ctr"><span class="tag ok">Livré</span></td></tr>
+      <tr><td>Table de cache</td><td><code>supabase/migration_film_translations.sql</code></td><td class="ctr"><span class="tag wait">À exécuter</span></td></tr>
+      <tr><td>Dictionnaire des 34 genres</td><td><code>lib/classification.js</code>, <code>lib/i18n.jsx</code></td><td class="ctr"><span class="tag ok">Livré</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout ok">
+    <span class="lbl">Mesure après développement</span>
+    <p>Sur l'affiche du jour, l'appariement VF/VO seul — <strong>sans aucune traduction automatique</strong> — porte les synopsis dans la bonne langue à <strong>11 films sur 14 en français</strong> et <strong>12 sur 14 en anglais</strong>. Les quatre fiches qui affichaient de l'anglais à un public francophone (chapitre 2.1) sont corrigées, à l'exception de celles dont aucune fiche sœur ne porte de texte français. Le reste attend la clé Gemini.</p>
+  </div>
+
+  <div class="callout info">
+    <span class="lbl">Deux points relevés en développement, absents de l'étude initiale</span>
+    <p><strong>Homonymes.</strong> Deux fiches peuvent porter le même titre sans être la même œuvre, et une fiche du catalogue porte même le synopsis d'un autre film. L'appariement vérifie donc date de sortie et durée, et retient parmi les candidates celle dont la longueur est la plus proche du texte d'origine — une traduction fait à peu près la taille de sa source.</p>
+    <p><strong>Le catalogue dépasse le cache de Next.js.</strong> Les 5,7 Mo de <code>/v4/film</code> excèdent la limite de 2 Mo par entrée : sans mémo, chaque affichage les retéléchargeait. Une projection des seuls champs utiles (1,4 Mo) est gardée en mémoire du processus, ce qui ramène la résolution de 7 secondes à 15 millisecondes.</p>
+  </div>
+
+  <p>Deux garde-fous encadrent l'ensemble : la lecture du cache est abandonnée au-delà d'<strong>une seconde et demie</strong> (une base lente doit coûter une traduction manquée, pas une page qui rame), et la traduction n'est <strong>jamais</strong> appelée pendant que le visiteur attend — elle part en tâche de fond, et le texte d'origine s'affiche en attendant.</p>
+</section>
+
+<div class="signoff" style="margin-left:56px;margin-right:56px">
+  <p><b>Cinepax Madagascar × eTech</b> - Étude et mise en œuvre de la traduction automatique des synopsis. Reste à faire côté exploitation : exécuter la migration Supabase, créer la clé Gemini et la déclarer sur Vercel.</p>
+</div>
+
+</main>
+</div>
+</body>
+</html>

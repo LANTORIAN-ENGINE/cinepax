@@ -201,12 +201,17 @@ export function renderSynopsis(nodes) {
 
 // Bloc de synopsis mis en forme. `trailing` se glisse à la fin du dernier
 // paragraphe : c'est là que se place le bouton « Plus ».
-export default function RichText({ text, paragraphs, className, trailing = null }) {
+//
+// `lang` porte la langue réelle du texte, qui n'est pas toujours celle du site :
+// tant qu'une traduction n'est pas prête, on affiche le texte Veezi d'origine.
+// L'annoncer évite qu'un lecteur d'écran lise de l'anglais avec une prononciation
+// française.
+export default function RichText({ text, paragraphs, className, trailing = null, lang }) {
   const blocks = paragraphs || parseSynopsis(text)
   if (!blocks.length) return null
 
   return (
-    <div className={className}>
+    <div className={className} lang={lang || undefined}>
       {blocks.map((nodes, i) => (
         <p key={i}>
           {renderSynopsis(nodes)}

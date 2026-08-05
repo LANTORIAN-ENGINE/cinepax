@@ -5,7 +5,7 @@ import { useI18n, formatDuration } from '@/lib/i18n'
 import { fixImageUrl } from '@/lib/images'
 import { youtubeId } from '@/components/HeroSlider'
 import RichText from '@/lib/synopsis'
-import { ratingLabel } from '@/lib/classification'
+import { ratingLabel, genreLabel } from '@/lib/classification'
 
 // ─── Prochainement ────────────────────────────────────────────────────────────
 // Grille des films à venir, reprise de cinepax.mg/coming-soon. Les données
@@ -51,7 +51,7 @@ function FilmDialog({ film, onClose }) {
     }
   }, [onClose])
 
-  const meta = [ratingLabel(film.rating, t), film.duration && formatDuration(film.duration, lang), film.genre]
+  const meta = [ratingLabel(film.rating, t), film.duration && formatDuration(film.duration, lang), genreLabel(film.genre, t)]
     .filter(Boolean).join(' · ')
 
   return (
@@ -91,7 +91,7 @@ function FilmDialog({ film, onClose }) {
           </p>
           <h2 className="cs-dialog-title">{film.title}</h2>
           {meta && <p className="cs-dialog-meta">{meta}</p>}
-          <RichText className="cs-dialog-synopsis" text={film.synopsis} />
+          <RichText className="cs-dialog-synopsis" text={film.synopsis} lang={film.synopsisLang} />
 
           {film.director && (
             <p className="cs-dialog-row">
@@ -113,23 +113,29 @@ function FilmDialog({ film, onClose }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function ComingSoonPage() {
-  const { t, locale } = useI18n()
+  const { t, lang, locale } = useI18n()
 
   const [films, setFilms]     = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(null)
   const [opened, setOpened]   = useState(null)
 
+  // La langue fait partie de la requête : le synopsis est résolu côté serveur
+  // (fiche sœur VF/VO, puis traduction en cache). Changer de langue relance
+  // donc la récupération.
   useEffect(() => {
-    fetch('/api/films/coming-soon')
+    let annule = false
+    fetch(`/api/films/coming-soon?lang=${lang}`)
       .then(res => res.json())
       .then(data => {
+        if (annule) return
         if (data.error) throw new Error(data.error)
         setFilms(data.films || [])
       })
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false))
-  }, [])
+      .catch(e => { if (!annule) setError(e.message) })
+      .finally(() => { if (!annule) setLoading(false) })
+    return () => { annule = true }
+  }, [lang])
 
   return (
     <div className="page-container">

@@ -10,7 +10,7 @@ import BookingConfirmation from '../components/BookingConfirmation'
 import AchatBand from '../components/AchatBand'
 import FinalSaleNotice from '../components/FinalSaleNotice'
 import { useI18n, formatDuration } from '@/lib/i18n'
-import { ratingLabel, ratingTitle } from '@/lib/classification'
+import { ratingLabel, ratingTitle, genreLabel } from '@/lib/classification'
 import { filmPoster, filmBackdrop } from '@/lib/images'
 import RichText, { parseSynopsis, truncateSynopsis } from '@/lib/synopsis'
 import {
@@ -378,6 +378,10 @@ export default function BookingFlow({ initialRoute }) {
   const [step, setStep] = useState('films')
 
   const [films, setFilms] = useState([])
+  // Synopsis résolus dans la langue courante — voir /api/synopsis. Tant que la
+  // réponse n'est pas là, l'affichage retombe sur le texte brut de la fiche
+  // Veezi : rien ne clignote, rien n'attend.
+  const [synopses, setSynopses] = useState({})
   const [allSessions, setAllSessions] = useState([])
   const [selectedFilm, setSelectedFilm] = useState(null)
   const [selectedSession, setSelectedSession] = useState(null)
@@ -587,6 +591,21 @@ export default function BookingFlow({ initialRoute }) {
       .catch(e => setError(e.message))
       .finally(() => { setLoading(false); setDataLoaded(true) })
   }, [])
+
+  // Synopsis dans la langue affichée. Le serveur cherche d'abord le texte déjà
+  // rédigé dans cette langue sur une fiche sœur (VF/VO), puis sa traduction en
+  // cache ; il ne traduit jamais pendant que le visiteur attend. Un échec est
+  // sans conséquence : on garde les synopsis bruts reçus de Veezi.
+  useEffect(() => {
+    if (!films.length) return
+    let annule = false
+    const ids = films.map(f => f.Id).join(',')
+    fetch(`/api/synopsis?lang=${lang}&ids=${encodeURIComponent(ids)}`)
+      .then(res => res.json())
+      .then(data => { if (!annule) setSynopses(data.synopsis || {}) })
+      .catch(() => {})
+    return () => { annule = true }
+  }, [films, lang])
 
   // Réconcilie les quantités de billets avec le nombre de places sélectionnées :
   // la somme des quantités doit toujours égaler le nombre de sièges. Le surplus/
@@ -943,7 +962,7 @@ export default function BookingFlow({ initialRoute }) {
                 <p className="film-meta-hero">
                   {film.Duration && formatDuration(film.Duration, lang)}
                   {film.Duration && film.Genre && ' | '}
-                  {film.Genre}
+                  {genreLabel(film.Genre, t)}
                 </p>
               )}
 
@@ -1133,7 +1152,8 @@ export default function BookingFlow({ initialRoute }) {
 
   // ── Étape 2 — Détail film + séances ─────────────────────────────────────────
   if (step === 'sessions' && selectedFilm) {
-    const fullSynopsis = selectedFilm.Synopsis || selectedFilm.ShortSynopsis || ''
+    const resolu = synopses[String(selectedFilm.Id)]
+    const fullSynopsis = resolu?.texte || selectedFilm.Synopsis || selectedFilm.ShortSynopsis || ''
     const hasDetails = selectedFilm.Director || selectedFilm.Cast || fullSynopsis
 
     return (
@@ -1186,7 +1206,7 @@ export default function BookingFlow({ initialRoute }) {
               </p>
             )}
 
-            <RichText className="film-details-synopsis" text={fullSynopsis} />
+            <RichText className="film-details-synopsis" text={fullSynopsis} lang={resolu?.langue} />
           </div>
         )}
       </FilmHero>
@@ -1221,7 +1241,7 @@ export default function BookingFlow({ initialRoute }) {
   return (
     <>
       {step === 'films' && (
-        <HeroSlider films={heroFilms} loading={loading} onSelectFilm={selectFilm} />
+        <HeroSlider films={heroFilms} loading={loading} synopses={synopses} onSelectFilm={selectFilm} />
       )}
 
     <div className="page-container">
@@ -1353,7 +1373,8 @@ export default function BookingFlow({ initialRoute }) {
 
               {visibleFilms.map((film, idx) => {
                 const filmSessions = sessionsByDay.filter(s => String(s.FilmId) === String(film.Id))
-                const synopsis = parseSynopsis(film.Synopsis || film.ShortSynopsis)
+                const resolu = synopses[String(film.Id)]
+                const synopsis = parseSynopsis(resolu?.texte || film.Synopsis || film.ShortSynopsis)
                 const isExpanded = expandedFilms.has(film.Id)
                 // La coupe porte sur le texte analysé, pas sur la chaîne brute :
                 // un titre de film en italique ne se retrouve jamais à cheval.
@@ -1408,6 +1429,7 @@ export default function BookingFlow({ initialRoute }) {
 
                         <RichText
                           className="film-synopsis"
+                          lang={resolu?.langue}
                           paragraphs={displayedSynopsis}
                           trailing={needsTruncation && (
                             <>
