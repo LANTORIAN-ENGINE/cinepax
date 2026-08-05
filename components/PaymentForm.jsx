@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
 import AchatBand from './AchatBand'
 import FinalSaleNotice from './FinalSaleNotice'
+import LegalCheckoutNotice from './LegalCheckoutNotice'
 
 function fixImageUrl(url) {
   if (!url) return null
@@ -755,6 +756,9 @@ export default function PaymentForm({
                 </svg>
                 {t('payment.secureNote')}
               </p>
+
+              {/* Le contrat, à portée de clic sans quitter le paiement. */}
+              <LegalCheckoutNotice className="pay-legal-note" />
             </form>
           </div>
         </div>

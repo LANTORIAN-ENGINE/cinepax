@@ -7831,3 +7831,1887 @@ body {
 /* Le bandeau d'achat sur l'accueil : il ouvre la liste des films, donc il
    respire un peu plus que dans le tunnel. */
 .home-achat-band { margin-top: 20px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   DOCUMENTS LÉGAUX
+
+   Un contrat n'est pas une page marketing : il ne se parcourt pas, il se
+   lit ligne à ligne, souvent à contrecœur, parfois pour y chercher une
+   clause précise. Trois choses le rendent tenable, et elles commandent
+   tout ce qui suit :
+
+     1. Une mesure de ligne courte. Le corps du texte est plafonné à
+        68 caractères — au-delà, l'œil perd la ligne au retour chariot,
+        et c'est exactement ce qui fait abandonner un texte long.
+     2. Un repère de position permanent. Le sommaire suit la lecture, et
+        le filet sous l'en-tête dit d'un coup d'œil ce qui reste.
+     3. Une date et un numéro de version en tête. Un document sans date
+        ne se cite pas, et ne se conteste pas.
+
+   Le motif de la souche de billet — le bord perforé des cartes du
+   sommaire — est le seul ornement de l'ensemble. Il paraît une fois,
+   là où il aide à distinguer quatre documents qui se ressemblent tous.
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Corps de texte, partagé par la page, le modal et l'éditeur ────────── */
+.legal-prose {
+  color: var(--t-ink-2);
+  font-size: 0.92rem;
+  line-height: 1.75;
+}
+
+.legal-prose > *:first-child { margin-top: 0; }
+.legal-prose > *:last-child  { margin-bottom: 0; }
+
+.legal-prose h2 {
+  margin: 38px 0 12px;
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.32rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.15;
+  color: var(--t-ink);
+  /* L'ancre du sommaire vise le titre : sans ce dégagement, la barre de
+     navigation collante le recouvrirait à l'arrivée. */
+  scroll-margin-top: 88px;
+}
+
+.legal-prose h3 {
+  margin: 26px 0 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--t-ink);
+}
+
+.legal-prose h4 {
+  margin: 20px 0 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--t-ink-2);
+}
+
+.legal-prose p  { margin: 0 0 14px; }
+.legal-prose ul,
+.legal-prose ol { margin: 0 0 16px; padding-left: 20px; }
+.legal-prose li { margin-bottom: 7px; }
+
+/* Puce rouge sur les listes à puces, où elle ponctue. Pas sur les listes
+   numérotées : un « 1. » en rouge au milieu d'un contrat se lit comme une
+   alerte, alors qu'il ne fait que compter. */
+.legal-prose ul > li::marker { color: var(--t-red-ink); }
+.legal-prose ol > li::marker { color: var(--t-ink-3); font-weight: 700; }
+
+.legal-prose strong { color: var(--t-ink); font-weight: 700; }
+
+.legal-prose a {
+  color: var(--t-red-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+.legal-prose a:hover { color: var(--t-red-deep); }
+
+.legal-prose blockquote {
+  margin: 0 0 16px;
+  padding: 2px 0 2px 16px;
+  border-left: 3px solid var(--t-red);
+  color: var(--t-ink-3);
+  font-style: italic;
+}
+
+.legal-prose hr {
+  margin: 28px 0;
+  border: 0;
+  border-top: 1px solid var(--t-line);
+}
+
+/* Fantômes de chargement des écrans clairs : le .ask de l'administration
+   part de jetons --a-* qui n'existent pas ici. */
+.legal-sk {
+  display: block;
+  margin-bottom: 9px;
+  border-radius: 4px;
+  background: linear-gradient(
+    105deg, #ececec 0%, #ececec 30%, #f7f7f7 48%, #fff 50%,
+    #f7f7f7 52%, #ececec 70%, #ececec 100%
+  );
+  background-size: 1200px 100%;
+  animation: sk-sweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: var(--sk-delay, 0s);
+}
+
+/* ── Sommaire /legal ─────────────────────────────────────────────────── */
+.legal-eyebrow {
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  color: var(--t-red-ink);
+  margin-bottom: 2px;
+}
+
+.legal-hub-lead {
+  max-width: 62ch;
+  margin: 18px 0 26px;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--t-ink-2);
+}
+
+.legal-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.legal-card {
+  display: flex;
+  height: 100%;
+  background: var(--t-surface);
+  border: 1px solid var(--t-line);
+  border-radius: 12px;
+  text-decoration: none;
+  overflow: hidden;
+  transition: border-color 0.16s, transform 0.16s, box-shadow 0.16s;
+}
+
+.legal-card:hover {
+  border-color: var(--t-red);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px -14px rgba(20, 22, 26, 0.45);
+}
+
+.legal-card:focus-visible {
+  outline: 2px solid var(--t-red);
+  outline-offset: 2px;
+}
+
+/* La souche : bord perforé du billet, découpé dans le fond de la carte.
+   C'est le seul emprunt décoratif au guichet, et il ne paraît qu'ici.
+   Les encoches sont percées dans une bande assez foncée pour se voir :
+   sur --t-paper, à 4 px de rayon, le motif disparaissait à l'écran. */
+.legal-card-stub {
+  flex: 0 0 16px;
+  background:
+    radial-gradient(circle at 16px 50%, var(--t-surface) 4.5px, var(--t-paper-2) 5px)
+      left / 16px 17px repeat-y;
+  border-right: 1px dashed var(--t-line);
+  transition: background 0.16s, border-color 0.16s;
+}
+
+.legal-card:hover .legal-card-stub {
+  border-right-color: var(--t-red);
+  background:
+    radial-gradient(circle at 16px 50%, var(--t-surface) 4.5px, var(--t-red-w) 5px)
+      left / 16px 17px repeat-y;
+}
+
+.legal-card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex: 1;
+  padding: 16px 18px 15px;
+}
+
+.legal-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.legal-card-version {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--t-ink-3);
+}
+
+.legal-card-flag,
+.legal-doc-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--t-red-w);
+  color: var(--t-red-deep);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.legal-card-title {
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.28rem;
+  letter-spacing: 0.015em;
+  line-height: 1.12;
+  color: var(--t-ink);
+}
+
+.legal-card-summary {
+  font-size: 0.83rem;
+  line-height: 1.6;
+  color: var(--t-ink-3);
+  flex: 1;
+}
+
+.legal-card-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+  padding-top: 11px;
+  border-top: 1px solid var(--t-line-2);
+  flex-wrap: wrap;
+}
+
+.legal-card-date {
+  font-size: 0.7rem;
+  color: var(--t-ink-3);
+}
+
+.legal-card-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--t-red-ink);
+}
+
+.legal-card-go svg { transition: transform 0.16s; }
+.legal-card:hover .legal-card-go svg { transform: translateX(3px); }
+
+.legal-card--sk {
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 18px;
+  pointer-events: none;
+}
+
+.legal-empty {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--t-ink-3);
+}
+
+/* Encart de contact, en pied de sommaire */
+.legal-hub-contact {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 32px;
+  padding: 20px 22px;
+  background: var(--t-paper);
+  border: 1px solid var(--t-line);
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+
+.legal-hub-contact-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--t-surface);
+  border: 1px solid var(--t-line);
+  color: var(--t-red-ink);
+  flex-shrink: 0;
+}
+
+.legal-hub-contact-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--t-ink);
+}
+
+.legal-hub-contact-lead {
+  font-size: 0.82rem;
+  color: var(--t-ink-3);
+  margin-top: 2px;
+}
+
+.legal-hub-contact-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding: 9px 15px;
+  background: var(--t-ink);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.legal-hub-contact-cta:hover { background: var(--t-red-deep); }
+
+/* ── Page d'un document ──────────────────────────────────────────────── */
+.legal-doc-head {
+  position: relative;
+  padding: 26px 0 0;
+  max-width: 760px;
+}
+
+.legal-crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--t-red-ink);
+  text-decoration: none;
+}
+.legal-crumb:hover { color: var(--t-red-deep); }
+
+.legal-doc-title {
+  margin: 10px 0 0;
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif;
+  font-size: clamp(2rem, 5.5vw, 2.7rem);
+  font-weight: 400;
+  line-height: 1.03;
+  letter-spacing: 0.01em;
+  color: var(--t-ink);
+}
+
+.legal-doc-lead {
+  margin: 12px 0 0;
+  max-width: 58ch;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--t-ink-2);
+}
+
+.legal-doc-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px 14px;
+  margin: 16px 0 0;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  color: var(--t-ink-3);
+}
+
+.legal-doc-version {
+  padding: 2px 8px;
+  border: 1px solid var(--t-line);
+  border-radius: 999px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--t-ink-2);
+}
+
+.legal-print {
+  position: absolute;
+  top: 26px;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  background: var(--t-surface);
+  border: 1px solid var(--t-line);
+  border-radius: 8px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--t-ink-2);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.legal-print:hover { border-color: var(--t-ink-3); color: var(--t-ink); }
+
+/* Le filet de lecture. Deux pixels, sous l'en-tête : il ne demande rien,
+   il répond à « il m'en reste combien ? » sans qu'on ait à le chercher. */
+.legal-progress {
+  height: 2px;
+  margin: 22px 0 0;
+  background: var(--t-line-2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.legal-progress-fill {
+  display: block;
+  height: 100%;
+  width: var(--legal-read, 0%);
+  background: var(--t-red);
+  transition: width 0.12s linear;
+}
+
+.legal-doc-body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 28px;
+  padding: 26px 0 8px;
+}
+
+.legal-prose--page {
+  max-width: 68ch;
+  font-size: 0.95rem;
+}
+
+/* Sommaire. Le numéro n'est pas un ornement : les articles d'un contrat
+   se citent par leur rang (« au titre de l'article 6 »), et la page doit
+   permettre de le retrouver aussi vite qu'on le lit. */
+.legal-toc {
+  align-self: start;
+  padding: 16px 0 0;
+  border-top: 2px solid var(--t-ink);
+}
+
+.legal-toc-title {
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.1em;
+  color: var(--t-ink);
+  margin-bottom: 10px;
+}
+
+.legal-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: none;
+}
+
+.legal-toc-list a {
+  display: flex;
+  gap: 9px;
+  padding: 6px 0;
+  font-size: 0.79rem;
+  line-height: 1.45;
+  color: var(--t-ink-3);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  padding-left: 10px;
+  margin-left: -12px;
+  transition: color 0.14s, border-color 0.14s;
+}
+
+.legal-toc-list a:hover { color: var(--t-ink); }
+
+.legal-toc-list a.is-active {
+  color: var(--t-ink);
+  font-weight: 600;
+  border-left-color: var(--t-red);
+}
+
+.legal-toc-num {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--t-ink-3);
+  padding-top: 1px;
+}
+
+.legal-toc-list a.is-active .legal-toc-num { color: var(--t-red-ink); }
+
+/* Version archivée : la page le dit avant de laisser lire. */
+.legal-archived {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin: 18px 0 0;
+  padding: 14px 16px;
+  background: var(--t-red-w);
+  border: 1px solid rgba(232, 25, 44, 0.28);
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+
+.legal-archived-mark { color: var(--t-red-deep); display: flex; }
+
+.legal-archived-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--t-ink);
+}
+
+.legal-archived-lead {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--t-ink-2);
+  margin-top: 2px;
+  max-width: 56ch;
+}
+
+.legal-archived-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--t-red-deep);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.legal-archived-cta:hover { text-decoration: underline; }
+
+.legal-fallback {
+  margin: 16px 0 0;
+  padding: 10px 14px;
+  background: var(--t-paper-2);
+  border-left: 3px solid var(--t-ink-3);
+  border-radius: 0 6px 6px 0;
+  font-size: 0.78rem;
+  color: var(--t-ink-2);
+}
+
+.legal-doc-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 34px;
+  padding-top: 18px;
+  border-top: 1px solid var(--t-line);
+  flex-wrap: wrap;
+}
+
+.legal-doc-updated { font-size: 0.75rem; color: var(--t-ink-3); }
+
+.legal-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--t-red-ink);
+  text-decoration: none;
+}
+.legal-back:hover { color: var(--t-red-deep); }
+
+.legal-doc-sk { max-width: 700px; padding: 34px 0; }
+.legal-sk--gap { margin-top: 22px; }
+
+/* Document introuvable : la page propose la sortie plutôt que de laisser
+   le lecteur devant une impasse. */
+.legal-missing {
+  max-width: 520px;
+  margin: 60px auto;
+  text-align: center;
+}
+
+.legal-missing-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--t-red-w);
+  color: var(--t-red-deep);
+  margin-bottom: 14px;
+}
+
+.legal-missing-title {
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.7rem;
+  font-weight: 400;
+  color: var(--t-ink);
+}
+
+.legal-missing-lead { margin-top: 6px; font-size: 0.88rem; color: var(--t-ink-3); }
+
+.legal-missing-list {
+  list-style: none;
+  margin: 22px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.legal-missing-list a {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 14px;
+  border: 1px solid var(--t-line);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--t-ink);
+  text-decoration: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+.legal-missing-list a:hover { border-color: var(--t-red); background: var(--t-paper); }
+.legal-missing-list svg { color: var(--t-ink-3); flex-shrink: 0; }
+
+/* Lien inséré dans une phrase (bandeau, paiement, formulaire de contact) */
+.legal-inline-link {
+  color: var(--t-red-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.legal-inline-link:hover { color: var(--t-red-deep); }
+.legal-inline-link[aria-busy='true'] { opacity: 0.55; cursor: progress; }
+
+.legal-checkout {
+  margin: 12px 0 0;
+  font-size: 0.74rem;
+  line-height: 1.55;
+  color: var(--t-ink-3);
+  text-align: center;
+}
+
+.cform-consent-link { font-size: inherit; }
+
+@media (min-width: 1024px) {
+  .legal-doc-body {
+    grid-template-columns: 210px minmax(0, 1fr);
+    gap: 44px;
+  }
+  .legal-toc {
+    position: sticky;
+    top: 88px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 1023px) {
+  /* Sous cette largeur le sommaire passerait au-dessus du texte et
+     repousserait le premier article sous la ligne de flottaison. Le
+     filet de progression suffit à situer la lecture. */
+  .legal-toc { display: none; }
+}
+
+@media (max-width: 560px) {
+  .legal-print {
+    position: static;
+    margin-top: 14px;
+  }
+  .legal-hub-contact-cta { margin-left: 0; width: 100%; justify-content: center; }
+}
+
+/* Impression : le document, rien d'autre. Une page imprimée sert de pièce
+   à conserver, pas de capture d'écran du site. */
+@media print {
+  .navbar, .site-footer, .rgpd-banner, .legal-toc,
+  .legal-print, .legal-crumb, .legal-progress, .legal-doc-foot { display: none !important; }
+
+  .page-container { padding: 0; max-width: none; }
+  .legal-prose--page { max-width: none; font-size: 11pt; }
+  .legal-prose h2 { page-break-after: avoid; }
+  .legal-prose li, .legal-prose p { page-break-inside: avoid; }
+  .legal-prose a { color: #000; text-decoration: underline; }
+  .legal-prose a[href^='http']::after { content: ' (' attr(href) ')'; font-size: 9pt; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL DE LECTURE — le verrou de défilement
+
+   La case « j'accepte » ne s'ouvre qu'une fois le texte parcouru. Un
+   verrou qu'on subit sans le comprendre est une brimade ; celui-ci
+   s'explique de trois façons simultanées : le rail se remplit à gauche,
+   le bouton porte le pourcentage au lieu du libellé, et une phrase dit
+   ce qu'il reste à faire. Rien n'est caché, donc rien n'énerve.
+═══════════════════════════════════════════════════════════════ */
+.lgm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(12, 14, 18, 0.62);
+  backdrop-filter: blur(3px);
+  animation: lgm-fade 0.18s ease-out;
+}
+
+@keyframes lgm-fade { from { opacity: 0; } }
+@keyframes lgm-rise { from { opacity: 0; transform: translateY(12px) scale(0.985); } }
+
+.lgm-panel {
+  display: flex;
+  flex-direction: column;
+  width: min(760px, 100%);
+  max-height: min(86vh, 780px);
+  background: var(--t-surface);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 30px 70px -24px rgba(0, 0, 0, 0.55);
+  animation: lgm-rise 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.lgm-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 20px 15px;
+  border-bottom: 1px solid var(--t-line);
+}
+
+.lgm-head-text { flex: 1; min-width: 0; }
+
+.lgm-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--t-ink-3);
+}
+
+.lgm-dot { color: var(--t-line); }
+
+.lgm-title {
+  margin-top: 5px;
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: 0.015em;
+  color: var(--t-ink);
+}
+
+.lgm-close {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--t-line);
+  border-radius: 8px;
+  background: var(--t-surface);
+  color: var(--t-ink-2);
+  cursor: pointer;
+  transition: background 0.14s, color 0.14s;
+}
+.lgm-close:hover { background: var(--t-hover); color: var(--t-ink); }
+.lgm-close:focus-visible { outline: 2px solid var(--t-red); outline-offset: 2px; }
+
+.lgm-stage {
+  display: flex;
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Le rail. Il occupe la gouttière gauche du texte et se remplit du haut
+   vers le bas — même sens que la lecture, donc lisible sans légende. */
+.lgm-rail {
+  flex: 0 0 3px;
+  margin: 20px 0 20px 20px;
+  /* Le creux doit se voir, sinon la barre rouge ne se lit plus comme un
+     remplissage mais comme un filet décoratif posé le long du texte. */
+  background: var(--t-line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.lgm-rail-fill {
+  display: block;
+  width: 100%;
+  height: var(--lgm-progress, 0%);
+  background: var(--t-red);
+  transition: height 0.1s linear;
+}
+
+.lgm-body {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px 22px 18px;
+  scroll-behavior: smooth;
+}
+
+.lgm-body:focus-visible { outline: 2px solid var(--t-red); outline-offset: -4px; }
+
+.lgm-end {
+  margin-top: 26px;
+  padding-top: 16px;
+  border-top: 1px solid var(--t-line-2);
+}
+
+.lgm-end-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--t-ink-3);
+  text-decoration: none;
+}
+.lgm-end-link:hover { color: var(--t-red-ink); }
+
+.lgm-foot {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--t-line);
+  background: var(--t-paper);
+  flex-wrap: wrap;
+}
+
+.lgm-foot-state { flex: 1; min-width: 180px; }
+
+.lgm-hint {
+  font-size: 0.76rem;
+  line-height: 1.4;
+  color: var(--t-ink-3);
+}
+
+.lgm-tobottom {
+  margin-top: 3px;
+  padding: 0;
+  background: none;
+  border: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--t-red-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.lgm-tobottom:hover { color: var(--t-red-deep); }
+
+.lgm-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.79rem;
+  font-weight: 700;
+  color: var(--t-ok);
+}
+
+/* Annonce vocale de la progression, sans occuper de place à l'écran. */
+.lgm-sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.lgm-accept {
+  padding: 11px 20px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--t-ink);
+  color: #fff;
+  font-size: 0.83rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  transition: background 0.16s, opacity 0.16s;
+}
+
+.lgm-accept:hover:not(:disabled) { background: var(--t-red-deep); }
+.lgm-accept:focus-visible { outline: 2px solid var(--t-red); outline-offset: 2px; }
+
+/* Verrouillé, le bouton porte la mesure : « 42 % » dit pourquoi il ne
+   répond pas, là où un bouton simplement grisé laisserait chercher. */
+.lgm-accept:disabled {
+  background: var(--t-paper-2);
+  color: var(--t-ink-3);
+  cursor: not-allowed;
+}
+
+/* Lu : le bouton passe au vert, la même couleur que la coche de la case
+   qu'il vient de déverrouiller. Le lien entre les deux gestes se voit. */
+.lgm-foot.is-read .lgm-accept { background: var(--t-ok); }
+.lgm-foot.is-read .lgm-accept:hover { background: #0f5433; }
+
+@media (max-width: 560px) {
+  .lgm-backdrop { padding: 0; align-items: flex-end; }
+  .lgm-panel {
+    max-height: 92vh;
+    border-radius: 14px 14px 0 0;
+    width: 100%;
+  }
+  .lgm-foot { padding: 12px 16px; }
+  .lgm-accept { width: 100%; }
+  .lgm-rail { margin-left: 14px; }
+  .lgm-body { padding: 18px 16px 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lgm-backdrop, .lgm-panel { animation: none; }
+  .lgm-body { scroll-behavior: auto; }
+  .lgm-rail-fill, .legal-progress-fill { transition: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CASES DE CONSENTEMENT
+
+   Deux cases, jamais une : le contrat et les données se consentent
+   séparément. Chacune porte la liste des documents qu'elle couvre, avec
+   leur état de lecture — c'est une liste de tâches, pas une note de bas
+   de page.
+═══════════════════════════════════════════════════════════════ */
+.lgc {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 6px 0 4px;
+}
+
+.lgc-group {
+  padding: 14px 15px 12px;
+  background: var(--t-paper);
+  border: 1px solid var(--t-line);
+  border-radius: 11px;
+  transition: border-color 0.18s, background 0.18s;
+}
+
+.lgc-group.is-checked {
+  border-color: var(--t-ok-line);
+  background: var(--t-ok-w);
+}
+
+.lgc-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.lgc-group.is-locked .lgc-check { cursor: not-allowed; }
+
+/* La case native reste dans le flux — elle porte le focus et l'état pour
+   les technologies d'assistance — mais c'est la pastille dessinée qui se
+   voit : à 13 px, une case système ne se distingue pas d'un point. */
+.lgc-check input {
+  position: absolute;
+  opacity: 0;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  cursor: inherit;
+}
+
+.lgc-box {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border: 1.5px solid var(--t-line);
+  border-radius: 6px;
+  background: var(--t-surface);
+  color: transparent;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.lgc-group.is-locked .lgc-box {
+  color: var(--t-ink-3);
+  background: var(--t-paper-2);
+}
+
+.lgc-check input:checked ~ .lgc-box {
+  background: var(--t-ok);
+  border-color: var(--t-ok);
+  color: #fff;
+}
+
+.lgc-check input:focus-visible ~ .lgc-box {
+  outline: 2px solid var(--t-red);
+  outline-offset: 2px;
+}
+
+.lgc-label {
+  font-size: 0.83rem;
+  line-height: 1.5;
+  color: var(--t-ink);
+}
+
+.lgc-req {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--t-red-w);
+  color: var(--t-red-deep);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  vertical-align: 1px;
+}
+
+.lgc-docs {
+  list-style: none;
+  margin: 11px 0 0;
+  padding: 0 0 0 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.lgc-doc {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 8px 11px;
+  background: var(--t-surface);
+  border: 1px solid var(--t-line);
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.lgc-doc:hover { border-color: var(--t-red); }
+.lgc-doc:focus-visible { outline: 2px solid var(--t-red); outline-offset: 2px; }
+
+.lgc-doc-mark {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  border: 1.5px solid var(--t-line);
+  border-radius: 50%;
+  color: #fff;
+}
+
+.lgc-doc.is-done .lgc-doc-mark {
+  background: var(--t-ok);
+  border-color: var(--t-ok);
+}
+
+.lgc-doc-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.79rem;
+  font-weight: 600;
+  color: var(--t-ink);
+}
+
+.lgc-doc-action {
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--t-red-ink);
+}
+
+.lgc-doc.is-done .lgc-doc-action { color: var(--t-ok); }
+
+.lgc-hint {
+  margin: 9px 0 0;
+  padding-left: 30px;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--t-ink-3);
+}
+
+.lgc-hint.is-done { color: var(--t-ok); }
+
+.lgc-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 13px;
+  background: var(--t-red-w);
+  border-radius: 8px;
+  font-size: 0.79rem;
+  color: var(--t-red-deep);
+}
+
+/* Panneau de reconsentement, sur la page de connexion */
+.auth-form-box--consent { text-align: left; }
+
+.auth-consent-mark {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: var(--t-red-w);
+  color: var(--t-red-deep);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BANDEAU RGPD
+
+   Il informe, il ne barre pas la route : le site ne dépose aucun traceur
+   publicitaire, il n'y a donc aucune permission à extorquer. D'où une
+   barre basse, discrète, qui laisse le site utilisable derrière elle.
+═══════════════════════════════════════════════════════════════ */
+.rgpd-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 500;
+  padding: 12px;
+  animation: rgpd-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) 0.6s both;
+}
+
+@keyframes rgpd-in { from { opacity: 0; transform: translateY(16px); } }
+@keyframes rgpd-out { to { opacity: 0; transform: translateY(16px); } }
+
+.rgpd-banner.is-leaving { animation: rgpd-out 0.22s ease-in forwards; }
+
+.rgpd-inner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 13px 16px;
+  background: var(--t-ink);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px -18px rgba(0, 0, 0, 0.7);
+}
+
+.rgpd-mark {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.09);
+  color: #fff;
+}
+
+.rgpd-text { flex: 1; min-width: 0; }
+
+.rgpd-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.rgpd-body {
+  margin-top: 2px;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.rgpd-more {
+  color: #fff;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+.rgpd-more:hover { color: #ffd7db; }
+
+.rgpd-ok {
+  flex-shrink: 0;
+  padding: 9px 18px;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--t-ink);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.rgpd-ok:hover { background: #ffd7db; }
+.rgpd-ok:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+.rgpd-x {
+  flex-shrink: 0;
+  display: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+}
+.rgpd-x:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
+
+@media (max-width: 700px) {
+  .rgpd-inner { flex-wrap: wrap; padding: 13px 14px; }
+  .rgpd-text { flex: 1 1 100%; order: 2; }
+  .rgpd-mark { order: 1; }
+  .rgpd-x { display: grid; order: 1; margin-left: auto; }
+  .rgpd-ok { order: 3; width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rgpd-banner, .rgpd-banner.is-leaving { animation: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PIED DE PAGE — colonne légale
+═══════════════════════════════════════════════════════════════ */
+.footer-col-head {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  color: #6a6a6a;
+  margin-bottom: -2px;
+}
+
+.footer-col--legal a {
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: #cfcfcf;
+}
+
+.footer-col--legal a:hover { color: #fff; }
+
+.footer-legal-all {
+  color: #8a8a8a !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MES CONSENTEMENTS — espace client
+═══════════════════════════════════════════════════════════════ */
+.mycon-lead {
+  margin: -4px 0 14px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--t-ink-3);
+}
+
+.mycon-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mycon-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 13px;
+  border: 1px solid var(--t-line);
+  border-radius: 9px;
+}
+
+.mycon-row.is-current { border-left: 3px solid var(--t-ok); }
+.mycon-row.is-stale   { border-left: 3px solid var(--t-red); }
+
+.mycon-state {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+}
+
+.mycon-row.is-current .mycon-state { background: var(--t-ok-w); color: var(--t-ok); }
+.mycon-row.is-stale   .mycon-state { background: var(--t-red-w); color: var(--t-red-deep); }
+
+.mycon-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.mycon-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--t-ink);
+  text-decoration: none;
+}
+.mycon-title:hover { color: var(--t-red-ink); text-decoration: underline; }
+
+.mycon-meta { font-size: 0.72rem; color: var(--t-ink-3); }
+
+.mycon-chip {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.mycon-chip.is-ok   { background: var(--t-ok-w); color: var(--t-ok); }
+.mycon-chip.is-warn { background: var(--t-red-w); color: var(--t-red-deep); }
+
+.mycon-empty { font-size: 0.83rem; color: var(--t-ink-3); }
+
+.mycon-pending {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 11px 13px;
+  background: var(--t-red-w);
+  border-radius: 8px;
+  font-size: 0.78rem;
+  color: var(--t-red-deep);
+  flex-wrap: wrap;
+}
+
+.mycon-pending-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  font-weight: 700;
+  color: var(--t-red-deep);
+  text-decoration: underline;
+}
+
+@media (max-width: 520px) {
+  .mycon-row { flex-wrap: wrap; }
+  .mycon-chip { margin-left: 37px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ADMINISTRATION — MENTIONS LÉGALES
+
+   L'espace d'administration a son propre jeu de jetons (--a-*), sombre par
+   défaut et clair en variante. Tout ce qui suit s'y conforme : les couleurs
+   du site public n'entrent pas ici, sinon la page ne s'inverserait plus
+   avec le reste de l'administration.
+
+   L'écran de rédaction est en deux colonnes : le texte à gauche, ce qui
+   décide de son sort à droite. La montée de version est la seule commande
+   qui change quelque chose pour les clients — elle est donc isolée dans sa
+   propre carte, et s'annonce en rouge dès qu'elle est armée.
+═══════════════════════════════════════════════════════════════ */
+.alegal-sk { display: flex; flex-direction: column; gap: 8px; }
+
+.alegal-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 11px 14px;
+  background: var(--a-accent-w);
+  border-radius: var(--r-md);
+  font-size: var(--ts-sm);
+  color: var(--a-ink);
+}
+
+.alegal-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border: 1px solid var(--a-line);
+  border-radius: var(--r-sm);
+  background: var(--a-surface);
+  color: var(--a-ink);
+  font-size: var(--ts-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.alegal-new:hover { border-color: var(--a-accent); background: var(--a-hover); }
+
+/* ── Liste ── */
+.alegal-doc-name { font-weight: 600; color: var(--a-ink); }
+
+.alegal-doc-slug {
+  margin-top: 2px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--ts-2xs);
+  color: var(--a-ink-3);
+}
+
+.alegal-version {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--a-ink);
+}
+
+.alegal-stat {
+  margin-top: 3px;
+  font-size: var(--ts-2xs);
+  color: var(--a-ink-3);
+}
+
+.alegal-stat--warn { color: var(--a-accent-ink); }
+
+.alegal-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: var(--ts-2xs);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.alegal-chip--consent { background: var(--a-accent-w); color: var(--a-accent-ink); }
+.alegal-chip--live    { background: var(--a-hover); color: var(--a-ink); }
+.alegal-chip--draft   { background: transparent; border: 1px dashed var(--a-line); color: var(--a-ink-3); }
+
+.alegal-none { color: var(--a-ink-3); }
+
+.alegal-actions { white-space: nowrap; text-align: right; }
+
+.alegal-act {
+  padding: 6px 11px;
+  border: 1px solid var(--a-line);
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--a-ink-2);
+  font-size: var(--ts-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.alegal-act:hover { border-color: var(--a-accent); color: var(--a-ink); }
+.alegal-act + .alegal-act { margin-left: 6px; }
+
+.alegal-act--danger { padding: 6px 8px; color: var(--a-ink-3); }
+.alegal-act--danger:hover { color: var(--a-accent-ink); border-color: var(--a-accent); }
+.alegal-act--danger:disabled { opacity: 0.4; cursor: wait; }
+
+/* ── Barre de l'éditeur ── */
+.alegal-editor-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+
+.alegal-back {
+  padding: 0;
+  margin-bottom: 6px;
+  background: none;
+  border: 0;
+  font-size: var(--ts-xs);
+  font-weight: 600;
+  color: var(--a-ink-3);
+  cursor: pointer;
+}
+.alegal-back:hover { color: var(--a-ink); }
+
+.alegal-editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.alegal-dirty {
+  font-size: var(--ts-xs);
+  color: var(--a-accent-ink);
+  font-weight: 600;
+}
+
+.alegal-saved {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--ts-xs);
+  font-weight: 700;
+  color: var(--a-ink);
+}
+
+.alegal-cancel,
+.alegal-save {
+  padding: 9px 18px;
+  border-radius: var(--r-sm);
+  font-size: var(--ts-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.alegal-cancel {
+  border: 1px solid var(--a-line);
+  background: transparent;
+  color: var(--a-ink-2);
+}
+.alegal-cancel:hover { border-color: var(--a-ink-3); color: var(--a-ink); }
+
+.alegal-save {
+  border: 0;
+  background: var(--a-accent);
+  color: #fff;
+}
+.alegal-save:hover:not(:disabled) { background: var(--a-accent-hi); }
+.alegal-save:disabled { opacity: 0.55; cursor: wait; }
+
+/* ── Grille rédaction / réglages ── */
+.alegal-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 22px;
+  align-items: start;
+}
+
+@media (min-width: 1080px) {
+  .alegal-grid { grid-template-columns: minmax(0, 1fr) 320px; gap: 26px; }
+  .alegal-side { position: sticky; top: 20px; }
+}
+
+.alegal-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.alegal-side { display: flex; flex-direction: column; gap: 14px; }
+
+.alegal-card {
+  padding: 16px 17px 14px;
+  background: var(--a-panel);
+  border: 1px solid var(--a-line-2);
+  border-radius: var(--r-lg);
+}
+
+.alegal-card-title {
+  margin-bottom: 12px;
+  font-size: var(--ts-xs);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--a-ink-3);
+}
+
+.alegal-card--version.is-armed {
+  border-color: var(--a-accent);
+  background: var(--a-accent-w);
+}
+
+.alegal-version-now {
+  margin: -6px 0 12px;
+  font-size: var(--ts-xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--a-ink);
+}
+
+.alegal-bump-warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 10px;
+  padding: 9px 11px;
+  background: var(--a-bg);
+  border-radius: var(--r-sm);
+  font-size: var(--ts-xs);
+  line-height: 1.5;
+  color: var(--a-ink);
+}
+.alegal-bump-warn svg { flex-shrink: 0; margin-top: 1px; color: var(--a-accent-ink); }
+
+.alegal-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border: 1px solid var(--a-line);
+  border-radius: var(--r-md);
+  font-size: var(--ts-sm);
+  font-weight: 600;
+  color: var(--a-ink-2);
+  text-decoration: none;
+  transition: border-color 0.15s, color 0.15s;
+}
+.alegal-preview:hover { border-color: var(--a-accent); color: var(--a-ink); }
+.alegal-preview svg:last-child { margin-left: auto; }
+
+/* ── Onglets de langue ── */
+.alegal-langtabs {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--a-panel);
+  border: 1px solid var(--a-line-2);
+  border-radius: var(--r-md);
+  width: fit-content;
+}
+
+.alegal-langtab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 16px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--a-ink-3);
+  font-size: var(--ts-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.alegal-langtab:hover { color: var(--a-ink-2); }
+.alegal-langtab.active { background: var(--a-surface); color: var(--a-ink); }
+
+/* Pastille de langue vide : signale la traduction qui manque avant qu'on
+   change d'onglet pour s'en apercevoir. */
+.alegal-langdot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--a-accent);
+}
+
+/* ── Champs ── */
+.alegal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.alegal-two {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+@media (min-width: 760px) {
+  .alegal-two { grid-template-columns: 1fr 1fr; }
+}
+
+.alegal-label {
+  font-size: var(--ts-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--a-ink-2);
+}
+
+.alegal-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--a-bg);
+  border: 1px solid var(--a-line);
+  border-radius: var(--r-sm);
+  color: var(--a-ink);
+  font-family: inherit;
+  font-size: var(--ts-md);
+  transition: border-color 0.15s;
+}
+
+.alegal-input:focus {
+  outline: none;
+  border-color: var(--a-accent);
+}
+
+.alegal-input--title { font-size: var(--ts-lg); font-weight: 600; }
+.alegal-input--mono  { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--ts-sm); }
+.alegal-input--num   { width: 100px; }
+
+.alegal-textarea { resize: vertical; line-height: 1.55; }
+
+.alegal-hint {
+  font-size: var(--ts-2xs);
+  line-height: 1.5;
+  color: var(--a-ink-3);
+}
+
+.alegal-hint--warn { color: var(--a-accent-ink); }
+.alegal-hint--toggle { padding-left: 48px; margin-top: -4px; }
+
+.alegal-field--inline { gap: 8px; }
+
+.alegal-retention { display: flex; align-items: center; gap: 9px; }
+.alegal-unit { font-size: var(--ts-sm); color: var(--a-ink-3); }
+
+/* ── Interrupteur ── */
+.alegal-toggle-row { margin-bottom: 14px; }
+
+.alegal-toggle {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  cursor: pointer;
+}
+
+.alegal-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 37px;
+  height: 21px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.alegal-toggle-track {
+  flex-shrink: 0;
+  display: block;
+  width: 37px;
+  height: 21px;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--a-line);
+  transition: background 0.18s;
+}
+
+.alegal-toggle-knob {
+  display: block;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--a-panel);
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.alegal-toggle input:checked ~ .alegal-toggle-track { background: var(--a-accent); }
+.alegal-toggle input:checked ~ .alegal-toggle-track .alegal-toggle-knob { transform: translateX(16px); }
+.alegal-toggle input:focus-visible ~ .alegal-toggle-track { outline: 2px solid var(--a-accent-hi); outline-offset: 2px; }
+
+.alegal-toggle-label {
+  font-size: var(--ts-sm);
+  font-weight: 600;
+  color: var(--a-ink);
+  line-height: 1.4;
+}
+
+.alegal-settings { display: flex; flex-direction: column; gap: 20px; }
+
+.alegal-settings-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alegal-toggle-knob { transition: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ÉDITEUR RICHE (TipTap)
+
+   La barre d'outils ne propose que ce que la page publique sait rendre.
+   Une commande qui produirait un balisage effacé à l'enregistrement
+   mentirait à celui qui rédige — d'où l'absence de couleurs, de tailles
+   et d'alignements.
+
+   La surface de saisie reprend .legal-prose : ce qu'on tape ressemble à
+   ce qui sera publié, aux couleurs de l'administration près.
+═══════════════════════════════════════════════════════════════ */
+.rte {
+  border: 1px solid var(--a-line);
+  border-radius: var(--r-md);
+  background: var(--a-bg);
+  overflow: hidden;
+}
+
+.rte:focus-within { border-color: var(--a-accent); }
+
+.rte-loading { height: 320px; background: var(--a-panel); }
+
+.rte-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 9px;
+  background: var(--a-panel);
+  border-bottom: 1px solid var(--a-line-2);
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.rte-group { display: flex; gap: 2px; }
+
+.rte-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--a-line);
+}
+
+.rte-btn {
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--a-ink-2);
+  cursor: pointer;
+  transition: background 0.13s, color 0.13s;
+}
+
+.rte-btn:hover:not(:disabled) { background: var(--a-hover); color: var(--a-ink); }
+.rte-btn:focus-visible { outline: 2px solid var(--a-accent); outline-offset: -1px; }
+.rte-btn:disabled { opacity: 0.32; cursor: default; }
+
+.rte-btn.is-active {
+  background: var(--a-accent-w);
+  color: var(--a-accent-ink);
+}
+
+.rte-glyph {
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.rte-glyph--b { font-weight: 800; }
+.rte-glyph--i { font-style: italic; font-family: Georgia, serif; }
+.rte-glyph--u { text-decoration: underline; text-underline-offset: 2px; }
+
+.rte-count {
+  margin-left: auto;
+  padding-right: 4px;
+  font-size: var(--ts-2xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--a-ink-3);
+}
+
+/* Surface de saisie */
+.rte-surface {
+  min-height: 340px;
+  max-height: 62vh;
+  overflow-y: auto;
+  padding: 20px 22px;
+  outline: none;
+  color: var(--a-ink-2);
+}
+
+.rte-surface h2,
+.rte-surface h3,
+.rte-surface h4,
+.rte-surface strong { color: var(--a-ink); }
+
+.rte-surface a { color: var(--a-accent-ink); }
+.rte-surface li::marker { color: var(--a-accent-ink); }
+.rte-surface blockquote { border-left-color: var(--a-accent); color: var(--a-ink-3); }
+.rte-surface hr { border-top-color: var(--a-line); }
+
+/* Repère de premier paragraphe vide — disparaît à la première frappe. */
+.rte-surface p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--a-ink-3);
+}

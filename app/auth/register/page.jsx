@@ -1,13 +1,16 @@
 'use client'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
+import { useLegalDocuments } from '@/lib/useLegal'
+import { buildConsentGroups } from '@/lib/legal'
+import LegalConsent from '@/components/LegalConsent'
 import { IconArrowRight } from '@/components/icons'
 
 export default function RegisterPage() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const router = useRouter()
   const [fullName,  setFullName]  = useState('')
   const [email,     setEmail]     = useState('')
@@ -17,24 +20,64 @@ export default function RegisterPage() {
   const [error,     setError]     = useState(null)
   const [loading,   setLoading]   = useState(false)
 
+  // Consentements. Les documents et leurs libellés viennent de la base :
+  // c'est l'administration qui décide ce qui doit être accepté ici, et le
+  // formulaire s'y adapte sans qu'on y retouche.
+  const { documents } = useLegalDocuments({ body: true })
+  const groups = useMemo(() => buildConsentGroups(documents, lang), [documents, lang])
+  const [accepted, setAccepted]       = useState([])
+  const [consentError, setConsentErr] = useState(null)
+
+  const allGroupsAccepted = groups.every(g => accepted.includes(g.group))
+
   async function handleRegister(e) {
     e.preventDefault()
     setError(null)
+    setConsentErr(null)
 
     if (password !== confirm) { setError(t('auth.errPwMatch')); return }
     if (password.length < 6)  { setError(t('auth.errPwLen')); return }
+
+    // Le compte ne se crée pas tant que les cases obligatoires ne sont pas
+    // cochées : accepter après coup n'aurait rien d'un consentement préalable.
+    if (!allGroupsAccepted) { setConsentErr(t('legal.consentMissing')); return }
 
     setLoading(true)
     const supabase = createClient()
     if (!supabase) { setError(t('auth.errSupabase')); setLoading(false); return }
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { full_name: fullName.trim(), phone: phone.trim() } },
     })
 
     if (error) { setError(error.message); setLoading(false); return }
+
+    // Trace du consentement. La version acceptée et l'horodatage sont
+    // relevés côté serveur : le navigateur ne dit que ce qui a été coché.
+    //
+    // Deux voies, selon que l'inscription ouvre une session tout de suite
+    // ou attend une confirmation par e-mail. Sans session, la trace est
+    // déposée sous l'adresse et rejoint le compte à la première connexion.
+    const slugs = groups.flatMap(g => g.documents.map(d => d.slug))
+    const token = data?.session?.access_token
+
+    try {
+      await fetch('/api/legal/consent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ slugs, context: 'register', locale: lang, email }),
+      })
+    } catch {
+      // Le compte est créé : bloquer ici laisserait l'utilisateur devant un
+      // formulaire qui a déjà abouti. Le rappel de consentement à la
+      // connexion rattrapera une trace qui n'aurait pas été déposée.
+    }
+
     router.push('/mon-compte')
   }
 
@@ -86,9 +129,16 @@ export default function RegisterPage() {
           />
         </div>
 
+        <LegalConsent
+          groups={groups}
+          value={accepted}
+          onChange={next => { setAccepted(next); setConsentErr(null) }}
+          error={consentError}
+        />
+
         {error && <div className="auth-error">{error}</div>}
 
-        <button type="submit" className="auth-submit-btn" disabled={loading}>
+        <button type="submit" className="auth-submit-btn" disabled={loading || !allGroupsAccepted}>
           {loading ? t('auth.creating') : t('auth.registerBtn')}
         </button>
       </form>

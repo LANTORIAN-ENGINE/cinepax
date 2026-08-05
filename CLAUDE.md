@@ -138,6 +138,49 @@ npm run start   # Serveur production
 
 Accès réseau local autorisé depuis `192.168.1.74` (configuré dans `next.config.mjs`).
 
+## Documents légaux, RGPD et consentements
+
+Quatre documents (`cgu`, `cgv`, `rgpd`, `pdd`) vivent **en base**, pas dans le code : l'administrateur les rédige dans `/admin/legal` avec un éditeur TipTap, et le site s'en sert immédiatement — aucun redéploiement.
+
+- **SQL** : `supabase/migration_legal.sql` (tables `legal_documents`, `legal_document_revisions`, `legal_consents`, `legal_settings`). Idempotent, `ON CONFLICT DO NOTHING` sur le contenu semé.
+- **Vocabulaire partagé** : `lib/legal.js` — liste blanche de balises (`sanitizeLegalHtml`), sommaire (`extractHeadings` / `anchorHeadings`), regroupement des cases (`buildConsentGroups`).
+- **Lecture front** : `lib/useLegal.jsx` (cache de session ; `invalidateLegalCache()` après écriture admin).
+
+### Version et consentement
+
+La **version ne monte que si l'administrateur le demande** (case « publier une nouvelle version ») : corriger une virgule ne doit pas redemander son accord à toute la base. Chaque montée fige un instantané dans `legal_document_revisions` — c'est la pièce qui prouve *quel texte* a été accepté. Un consentement n'est valable que si `consent.version === document.version`, sinon il est redemandé à la connexion.
+
+**Deux cases distinctes**, jamais une seule (`consent_group`) : le contrat (`terms` → CGU + CGV) et les données (`privacy` → RGPD + PDD). Le RGPD interdit de mêler les deux.
+
+### Où le consentement apparaît
+
+| Écran | Forme |
+|-------|-------|
+| `/auth/register` | Cases obligatoires, verrouillées tant que le document n'est pas lu jusqu'au bout |
+| `/auth/login` | Redemandé si une version a changé depuis la dernière acceptation |
+| Pied de page | Colonne « Informations légales », alimentée par `in_footer` |
+| Paiement | `LegalCheckoutNotice` — rappel des CGV, ouvert en modal |
+| `/mon-compte` → Profil | `MyConsents` : ce qui a été accepté, quand, dans quelle version |
+| Bandeau bas d'écran | `RgpdBanner`, réglable dans `/admin/legal` → onglet « Bandeau et contact » |
+
+Le verrou de lecture (`components/LegalDocModal.jsx`) traite trois cas : document plus court que la fenêtre (lu d'emblée), redimensionnement en cours de lecture, et lecture acquise définitivement.
+
+### Routes
+
+```
+GET    /api/legal[?body=1]     documents publiés + réglages
+GET    /api/legal/[slug]       un document (?version=N pour une archive)
+POST   /api/legal/consent      enregistre (version et IP relevées côté serveur)
+GET    /api/legal/consent      consentements du compte + ce qui manque
+GET|PUT|PATCH|DELETE /api/admin/legal
+```
+
+Aucune policy d'écriture n'est ouverte sur `legal_documents` : tout passe par `/api/admin/legal` (service role, après `is_admin`). Un document déjà consenti ne se supprime pas — il se dépublie, la preuve reste.
+
+### Ancienne page de conditions
+
+`/termes-et-conditions` **redirige vers `/legal`** (`next.config.mjs`). Le texte recopié de cinepax.mg désignait « les lois du gouvernement du Pakistan » comme droit applicable ; il est repris, corrigé et scindé en CGU/CGV. L'original reste dans `lib/contenu.js` (constante `TERMES`).
+
 ## Fichiers hors Next.js (legacy / archive)
 
 - `src/` — ancien projet Vite/React (non utilisé, archive)

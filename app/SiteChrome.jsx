@@ -11,6 +11,8 @@ import {
 } from '@/components/navIcons'
 import { IconMapPin, IconPhone } from '@/components/icons'
 import { CONTACT, MAPS_URL, TEL_HREF } from '@/lib/contenu'
+import { useLegalDocuments } from '@/lib/useLegal'
+import { legalPath } from '@/lib/legal'
 
 // Rubriques principales, puis celles regroupées sous « Plus » — la barre ne
 // tient pas les sept d'un seul tenant. Chaque rubrique porte son pictogramme :
@@ -25,7 +27,7 @@ const PRIMARY = [
 const SECONDARY = [
   { href: '/a-propos',             key: 'nav.about',   Icon: NavIconAbout },
   { href: '/contact',              key: 'nav.contact', Icon: NavIconContact },
-  { href: '/termes-et-conditions', key: 'nav.terms',   Icon: NavIconTerms },
+  { href: '/legal',                key: 'nav.terms',   Icon: NavIconTerms },
 ]
 
 export function Navbar() {
@@ -138,6 +140,13 @@ export function Footer() {
   const facebook = CONTACT.socials.find(s => s.label === 'Facebook')?.href
   const instagram = CONTACT.socials.find(s => s.label === 'Instagram')?.href
 
+  // Les documents légaux vivent en base et se règlent depuis
+  // /admin/legal : leur intitulé, leur ordre et leur présence ici suivent
+  // ce qui y est décidé. Tant que la liste n'est pas revenue, la colonne
+  // n'affiche rien plutôt qu'une place vide qui se remplirait d'un coup.
+  const { documents } = useLegalDocuments()
+  const legalLinks = documents.filter(d => d.inFooter)
+
   return (
     <footer className="site-footer">
       <div className="footer-inner">
@@ -185,7 +194,6 @@ export function Footer() {
         <div className="footer-links">
           <div className="footer-col">
             <Link href="/">{t('footer.colNow')}</Link>
-            <Link href="/termes-et-conditions">{t('footer.colTerms')}</Link>
             <Link href="/programme">{t('footer.colSchedule')}</Link>
             <Link href="/nos-offres">{t('footer.colOffers')}</Link>
           </div>
@@ -194,6 +202,16 @@ export function Footer() {
             <Link href="/a-propos">{t('footer.colAbout')}</Link>
             <Link href="/contact">{t('footer.colContact')}</Link>
           </div>
+
+          {legalLinks.length > 0 && (
+            <div className="footer-col footer-col--legal">
+              <p className="footer-col-head">{t('footer.colLegal')}</p>
+              {legalLinks.map(doc => (
+                <Link key={doc.slug} href={legalPath(doc.slug)}>{doc.title}</Link>
+              ))}
+              <Link href="/legal" className="footer-legal-all">{t('footer.legalAll')}</Link>
+            </div>
+          )}
         </div>
       </div>
 

@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useId } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
 import { CONTACT } from '@/lib/contenu'
+import { SLUG_PDD } from '@/lib/legal'
+import LegalDocLink from '@/components/LegalDocLink'
 
 // ─── Formulaire de contact ────────────────────────────────────────────────────
 // L'e-mail est le seul champ dont dépend le reste : il sert à répondre, et il
@@ -356,7 +358,14 @@ export default function ContactForm() {
                 set('consent', e.target.checked)
               }}
             />
-            <label htmlFor={`${uid}-consent`}>{t('cform.consent')}</label>
+            <label htmlFor={`${uid}-consent`}>
+              {t('cform.consent')}{' '}
+              {/* La phrase dit ce qu'on garde ; le lien dit combien de temps,
+                  qui y accède et comment le faire effacer. */}
+              <LegalDocLink slug={SLUG_PDD} className="cform-consent-link">
+                {t('legal.bannerLearnMore')}
+              </LegalDocLink>
+            </label>
           </div>
           {errors.consent && touched.consent && (
             <p className="cfield-error" id={`${uid}-consent-err`} role="alert">{errors.consent}</p>

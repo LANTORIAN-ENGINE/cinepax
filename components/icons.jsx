@@ -232,4 +232,30 @@ export const IconArrowRight = p => (
   </Icon>
 )
 
+// Cadenas fermé : l'état d'une case de consentement tant que le document
+// n'a pas été lu. Il remplace la coche, il ne s'ajoute pas à elle.
+export const IconLock = p => (
+  <Icon {...p}>
+    <rect x="4.8" y="10.4" width="14.4" height="9.2" rx="2" />
+    <path d="M8.4 10.4V7.8a3.6 3.6 0 017.2 0v2.6" />
+  </Icon>
+)
+
+// Document légal : la page cornée, repère commun au pied de page, au
+// sommaire et à la rubrique d'administration.
+export const IconDoc = p => (
+  <Icon {...p}>
+    <path d="M13.4 3.4H7a1.8 1.8 0 00-1.8 1.8v13.6A1.8 1.8 0 007 20.6h10a1.8 1.8 0 001.8-1.8V8.8z" />
+    <path d="M13.4 3.4v5.4h5.4M8.8 13h6.4M8.8 16.4h4.2" />
+  </Icon>
+)
+
+export const IconPrinter = p => (
+  <Icon {...p}>
+    <path d="M7 9.4V4.2h10v5.2" />
+    <rect x="4.2" y="9.4" width="15.6" height="6.4" rx="1.8" />
+    <path d="M7 14.2h10v5.6H7z" />
+  </Icon>
+)
+
 export default Icon

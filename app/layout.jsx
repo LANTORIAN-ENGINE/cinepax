@@ -1,6 +1,7 @@
 import './globals.css'
 import { LanguageProvider } from '@/lib/i18n'
 import { Navbar, Footer } from './SiteChrome'
+import RgpdBanner from '@/components/RgpdBanner'
 
 export const metadata = {
   title: 'Cinepax Madagascar — Achat de tickets en ligne',
@@ -21,6 +22,7 @@ export default function RootLayout({ children }) {
             {children}
           </main>
           <Footer />
+          <RgpdBanner />
         </LanguageProvider>
       </body>
     </html>

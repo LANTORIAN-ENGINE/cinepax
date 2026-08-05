@@ -7,6 +7,7 @@ import { useI18n } from '@/lib/i18n'
 import { IconLogOut, IconTicket, IconQr, IconClose, IconMail } from '@/components/icons'
 import { AccountSkeleton } from '@/components/skeletons'
 import FinalSaleNotice from '@/components/FinalSaleNotice'
+import MyConsents from '@/components/MyConsents'
 import { ticketQrPayload, ticketRows } from '@/lib/ticket'
 
 const TZ = 'Etc/GMT-3'
@@ -321,6 +322,9 @@ export default function MonComptePage() {
                 </button>
               </form>
             </div>
+
+            {/* Droit d'accès : ce que ce compte a accepté, et quand. */}
+            <MyConsents />
           </div>
         )}
 
