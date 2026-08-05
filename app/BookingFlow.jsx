@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import SeatMap from '../components/SeatMap'
+import { sortByPlanOrder } from '@/lib/seats'
 import HeroSlider from '../components/HeroSlider'
 import PaymentForm from '../components/PaymentForm'
 import BookingConfirmation from '../components/BookingConfirmation'
@@ -279,6 +280,9 @@ function SeatMapSkeleton() {
             <div className="screen-halo" />
           </div>
           <div className="screen-label">{t('seatmap.screen')}</div>
+          {/* Réserve la place du bandeau des places choisies — le gradin
+              se dessine à la même hauteur avant et après le chargement. */}
+          <div className="seat-readout" aria-hidden="true" />
         </div>
 
         {/* Rangées squelettes */}
@@ -1093,7 +1097,9 @@ export default function BookingFlow({ initialRoute }) {
                     {t('seats.seatCount', { n: selectedSeats.length, count: selectedSeats.length })}
                   </span>
                   <span className="booking-bar-sep">—</span>
-                  <span className="seats-list">{selectedSeats.map(s => s.displayKey).join(', ')}</span>
+                  {/* Même ordre que le bandeau sous l'écran : rangée puis
+                      numéro. Deux relevés de la même chose se lisent pareil. */}
+                  <span className="seats-list">{sortByPlanOrder(selectedSeats).map(s => s.displayKey).join(', ')}</span>
                   <span className="booking-bar-sep">—</span>
                   {loadingPrice && ticketsTotalCents == null ? (
                     <span className="booking-bar-tarif">{t('seats.calculating')}</span>

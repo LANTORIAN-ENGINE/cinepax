@@ -1175,35 +1175,13 @@ body {
   .film-hero-poster img { width: 120px; height: 174px; }
   .film-hero-info h1 { font-size: 1.3rem; }
   .film-sessions-inner { padding: 24px 24px 48px; }
-
-  /* ── Plan de salle : réduction tablet/mobile ── */
-  .cinema-hall { padding: 32px 14px 26px; border-radius: 14px; }
-  .seat { width: 27px; height: 22px; border-radius: 6px 6px 3px 3px; padding-top: 2px; }
-  .seat-num { font-size: 0.5rem; }
-  .seat-group { gap: 3px; }
-  .seating-area { gap: 5px; }
-  .aisle { width: 18px; min-width: 18px; height: 26px; }
-  .row-label { width: 18px; min-width: 18px; font-size: 0.52rem; }
-  .seat::after { height: 5px; }
 }
 
-@media (max-width: 460px) {
-  /* ── Plan de salle : réduction petit téléphone ── */
-  .cinema-hall { padding: 24px 8px 20px; border-radius: 12px; }
-  .seat { width: 21px; height: 18px; border-radius: 5px 5px 2px 2px; padding-top: 2px; }
-  .seat-num { font-size: 0.46rem; }
-  .seat-group { gap: 2px; }
-  .seating-area { gap: 4px; }
-  .aisle { width: 12px; min-width: 12px; height: 22px; }
-  /* La lettre ne descend plus avec le siège : elle tient le même corps qu'en
-     tablette. C'est le repère qu'on cherche en premier sur un petit écran. */
-  .row-label { width: 14px; min-width: 14px; font-size: 0.52rem; }
-  .seat::before { left: 4px; right: 4px; }
-  .seat::after { height: 4px; left: -1px; right: -1px; }
-  /* Pas de règle .screen-label ici : le clamp() de la règle de base gère
-     déjà la descente en taille, et un override figé la ré-écraserait. */
-  .projector-beam { width: 480px; }
-}
+/* Les réductions mobiles du plan de salle ne sont PAS ici : elles vivent à la
+   fin de la section « VUE SIÈGES », après les règles de base. Une media query
+   n'ajoute pas de spécificité — placée avant, elle se faisait écraser par
+   .seat / .row-label / .cinema-hall et la salle restait en taille bureau sur
+   téléphone, rognée par l'overflow du hall. */
 
 /* ═══════════════════════════════════════════════════════════════
    VUE SÉANCES (étape 2)
@@ -1402,6 +1380,79 @@ body {
   padding-left: 0.42em;
 }
 
+/* ══ BANDEAU DES PLACES CHOISIES ═══════════════════════════════
+   Sous l'écran, à l'endroit où l'on cherche déjà à s'orienter : le
+   relevé de ce que l'on vient de choisir. Écrit en capitales, dans
+   la Courier des lettres de rangée — c'est une annotation portée sur
+   le plan, pas un composant d'interface posé par-dessus.
+
+   Le bloc réserve sa hauteur à vide : le gradin ne bouge pas d'un
+   pixel entre « aucune place » et « trois places ». */
+.seat-readout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  margin-top: 16px;
+  padding: 0 8px;
+  text-align: center;
+}
+
+/* À vide : l'invitation, en retrait — même graisse que la légende du
+   plan, jamais plus lourde que le mot ÉCRAN au-dessus. */
+.seat-readout-prompt {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  padding-left: 0.22em;
+  text-transform: uppercase;
+  color: var(--t-ink-3);
+}
+
+.seat-readout-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  padding-left: 0.24em;
+  text-transform: uppercase;
+  color: var(--t-ink-2);
+}
+
+.seat-readout-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Le code est estampé sur une silhouette de siège — même dossier
+   arrondi, même assise carrée, même aplat rouge que la place choisie
+   dans le gradin. Deux endroits de la feuille, un seul objet. */
+.seat-stamp {
+  font-family: 'Courier New', monospace;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+  padding: 4px 9px 5px;
+  border-radius: 7px 7px 2px 2px;
+  border: 1px solid var(--t-red-deep);
+  background: linear-gradient(170deg, #d81527 0%, #b3101c 100%);
+  box-shadow: 0 2px 0 rgba(20,22,26,0.18);
+  animation: seat-stamp-in 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes seat-stamp-in {
+  0%   { transform: translateY(-4px) scale(0.86); opacity: 0; }
+  100% { transform: translateY(0)    scale(1);    opacity: 1; }
+}
+
 /* ══ RANGÉES ═══════════════════════════════════════════════════ */
 .seating-area {
   position: relative;
@@ -1459,7 +1510,15 @@ body {
 .seat-group { display: flex; gap: 4px; }
 
 /* ══ SIÈGE ════════════════════════════════════════════════════ */
+/* Le siège est un bouton : on le choisit, donc il se choisit aussi au
+   clavier. Le reset annule ce que l'agent utilisateur pose par défaut. */
 .seat {
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  margin: 0;
+  background: none;
+  cursor: default;
   position: relative;
   width: 32px;
   height: 26px;
@@ -1534,6 +1593,7 @@ body {
 
 /* ── Disponible ── */
 .seat.available {
+  cursor: pointer;
   background: linear-gradient(170deg, #eaf8f0 0%, #dcf1e6 100%);
   border-color: var(--t-ok-line);
   color: var(--t-ok);
@@ -1550,22 +1610,31 @@ body {
 /* ── Sélectionné ──
    Le rouge est descendu d'un cran par rapport au #e8192c des boutons : le
    numéro est écrit en blanc dans le haut de la pastille, là où le dégradé
-   est le plus clair, et il doit s'y lire (4,5:1). */
+   est le plus clair, et il doit s'y lire (4,5:1).
+
+   C'est la seule décision prise sur cet écran, donc la seule marque qui
+   sort du plan : elle se détache du gradin par un blanc de respiration
+   puis un cerne rouge, monte au-dessus de ses voisines (z-index — sans
+   quoi les sièges dessinés après elle recouvraient son agrandissement)
+   et porte l'ombre la plus longue de la feuille. */
 .seat.selected {
   background: linear-gradient(170deg, #d81527 0%, #b3101c 100%);
   border-color: var(--t-red-deep);
   color: #fff;
-  transform: translateY(-5px) scale(1.13);
+  transform: translateY(-6px) scale(1.16);
+  z-index: 4;
   box-shadow:
-    0 10px 20px -8px rgba(193,18,31,0.65),
-    0 2px 0   rgba(20,22,26,0.2);
+    0 0 0 2px var(--t-surface),
+    0 0 0 3.5px var(--t-red),
+    0 12px 22px -8px rgba(193,18,31,0.7),
+    0 2px 0    rgba(20,22,26,0.2);
   cursor: pointer;
-  animation: seat-select-pop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: seat-select-pop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 @keyframes seat-select-pop {
-  0%   { transform: translateY(-5px) scale(1);    }
-  60%  { transform: translateY(-7px) scale(1.18); }
-  100% { transform: translateY(-5px) scale(1.13); }
+  0%   { transform: translateY(-6px) scale(1);    }
+  60%  { transform: translateY(-9px) scale(1.24); }
+  100% { transform: translateY(-6px) scale(1.16); }
 }
 .seat.selected::before { background: rgba(255,255,255,0.30); }
 .seat.selected:hover {
@@ -1663,6 +1732,18 @@ body {
 .seat.no-data::before,
 .seat.no-data::after { opacity: 0.35; }
 
+/* Le plan est une décision, pas une animation : sur réglage « moins de
+   mouvement », la place choisie garde son cerne et son aplat, et perd
+   seulement le rebond. */
+@media (prefers-reduced-motion: reduce) {
+  .seat,
+  .seat.selected,
+  .seat-stamp { animation: none; transition: none; }
+  .seat.available:hover,
+  .seat.companion:hover,
+  .seat.wheelchair:hover { transform: none; }
+}
+
 /* ══ LÉGENDE & COMPTEUR ════════════════════════════════════════ */
 .seatmap-footer {
   display: flex;
@@ -1726,6 +1807,71 @@ body {
 .counter-label { color: var(--t-ink-3); }
 .counter-total { color: var(--t-ink-2); }
 .counter-sep   { color: #aeb4bd; margin: 0 2px; }
+
+/* ══ PLAN DE SALLE — RÉDUCTIONS MOBILES ════════════════════════
+   À placer après les règles de base : à spécificité égale, c'est la
+   dernière déclaration qui gagne, media query ou pas. */
+
+/* ── Tablette / grand téléphone ── */
+@media (max-width: 640px) {
+  .cinema-hall { padding: 32px 14px 26px; border-radius: 14px; }
+  .seat { width: 27px; height: 22px; border-radius: 6px 6px 3px 3px; padding-top: 2px; }
+  .seat-num { font-size: 0.5rem; }
+  .seat-group { gap: 3px; }
+  .seating-area { gap: 5px; }
+  .aisle { width: 18px; min-width: 18px; height: 26px; }
+  .row-label { width: 18px; min-width: 18px; font-size: 0.52rem; }
+  .seat::after { height: 5px; }
+  .seat-readout { min-height: 48px; margin-top: 14px; gap: 7px; }
+  .seat-stamp { font-size: 0.72rem; padding: 3px 8px 4px; }
+}
+
+/* ── Petit téléphone ── */
+@media (max-width: 460px) {
+  .cinema-hall { padding: 24px 8px 20px; border-radius: 12px; }
+  .seat { width: 21px; height: 18px; border-radius: 5px 5px 2px 2px; padding-top: 2px; }
+  .seat-num { font-size: 0.46rem; }
+  .seat-group { gap: 2px; }
+  .seating-area { gap: 4px; }
+  .aisle { width: 12px; min-width: 12px; height: 22px; }
+  /* La lettre ne descend plus avec le siège : elle tient le même corps qu'en
+     tablette. C'est le repère qu'on cherche en premier sur un petit écran. */
+  .row-label { width: 14px; min-width: 14px; font-size: 0.52rem; }
+  .seat::before { left: 4px; right: 4px; }
+  .seat::after { height: 4px; left: -1px; right: -1px; }
+  /* Pas de règle .screen-label ici : le clamp() de la règle de base gère
+     déjà la descente en taille, et un override figé la ré-écraserait. */
+  .projector-beam { width: 480px; }
+  /* Le bandeau ne descend pas en corps : c'est ce qu'on relit avant de payer.
+     Seul l'espacement des lettres se resserre pour tenir la ligne. */
+  .seat-readout { min-height: 46px; margin-top: 12px; gap: 6px; padding: 0 4px; }
+  .seat-readout-prompt { letter-spacing: 0.14em; padding-left: 0.14em; }
+  .seat-readout-label  { letter-spacing: 0.18em; padding-left: 0.18em; }
+  .seat-readout-list { gap: 5px; }
+  /* Le cerne de la place choisie se resserre avec le siège : à 21 px, un
+     anneau de 3,5 px mangeait la case voisine. */
+  .seat.selected {
+    transform: translateY(-4px) scale(1.14);
+    box-shadow:
+      0 0 0 1.5px var(--t-surface),
+      0 0 0 2.5px var(--t-red),
+      0 8px 14px -6px rgba(193,18,31,0.7),
+      0 2px 0    rgba(20,22,26,0.2);
+  }
+}
+
+/* ── Focus clavier ──
+   Tout à la fin de la section : le cerne doit se voir sur un aplat clair
+   comme sur le rouge plein d'une place déjà choisie, à toutes les tailles
+   d'écran. À spécificité égale, seule la position tranche. */
+.seat:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--t-surface),
+    0 0 0 4px var(--t-ink),
+    0 2px 0 rgba(20,22,26,0.13);
+  z-index: 5;
+}
 
 /* ═══════════════════════════════════════════════════════════════
    BARRE DE CONFIRMATION (inline)

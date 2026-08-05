@@ -1,6 +1,7 @@
 'use client'
 
 import { useI18n } from '@/lib/i18n'
+import { sortByPlanOrder } from '@/lib/seats'
 
 // ─── Layouts hardcodés (extraits images + xlsx) ───────────────────────────────
 const SCREEN_LAYOUTS = {
@@ -196,6 +197,8 @@ export default function SeatMap({ screenId, screenName, seatPlanData, selectedSe
     onToggleSeat(seatObj, isSelected(displayKey))
   }
 
+  const chosen = sortByPlanOrder(selectedSeats)
+
   const totalFree = layout.rows.reduce((acc, row) => {
     return acc + row.groups.flat().filter(n => {
       const key = `${row.name}${n}`
@@ -219,6 +222,27 @@ export default function SeatMap({ screenId, screenName, seatPlanData, selectedSe
             <div className="screen-halo" />
           </div>
           <div className="screen-label">{t('seatmap.screen')}</div>
+
+          {/* Bandeau des places choisies — l'annotation du plan, juste sous
+              l'écran. Les codes sont estampés sur des silhouettes de siège :
+              c'est le même objet que dans le gradin, écrit en clair. Le bloc
+              garde sa hauteur à vide pour que le plan ne saute pas. */}
+          <div className="seat-readout" aria-live="polite">
+            {chosen.length === 0 ? (
+              <p className="seat-readout-prompt">{t('seatmap.pickPrompt')}</p>
+            ) : (
+              <>
+                <p className="seat-readout-label">{t('seatmap.yourSeats')}</p>
+                <ul className="seat-readout-list">
+                  {chosen.map(s => (
+                    <li key={s.displayKey} className="seat-stamp">
+                      {s.rowName}{s.seatNumber}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Gradin */}
@@ -240,15 +264,19 @@ export default function SeatMap({ screenId, screenName, seatPlanData, selectedSe
                       const clickable  = state.clickable && !noApiData && !!seatData
 
                       return (
-                        <div
+                        <button
+                          type="button"
                           key={seatNum}
                           className={`seat ${state.cls}`}
-                          title={`${row.name}${seatNum} — ${t(state.labelKey)}`}
-                          style={{ cursor: clickable ? 'pointer' : 'default' }}
+                          title={`${displayKey} — ${t(state.labelKey)}`}
+                          aria-label={`${displayKey} — ${t(state.labelKey)}`}
+                          aria-pressed={clickable ? sel : undefined}
+                          aria-disabled={clickable ? undefined : true}
+                          tabIndex={clickable ? 0 : -1}
                           onClick={() => handleClick(row.name, seatNum, seatData, displayKey, clickable)}
                         >
                           <span className="seat-num">{seatNum}</span>
-                        </div>
+                        </button>
                       )
                     })}
                   </div>

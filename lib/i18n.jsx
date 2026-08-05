@@ -305,6 +305,9 @@ const DICT = {
     seatmap: {
       layoutError: 'Layout de salle introuvable pour la salle #{id}.',
       screen: 'Écran', // l'espacement des lettres est typographique (CSS), pas dans le texte
+      // Bandeau sous l'écran — la mise en capitale est typographique (CSS)
+      pickPrompt: 'Choisissez vos places',
+      yourSeats: 'Vos places',
       free: 'Libre',
       selected: 'Sélectionné',
       taken: 'Occupé',
@@ -1021,6 +1024,9 @@ const DICT = {
     seatmap: {
       layoutError: 'Seat layout not found for screen #{id}.',
       screen: 'Screen', // letter-spacing lives in CSS, not in the string
+      // Rail under the screen — the uppercasing is typographic (CSS)
+      pickPrompt: 'Choose your seats',
+      yourSeats: 'Your seats',
       free: 'Available',
       selected: 'Selected',
       taken: 'Taken',
