@@ -7,7 +7,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { useI18n } from '@/lib/i18n'
 import {
   NavIconNow, NavIconSoon, NavIconSchedule, NavIconOffers,
-  NavIconAbout, NavIconContact, NavIconTerms,
+  NavIconAbout, NavIconContact, NavIconTerms, NavIconHelp,
 } from '@/components/navIcons'
 import { IconMapPin, IconPhone } from '@/components/icons'
 import { CONTACT, MAPS_URL, TEL_HREF } from '@/lib/contenu'
@@ -25,6 +25,7 @@ const PRIMARY = [
 ]
 
 const SECONDARY = [
+  { href: '/aide',                 key: 'nav.help',    Icon: NavIconHelp },
   { href: '/a-propos',             key: 'nav.about',   Icon: NavIconAbout },
   { href: '/contact',              key: 'nav.contact', Icon: NavIconContact },
   { href: '/legal',                key: 'nav.terms',   Icon: NavIconTerms },
@@ -201,6 +202,10 @@ export function Footer() {
             <Link href="/prochainement">{t('footer.colSoon')}</Link>
             <Link href="/a-propos">{t('footer.colAbout')}</Link>
             <Link href="/contact">{t('footer.colContact')}</Link>
+            {/* Le guide se cherche depuis n'importe quelle page, souvent
+                après avoir buté quelque part : il lui faut une entrée qui
+                ne dépende pas du tunnel. */}
+            <Link href="/aide">{t('footer.colHelp')}</Link>
           </div>
 
           {legalLinks.length > 0 && (

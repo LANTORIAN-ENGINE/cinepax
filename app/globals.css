@@ -214,6 +214,10 @@ body {
   transform: translateX(1.4px);
 }
 
+:is(.nav-link, .nav-more-item):is(:hover, :focus-visible) .ni-help-point {
+  transform: translateY(-1.4px);
+}
+
 /* Entre la bascule à deux rangs (768 px) et ~1020 px, la barre tient déjà sur
    un seul rang tout juste : les sept pictogrammes lui coûtent 76 px et la
    feraient déborder de l'écran. Le mot porte le sens, l'icône ne fait que le
@@ -226,7 +230,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .nav-icon, .nav-icon > * { transition: none; }
   .nav-link:is(:hover, :focus-visible) :is(.ni-now-play, .ni-schedule-day, .ni-soon, .ni-offers-tag),
-  :is(.nav-link, .nav-more-item):is(:hover, :focus-visible) :is(.ni-about, .ni-contact-flap, .ni-terms-lines) {
+  :is(.nav-link, .nav-more-item):is(:hover, :focus-visible) :is(.ni-about, .ni-contact-flap, .ni-terms-lines, .ni-help-point) {
     transform: none;
   }
 }
@@ -10116,4 +10120,712 @@ body {
 @media (max-width: 560px) {
   .aset-prev-row { grid-template-columns: auto minmax(0, 1fr); row-gap: 4px; }
   .aset-prev-state { grid-column: 2; text-align: left; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   AIDE — le geste de la caissière qui se penche
+
+   Au guichet, la personne derrière la vitre ne récite pas un mode
+   d'emploi : elle pointe l'endroit du formulaire et dit la chose en une
+   phrase. Tout ce bloc reproduit ce geste — un repère contre le libellé
+   qui pose la question, une bulle dont la pointe vise le champ.
+
+   Aucune couleur nouvelle : le repère emprunte l'encre secondaire au
+   repos et le rouge Cinepax une fois ouvert, comme les pastilles de
+   séance. Ce qui est ajouté au vocabulaire, c'est la règle de chiffres :
+   le seul endroit du site où une quantité se compte à l'œil.
+═══════════════════════════════════════════════════════════════ */
+
+/* — Le repère — */
+.aide-repere {
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--t-line);
+  background: var(--t-paper);
+  color: var(--t-ink-3);
+  font-family: inherit;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: help;
+  vertical-align: middle;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.aide-repere:hover,
+.aide-repere.est-ouvert {
+  color: var(--t-red-ink);
+  border-color: var(--t-red);
+  background: var(--t-red-w);
+}
+
+.aide-repere:focus-visible {
+  outline: 2px solid var(--t-red);
+  outline-offset: 2px;
+}
+
+/* — La bulle — */
+/* `position: fixed` : la bulle sort de tout parent qui déborde — colonne
+   du paiement, gradin, feuille de tarifs — sans avoir à ouvrir chacun
+   d'eux. Les coordonnées viennent du composant, qui mesure le repère. */
+.aide-bulle {
+  position: fixed;
+  z-index: 400;
+  width: min(320px, calc(100vw - 24px));
+  /* La pointe dépasse de la boîte : c'est tout son intérêt. Le défilement,
+     quand il faut en venir là, appartient donc au corps — pas à la bulle,
+     qui rognerait la pointe et perdrait ce qu'elle désigne. */
+  overflow: visible;
+  padding: 15px 17px 14px;
+  border: 1px solid var(--t-line);
+  border-radius: 10px;
+  background: var(--t-surface);
+  box-shadow: 0 1px 2px rgba(20, 22, 26, 0.06), 0 12px 30px -8px rgba(20, 22, 26, 0.22);
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-3px);
+  transition: opacity 0.14s ease-out, transform 0.14s ease-out;
+}
+
+.aide-bulle.est-posee {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+}
+
+.aide-pointe {
+  position: absolute;
+  left: var(--aide-pointe, 50%);
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  background: var(--t-surface);
+  border: 1px solid var(--t-line);
+  transform: rotate(45deg);
+}
+
+.aide-bulle.est-dessous .aide-pointe {
+  top: -6px;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.aide-bulle.est-dessus .aide-pointe {
+  bottom: -6px;
+  border-left: 0;
+  border-top: 0;
+}
+
+.aide-titre {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--t-ink);
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+
+.aide-corps {
+  max-height: min(54vh, 360px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  font-size: 0.76rem;
+  line-height: 1.62;
+  color: var(--t-ink-2);
+}
+
+.aide-corps p + p { margin-top: 8px; }
+
+.aide-lien {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 11px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--t-red-ink);
+  text-decoration: none;
+}
+
+.aide-lien:hover { text-decoration: underline; }
+
+/* — La feuille, sous 560 px — */
+/* Une bulle de 320 px sur un téléphone couvre l'écran sans le dire. En
+   dessous du seuil elle devient une feuille qui monte du bas : la forme
+   que le doigt attend, avec le pouce déjà au bon endroit. */
+.aide-voile {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  background: rgba(20, 22, 26, 0.32);
+  display: flex;
+  align-items: flex-end;
+  animation: aide-voile-entre 0.16s ease-out;
+}
+
+.aide-feuille {
+  width: 100%;
+  max-height: 78vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 10px 22px calc(20px + env(safe-area-inset-bottom));
+  background: var(--t-surface);
+  border-radius: 16px 16px 0 0;
+  animation: aide-feuille-monte 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.aide-poignee {
+  display: block;
+  width: 38px;
+  height: 4px;
+  margin: 0 auto 14px;
+  border-radius: 2px;
+  background: var(--t-line);
+}
+
+.aide-feuille .aide-titre { font-size: 0.92rem; margin-bottom: 8px; }
+.aide-feuille .aide-corps { font-size: 0.84rem; }
+
+.aide-fermer {
+  width: 100%;
+  margin-top: 18px;
+  padding: 11px;
+  border: 1px solid var(--t-line);
+  border-radius: 8px;
+  background: var(--t-paper);
+  color: var(--t-ink-2);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.aide-fermer:hover { background: var(--t-hover); color: var(--t-ink); }
+
+@keyframes aide-voile-entre { from { opacity: 0 } to { opacity: 1 } }
+@keyframes aide-feuille-monte { from { transform: translateY(14px) } to { transform: none } }
+
+/* — La règle de chiffres — */
+/* « Combien de chiffres ? » se répond mal par un nombre : il faut le
+   croire, puis compter soi-même. La règle montre les emplacements
+   attendus, groupés comme sur la carte, et se remplit à la frappe. */
+.aide-regle {
+  margin-top: 12px;
+  padding: 11px 12px 9px;
+  border: 1px solid var(--t-line-2);
+  border-radius: 8px;
+  background: var(--t-paper);
+}
+
+.aide-regle-cases {
+  display: flex;
+  gap: 9px;
+  margin-bottom: 8px;
+}
+
+.aide-regle-groupe {
+  display: flex;
+  gap: 3px;
+}
+
+.aide-regle-case {
+  width: 12px;
+  height: 17px;
+  border-radius: 2px;
+  background: var(--t-surface);
+  box-shadow: inset 0 0 0 1px var(--t-line);
+  transition: background 0.12s ease-out, box-shadow 0.12s ease-out;
+}
+
+.aide-regle-case.est-pleine {
+  background: var(--t-ink);
+  box-shadow: inset 0 0 0 1px var(--t-ink);
+}
+
+.aide-regle-compte {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--t-ink-3);
+}
+
+.aide-regle-compte.est-complet { color: var(--t-ok); }
+
+/* — Le schéma de carte — */
+.aide-schema {
+  margin: 12px 0 0;
+}
+
+.aide-schema svg { display: block; }
+
+.aide-schema-legende {
+  margin-top: 6px;
+  font-size: 0.68rem;
+  color: var(--t-ink-3);
+  text-align: center;
+}
+
+/* — La note posée dans le flux — */
+/* Certaines explications doivent se lire sans qu'on pense à cliquer :
+   le client ne sait pas encore qu'il a une question. Un plan tout gris,
+   un tarif absent — la note le dit là où l'anomalie se voit. */
+.aide-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 15px;
+  border: 1px solid var(--t-line);
+  border-left: 3px solid var(--t-line);
+  border-radius: 8px;
+  background: var(--t-paper);
+  color: var(--t-ink-2);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.aide-note--attention {
+  border-left-color: var(--t-red);
+  background: var(--t-red-w);
+  border-color: color-mix(in srgb, var(--t-red) 22%, var(--t-surface));
+}
+
+.aide-note-icone {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--t-ink-3);
+}
+
+.aide-note--attention .aide-note-icone { color: var(--t-red); }
+
+.aide-note-titre {
+  display: block;
+  color: var(--t-ink);
+  font-size: 0.8rem;
+  margin-bottom: 2px;
+}
+
+.aide-note-lien {
+  display: block;
+  width: fit-content;
+  margin-top: 7px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--t-red-ink);
+  text-decoration: none;
+}
+
+.aide-note-lien:hover { text-decoration: underline; }
+
+/* — Le libellé et son repère — */
+/* Le repère se pose contre le mot qui pose la question, jamais dans le
+   <label> : un bouton dans un label renvoie le clic à l'input. */
+.aide-libelle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.aide-libelle > label { margin: 0; }
+
+.aide-titre-ligne {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aide-bulle,
+  .aide-voile,
+  .aide-feuille,
+  .aide-regle-case { transition: none; animation: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LE GUIDE D'ACHAT — /aide
+
+   Les bulles du tunnel répondent à une question là où elle se pose ;
+   cette page raconte le parcours en entier. Elle emprunte tout au reste
+   du site — Bebas pour le chapeau, l'encre et le papier, les pastilles
+   du plan de salle reprises telles quelles dans la légende — et n'ajoute
+   qu'une chose : un tableau où le nombre de chiffres se lit d'un coup
+   d'œil, parce que c'est le seul renseignement qu'on cherche vraiment
+   avec sa carte en main.
+
+   Le parcours est numéroté ; les sections ne le sont pas. Quatre écrans
+   qui se suivent forment une séquence, un sommaire n'en est pas une.
+═══════════════════════════════════════════════════════════════ */
+
+.guide-eyebrow {
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  color: var(--t-red-ink);
+  margin-bottom: 2px;
+}
+
+.guide-lead {
+  max-width: 64ch;
+  margin: 18px 0 22px;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--t-ink-2);
+}
+
+/* — Sommaire — */
+.guide-sommaire {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 8px;
+}
+
+.guide-puce {
+  padding: 7px 14px;
+  border: 1px solid var(--t-line);
+  border-radius: 999px;
+  background: var(--t-paper);
+  color: var(--t-ink-2);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.guide-puce:hover {
+  border-color: var(--t-red);
+  background: var(--t-red-w);
+  color: var(--t-red-ink);
+}
+
+/* — Sections — */
+.guide-section {
+  padding-top: 40px;
+  scroll-margin-top: 84px;   /* la navbar est collante */
+}
+
+.guide-h2 {
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: var(--t-ink);
+  letter-spacing: -0.01em;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--t-line);
+}
+
+.guide-h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--t-ink);
+  margin-bottom: 6px;
+}
+
+.guide-sous {
+  max-width: 62ch;
+  margin: 14px 0 4px;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--t-ink-2);
+}
+
+.guide-note {
+  max-width: 62ch;
+  margin-top: 16px;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--t-ink-3);
+}
+
+/* — Le parcours — */
+/* Le filet vertical relie les quatre numéros : il dit que c'est une suite,
+   ce que quatre encadrés posés côte à côte ne diraient pas. */
+.guide-etapes {
+  position: relative;
+  list-style: none;
+  margin-top: 26px;
+  padding: 0;
+}
+
+.guide-etapes::before {
+  content: '';
+  position: absolute;
+  left: 18px;
+  top: 20px;
+  bottom: 20px;
+  width: 1px;
+  background: var(--t-line);
+}
+
+.guide-etape {
+  position: relative;
+  display: grid;
+  grid-template-columns: 37px minmax(0, 1fr);
+  gap: 18px;
+  padding-bottom: 26px;
+}
+
+.guide-etape:last-child { padding-bottom: 0; }
+
+.guide-etape-num {
+  width: 37px;
+  height: 37px;
+  border: 1px solid var(--t-line);
+  border-radius: 50%;
+  background: var(--t-surface);
+  color: var(--t-ink);
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.28rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 3px;
+}
+
+.guide-etape-titre {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--t-ink);
+  margin-bottom: 5px;
+  padding-top: 8px;
+}
+
+.guide-etape-texte p {
+  max-width: 60ch;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--t-ink-2);
+}
+
+/* — La carte bancaire — */
+.guide-carte {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 34px;
+  align-items: start;
+  margin-top: 24px;
+}
+
+.guide-tab {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
+}
+
+.guide-tab th,
+.guide-tab td {
+  padding: 11px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--t-line-2);
+  vertical-align: baseline;
+}
+
+.guide-tab thead th {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--t-ink-3);
+  border-bottom: 1px solid var(--t-line);
+}
+
+.guide-tab tbody th {
+  font-weight: 700;
+  color: var(--t-ink);
+  white-space: nowrap;
+}
+
+.guide-tab td { color: var(--t-ink-2); }
+
+/* La colonne qu'on est venu lire. */
+.guide-tab-combien {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 700;
+  color: var(--t-ink) !important;
+  white-space: nowrap;
+}
+
+.guide-carte-schemas {
+  display: grid;
+  gap: 18px;
+}
+
+.guide-carte-schemas .aide-schema { margin: 0; }
+
+.guide-secu {
+  max-width: 66ch;
+  margin-top: 30px;
+  padding: 18px 20px;
+  border: 1px solid var(--t-line);
+  border-left: 3px solid var(--t-red);
+  border-radius: 8px;
+  background: var(--t-paper);
+  scroll-margin-top: 84px;
+}
+
+.guide-secu p {
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--t-ink-2);
+}
+
+/* — Les états du plan — */
+.guide-etats {
+  list-style: none;
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+  padding: 0;
+}
+
+.guide-etat {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 0.85rem;
+  color: var(--t-ink-2);
+}
+
+/* — Après l'achat — */
+.guide-apres {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.guide-fiche {
+  padding: 16px 18px;
+  border: 1px solid var(--t-line);
+  border-radius: 8px;
+  background: var(--t-surface);
+}
+
+.guide-fiche-titre {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--t-ink);
+  margin-bottom: 5px;
+}
+
+.guide-fiche p {
+  font-size: 0.82rem;
+  line-height: 1.62;
+  color: var(--t-ink-2);
+}
+
+/* — Questions fréquentes — */
+.guide-faq { margin-top: 22px; }
+
+.guide-q { border-bottom: 1px solid var(--t-line-2); }
+
+.guide-q-titre {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 2px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--t-ink);
+  cursor: pointer;
+  list-style: none;
+  transition: color 0.15s;
+}
+
+.guide-q-titre::-webkit-details-marker { display: none; }
+.guide-q-titre:hover { color: var(--t-red-ink); }
+
+.guide-q-titre:focus-visible {
+  outline: 2px solid var(--t-red);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Le signe est tracé en CSS : une croix qui perd sa barre verticale en
+   s'ouvrant. Aucune icône à charger, et l'état se lit sans couleur. */
+.guide-q-signe {
+  position: relative;
+  flex-shrink: 0;
+  width: 13px;
+  height: 13px;
+}
+
+.guide-q-signe::before,
+.guide-q-signe::after {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto;
+  height: 1.5px;
+  background: var(--t-ink-3);
+  transform: translateY(-50%);
+  transition: transform 0.18s ease-out, opacity 0.18s ease-out;
+}
+
+.guide-q-signe::after { transform: translateY(-50%) rotate(90deg); }
+.guide-q[open] .guide-q-signe::after { transform: translateY(-50%) rotate(0deg); opacity: 0; }
+
+.guide-q-rep {
+  max-width: 68ch;
+  padding: 0 2px 18px;
+  font-size: 0.85rem;
+  line-height: 1.68;
+  color: var(--t-ink-2);
+}
+
+/* — Bloc de contact — */
+.guide-contact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin: 48px 0 8px;
+  padding: 24px 26px;
+  border: 1px solid var(--t-line);
+  border-radius: 10px;
+  background: var(--t-paper);
+}
+
+.guide-contact-titre {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--t-ink);
+  margin-bottom: 4px;
+}
+
+.guide-contact-texte {
+  font-size: 0.83rem;
+  color: var(--t-ink-2);
+}
+
+.guide-contact-cta { text-decoration: none; display: inline-block; }
+
+/* — Le repère d'aide dans les surfaces existantes — */
+.seatmap-aide { margin-bottom: 18px; }
+.ticket-picker-aide { margin-top: 14px; }
+.bni-checkout-aide { margin-bottom: 16px; }
+/* Le repère est un enfant direct de .legend, qui aligne ses items en
+   étirement : sans cette ligne il se collerait en haut de la rangée. */
+.legend-aide { margin-left: 2px; align-self: center; }
+
+@media (max-width: 860px) {
+  .guide-carte { grid-template-columns: minmax(0, 1fr); gap: 26px; }
+  .guide-carte-schemas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 460px;
+  }
+}
+
+@media (max-width: 620px) {
+  .guide-apres { grid-template-columns: minmax(0, 1fr); }
+  .guide-carte-schemas { grid-template-columns: minmax(0, 1fr); max-width: 260px; }
+  .guide-section { padding-top: 32px; }
+  .guide-contact { flex-direction: column; align-items: flex-start; }
+  .guide-tab th, .guide-tab td { padding: 10px 8px; }
+  .guide-tab tbody th { white-space: normal; }
 }

@@ -4,6 +4,7 @@ import { QRCodeSVG } from 'qrcode.react'
 import { useI18n } from '@/lib/i18n'
 import { ticketQrPayload, ticketRows } from '@/lib/ticket'
 import FinalSaleNotice from './FinalSaleNotice'
+import Aide from './Aide'
 
 export default function BookingConfirmation({
   booking,
@@ -165,7 +166,12 @@ export default function BookingConfirmation({
               includeMargin={false}
             />
           </div>
-          <p className="conf-qr-hint">{t('confirmation.qrHint')}</p>
+          <p className="conf-qr-hint aide-titre-ligne">
+            {t('confirmation.qrHint')}
+            <Aide titre={t('aide.qrTitre')} ancre="apres">
+              <p>{t('aide.qrTexte')}</p>
+            </Aide>
+          </p>
         </div>
 
         {/* Ticket detail strip */}

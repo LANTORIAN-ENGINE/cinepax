@@ -89,6 +89,16 @@ export const NavIconContact = () => (
   </svg>
 )
 
+// Aide : la bulle et la question qu'on y pose. Le point monte vers la courbe
+// au survol — le geste de quelqu'un qui se penche pour répondre.
+export const NavIconHelp = () => (
+  <svg {...BASE} className="nav-icon ni-help">
+    <path d="M20.4 12.4a7.9 7.9 0 01-8.4 7.9L5.2 21l1.4-4.4a7.9 7.9 0 1113.8-4.2z" />
+    <path d="M10 9.9a2.5 2.5 0 013.9-1.9c1 .7 1 2 .1 2.7-.7.5-1.4.9-1.4 1.9" />
+    <path className="ni-help-point" d="M12.6 15.8h.01" />
+  </svg>
+)
+
 // Termes : la page à coin replié. Les lignes défilent, comme on parcourt
 // des conditions plutôt qu'on ne les lit.
 export const NavIconTerms = () => (

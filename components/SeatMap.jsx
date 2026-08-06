@@ -2,6 +2,7 @@
 
 import { useI18n } from '@/lib/i18n'
 import { sortByPlanOrder } from '@/lib/seats'
+import Aide, { AideNote } from './Aide'
 
 // ─── Layouts hardcodés (extraits images + xlsx) ───────────────────────────────
 const SCREEN_LAYOUTS = {
@@ -210,6 +211,21 @@ export default function SeatMap({ screenId, screenName, seatPlanData, selectedSe
   return (
     <div className="seatmap-wrap">
 
+      {/* Le plan s'affiche même sans données — tous les sièges gris, rien de
+          cliquable. Sans un mot, ce silence se lit comme une panne du site.
+          C'est le cas d'une séance que le back-office n'a pas encore ouverte
+          à la vente en ligne : la note le dit, et renvoie à la caisse. */}
+      {noApiData && (
+        <AideNote
+          titre={t('aide.planVideTitre')}
+          ancre="places"
+          ton="attention"
+          className="seatmap-aide"
+        >
+          {t('aide.planVideTexte')}
+        </AideNote>
+      )}
+
       {/* ── Salle ── */}
       <div className="cinema-hall">
         {/* Faisceau projecteur */}
@@ -307,6 +323,11 @@ export default function SeatMap({ screenId, screenName, seatPlanData, selectedSe
               <span>{t(key)}</span>
             </div>
           ))}
+          {/* « Maison », « Companion » : la légende nomme les états sans les
+              expliquer. Le repère complète, sans allonger la rangée. */}
+          <Aide titre={t('aide.legendeTitre')} ancre="places" className="legend-aide">
+            <p>{t('aide.legendeTexte')}</p>
+          </Aide>
         </div>
         {!noApiData && (
           <div className="seat-counter">

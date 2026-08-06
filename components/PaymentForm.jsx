@@ -5,6 +5,7 @@ import { useI18n } from '@/lib/i18n'
 import AchatBand from './AchatBand'
 import FinalSaleNotice from './FinalSaleNotice'
 import LegalCheckoutNotice from './LegalCheckoutNotice'
+import Aide, { AideChiffres, AideCarte, AideNote } from './Aide'
 
 function fixImageUrl(url) {
   if (!url) return null
@@ -122,6 +123,8 @@ export default function PaymentForm({
   }
 
   const effectivePrice = sessionPrice
+  // Longueur seule — c'est tout ce que la règle d'aide reçoit du numéro saisi.
+  const cardDigits = cardForm.number.replace(/\D/g, '').length
   const hasBreakdown = Array.isArray(ticketBreakdown) && ticketBreakdown.length > 0
   // Total : priorité au détail des billets (grille live), sinon prix unitaire × places
   const totalCents = totalOverrideCents != null
@@ -334,7 +337,18 @@ export default function PaymentForm({
 
           <form className="card-test-form" onSubmit={handleFallbackSubmit} noValidate>
             <div className="pay-field pay-field--full">
-              <label>{t('payment.cardNumber')}</label>
+              {/* La question du client tient en un nombre : combien de
+                  chiffres. La règle y répond en les montrant, et se remplit
+                  pendant qu'il tape — il compte à l'œil, sans nous croire
+                  sur parole. Elle ne reçoit que la longueur saisie, jamais
+                  le numéro : rien du PAN ne sort du champ. */}
+              <span className="aide-libelle">
+                <label>{t('payment.cardNumber')}</label>
+                <Aide titre={t('aide.panTitre')} ancre="carte">
+                  <p>{t('aide.panTexte')}</p>
+                  <AideChiffres saisis={cardDigits} total={16} />
+                </Aide>
+              </span>
               <div className="pay-input-icon-wrap">
                 <svg className="pay-input-icon" viewBox="0 0 20 20" fill="currentColor" width="15" height="15">
                   <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
@@ -353,7 +367,13 @@ export default function PaymentForm({
 
             <div className="pay-fields-grid">
               <div className="pay-field pay-field--half">
-                <label>{t('payment.expiry')}</label>
+                <span className="aide-libelle">
+                  <label>{t('payment.expiry')}</label>
+                  <Aide titre={t('aide.expTitre')} ancre="carte">
+                    <p>{t('aide.expTexte')}</p>
+                    <AideCarte face="recto" />
+                  </Aide>
+                </span>
                 <input
                   type="text" inputMode="numeric"
                   placeholder="MM/AA"
@@ -363,7 +383,16 @@ export default function PaymentForm({
                 />
               </div>
               <div className="pay-field pay-field--half">
-                <label>{t('payment.cvc')}</label>
+                {/* « Où est le cryptogramme ? » est une question d'endroit
+                    sur un objet : aucune phrase ne la règle aussi vite
+                    qu'un dos de carte dessiné. */}
+                <span className="aide-libelle">
+                  <label>{t('payment.cvc')}</label>
+                  <Aide titre={t('aide.cvcTitre')} ancre="carte" place="gauche">
+                    <p>{t('aide.cvcTexte')}</p>
+                    <AideCarte face="dos" />
+                  </Aide>
+                </span>
                 <input
                   type="text" inputMode="numeric"
                   placeholder="123"
@@ -373,7 +402,12 @@ export default function PaymentForm({
                 />
               </div>
               <div className="pay-field pay-field--full">
-                <label>{t('payment.cardHolder')}</label>
+                <span className="aide-libelle">
+                  <label>{t('payment.cardHolder')}</label>
+                  <Aide titre={t('aide.titulaireTitre')} ancre="carte">
+                    <p>{t('aide.titulaireTexte')}</p>
+                  </Aide>
+                </span>
                 <input
                   type="text"
                   placeholder="JEAN RAKOTO"
@@ -452,6 +486,14 @@ export default function PaymentForm({
           </div>
 
           <FinalSaleNotice when="before" className="bni-final-sale" />
+
+          {/* Le client vient de quitter notre formulaire pour celui de sa
+              banque. Personne ne lui a dit combien de chiffres taper ni
+              qu'un code allait suivre par SMS : c'est là qu'on abandonne.
+              La note reste affichée pendant toute la saisie. */}
+          <AideNote titre={t('aide.modeTitre')} ancre="carte" className="bni-checkout-aide">
+            {t('aide.modeTexte')}
+          </AideNote>
 
           {bniLoading ? (
             <div className="bni-checkout-loading">
@@ -588,7 +630,12 @@ export default function PaymentForm({
                         placeholder="Jean Rakoto" autoComplete="name" />
                     </div>
                     <div className="pay-field pay-field--half">
-                      <label>{t('payment.email')}</label>
+                      <span className="aide-libelle">
+                        <label>{t('payment.email')}</label>
+                        <Aide titre={t('aide.emailTitre')} ancre="apres">
+                          <p>{t('aide.emailTexte')}</p>
+                        </Aide>
+                      </span>
                       <input type="email" value={guestEmail}
                         onChange={e => setGuestEmail(e.target.value)}
                         placeholder="jean@example.mg" autoComplete="email" required />
@@ -633,9 +680,18 @@ export default function PaymentForm({
 
               {/* — Méthode de paiement — */}
               <div className="pay-section">
+                {/* Le point d'abandon du tunnel n'est pas la saisie de la
+                    carte, c'est ce qui la suit : la page de la banque et le
+                    code par SMS, que personne n'a annoncés. On les annonce
+                    ici, avant le clic. */}
                 <h3 className="pay-section-title">
                   <span className="pay-section-num">{!loadingUser && !user ? '02' : '01'}</span>
-                  {t('payment.paymentMethod')}
+                  <span className="aide-titre-ligne">
+                    {t('payment.paymentMethod')}
+                    <Aide titre={t('aide.modeTitre')} ancre="paiement">
+                      <p>{t('aide.modeTexte')}</p>
+                    </Aide>
+                  </span>
                 </h3>
 
                 <div className="pay-methods-grid">
@@ -679,9 +735,14 @@ export default function PaymentForm({
                 {(payMethod === 'orange' || payMethod === 'mvola') && (
                   <div className="pay-mobile-form">
                     <div className="pay-field pay-field--full">
-                      <label>
-                        {payMethod === 'orange' ? t('payment.numberOrange') : t('payment.numberMvola')}
-                      </label>
+                      <span className="aide-libelle">
+                        <label>
+                          {payMethod === 'orange' ? t('payment.numberOrange') : t('payment.numberMvola')}
+                        </label>
+                        <Aide titre={t('aide.mobileTitre')} ancre="paiement">
+                          <p>{t('aide.mobileTexte')}</p>
+                        </Aide>
+                      </span>
                       <div className="pay-input-icon-wrap">
                         <svg className="pay-input-icon" viewBox="0 0 20 20" fill="currentColor" width="15" height="15">
                           <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />

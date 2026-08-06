@@ -9,6 +9,7 @@ import PaymentForm from '../components/PaymentForm'
 import BookingConfirmation from '../components/BookingConfirmation'
 import AchatBand from '../components/AchatBand'
 import FinalSaleNotice from '../components/FinalSaleNotice'
+import Aide, { AideNote } from '../components/Aide'
 import { useI18n, formatDuration } from '@/lib/i18n'
 import { ratingLabel, ratingTitle, genreLabel } from '@/lib/classification'
 import { filmPoster, filmBackdrop } from '@/lib/images'
@@ -1165,7 +1166,14 @@ export default function BookingFlow({ initialRoute }) {
         extraMeta={`${screenLabel} · ${sessionLabel}`}
       >
         <AchatBand />
-        <h2 className="sessions-title">{t('seats.title')}</h2>
+        <h2 className="sessions-title">
+          <span className="aide-titre-ligne">
+            {t('seats.title')}
+            <Aide titre={t('aide.placesTitre')} ancre="places">
+              <p>{t('aide.placesTexte')}</p>
+            </Aide>
+          </span>
+        </h2>
         <hr className="section-divider" />
 
         {loadingSeats && <SeatMapSkeleton />}
@@ -1190,7 +1198,12 @@ export default function BookingFlow({ initialRoute }) {
         {!loadingSeats && hasTicketPicker && selectedSeats.length > 0 && (
           <div className="ticket-picker">
             <div className="ticket-picker-head">
-              <span className="ticket-picker-eyebrow">{t('seats.ticketType')}</span>
+              <span className="ticket-picker-eyebrow aide-titre-ligne">
+                {t('seats.ticketType')}
+                <Aide titre={t('aide.billetsTitre')} ancre="places">
+                  <p>{t('aide.billetsTexte')}</p>
+                </Aide>
+              </span>
               <span className={`ticket-picker-counter ${allSeatsAssigned ? 'is-complete' : ''}`}>
                 {t('seats.assigned', { assigned: assignedCount, total: selectedSeats.length, count: selectedSeats.length })}
               </span>
@@ -1236,8 +1249,17 @@ export default function BookingFlow({ initialRoute }) {
             {/* Tant que le back-office ne publie pas ses tarifs, le montant
                 affiché est celui de l'affiche : on le dit plutôt que de le
                 laisser passer pour un prix arrêté. */}
+            {/* La grille du back-office n'a pas répondu : le montant vient de
+                l'affiche officielle. On le dit — un prix de référence n'est
+                pas un prix arrêté, et le client le découvrirait à la caisse. */}
             {priceSource === 'reference' && (
-              <p className="ticket-picker-note">{t('seats.ticketRefSource')}</p>
+              <AideNote
+                titre={t('aide.tarifAbsentTitre')}
+                ancre="faq"
+                className="ticket-picker-aide"
+              >
+                {t('aide.tarifAbsentTexte')}
+              </AideNote>
             )}
           </div>
         )}
