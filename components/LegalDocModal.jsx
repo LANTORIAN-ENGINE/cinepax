@@ -23,6 +23,11 @@ import { IconClose, IconCheck, IconArrowRight } from '@/components/icons'
 //     clavier virtuel) : la mesure est refaite ;
 //   • une fois lu, un document le reste — remonter dans le texte ne
 //     referme pas le verrou.
+//
+// La mesure est accrochée au nœud lui-même (ref de rappel) et non à un
+// effet : le panneau n'existe qu'au second rendu — le premier renvoie null
+// le temps que le portail ait une cible — et un effet monté avant lui
+// n'aurait rien à écouter, sans jamais être rejoué.
 
 export default function LegalDocModal({ doc, onClose, onRead, alreadyRead = false }) {
   const { t, locale } = useI18n()
@@ -61,28 +66,36 @@ export default function LegalDocModal({ doc, onClose, onRead, alreadyRead = fals
     if (read) onRead?.(doc.slug)
   }, [read, doc?.slug])
 
-  useEffect(() => {
-    const el = bodyRef.current
-    if (!el) return
+  // Branchée au moment où la zone de texte entre dans le document, et
+  // débranchée quand elle en sort.
+  const attachBody = useCallback(node => {
+    bodyRef.current = node
+    if (!node) return
 
     measure()
-    el.addEventListener('scroll', measure, { passive: true })
+    node.addEventListener('scroll', measure, { passive: true })
 
     // Le contenu arrive après le premier rendu et la fenêtre peut changer
     // de taille : la hauteur utile n'est pas connue une fois pour toutes.
     const observer = new ResizeObserver(measure)
-    observer.observe(el)
-    if (el.firstElementChild) observer.observe(el.firstElementChild)
+    observer.observe(node)
+    if (node.firstElementChild) observer.observe(node.firstElementChild)
 
     return () => {
-      el.removeEventListener('scroll', measure)
+      node.removeEventListener('scroll', measure)
       observer.disconnect()
     }
-  }, [measure, doc?.body])
+  }, [measure])
+
+  // Le corps peut changer sans que le nœud soit remplacé — la ref de
+  // rappel ne rejouerait pas, alors que la hauteur, elle, a changé.
+  useEffect(() => { measure() }, [measure, doc?.body])
 
   // Ouverture : la page derrière ne défile plus, le focus entre dans le
   // panneau, et il revient à son point de départ à la fermeture.
   useEffect(() => {
+    if (!mounted) return
+
     restoreRef.current = document.activeElement
     const previous = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -92,7 +105,7 @@ export default function LegalDocModal({ doc, onClose, onRead, alreadyRead = fals
       document.body.style.overflow = previous
       restoreRef.current?.focus?.()
     }
-  }, [])
+  }, [mounted])
 
   // Échap ferme ; Tab tourne en rond dans le panneau — un lecteur ne doit
   // pas se retrouver dans la page du dessous sans savoir comment revenir.
@@ -164,7 +177,7 @@ export default function LegalDocModal({ doc, onClose, onRead, alreadyRead = fals
             <div className="lgm-rail-fill" style={{ '--lgm-progress': `${progress}%` }} />
           </div>
 
-          <div className="lgm-body" ref={bodyRef} tabIndex={0}>
+          <div className="lgm-body" ref={attachBody} tabIndex={0}>
             <div
               className="legal-prose"
               dangerouslySetInnerHTML={{ __html: sanitizeLegalHtml(doc.body) }}
