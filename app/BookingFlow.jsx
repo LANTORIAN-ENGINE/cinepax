@@ -234,39 +234,75 @@ function SaleClosedNote({ count, delay }) {
   )
 }
 
-// ─── Skeleton: liste de films ─────────────────────────────────────────────────
-function FilmsListSkeleton() {
+// ─── Skeleton: sélecteur de dates ─────────────────────────────────────────────
+// Cinq jours, comme le vrai sélecteur, flèches comprises : la rangée occupe sa
+// hauteur définitive avant de connaître les dates. Les chevrons sont dessinés
+// pour de vrai — on sait déjà qu'ils seront là, et un fantôme de chevron ne
+// dirait rien de plus.
+function DatePickerSkeleton() {
   return (
-    <div className="sk-films-list">
-      {[0, 1, 2].map(i => (
+    <div className="date-picker sk-date-picker" aria-hidden="true">
+      <span className="date-arrow" aria-hidden="true">‹</span>
+      <div className="date-list">
+        {[0, 1, 2, 3, 4].map(i => (
+          <div key={i} className="date-item sk-date-item" style={{ '--sk-delay': `${i * 0.06}s` }}>
+            <span className="sk-shine sk-date-name" />
+            <span className="sk-shine sk-date-num" />
+          </div>
+        ))}
+      </div>
+      <span className="date-arrow" aria-hidden="true">›</span>
+    </div>
+  )
+}
+
+// ─── Skeleton: liste de films ─────────────────────────────────────────────────
+// Trois fiches, à la géométrie exacte de .film-row : même gouttière, même
+// hauteur d'affiche, mêmes pastilles de séance. Ce que ce squelette occupe,
+// les vraies fiches l'occuperont — le remplacement ne déplace rien.
+//
+// Les largeurs varient d'une fiche à l'autre. Trois cartes rigoureusement
+// identiques se lisent comme un motif ; une liste de films n'en est pas un.
+const SK_FILMS = [
+  { title: '58%', title2: '41%', meta: '32%', syn: ['100%', '92%', '58%'], pills: [96, 104, 96] },
+  { title: '46%', title2: '29%', meta: '26%', syn: ['100%', '84%', '71%'], pills: [104, 96, 112, 96] },
+  { title: '64%', title2: '35%', meta: '30%', syn: ['96%', '100%', '44%'], pills: [96, 96] },
+]
+
+function FilmsListSkeleton() {
+  const { t } = useI18n()
+
+  return (
+    <div className="sk-films-list" aria-busy="true" aria-label={t('home.loading')}>
+      {SK_FILMS.map((sk, i) => (
         <div key={i} className="sk-film-card" style={{ '--sk-delay': `${i * 0.12}s` }}>
           <hr className="section-divider" />
           <div className="sk-film-inner">
-            {/* Poster */}
+            {/* Affiche */}
             <div className="sk-poster sk-shine" />
 
             {/* Infos */}
             <div className="sk-info">
-              {/* Genre badge */}
+              {/* Classification + genre */}
               <div className="sk-badge-row">
                 <div className="sk-badge sk-shine" />
                 <div className="sk-badge sk-shine" style={{ width: 52 }} />
               </div>
               {/* Titre */}
-              <div className="sk-shine sk-title-line" />
-              <div className="sk-shine sk-title-line" style={{ width: '45%', marginTop: 6 }} />
-              {/* Meta */}
-              <div className="sk-shine sk-meta-line" style={{ marginTop: 14 }} />
+              <div className="sk-shine sk-title-line" style={{ width: sk.title }} />
+              <div className="sk-shine sk-title-line" style={{ width: sk.title2, marginTop: 6 }} />
+              {/* Durée, version */}
+              <div className="sk-shine sk-meta-line" style={{ width: sk.meta, marginTop: 14 }} />
               {/* Synopsis */}
               <div className="sk-synopsis">
-                <div className="sk-shine sk-syn-line" />
-                <div className="sk-shine sk-syn-line" style={{ width: '88%' }} />
-                <div className="sk-shine sk-syn-line" style={{ width: '65%' }} />
+                {sk.syn.map((w, j) => (
+                  <div key={j} className="sk-shine sk-syn-line" style={{ width: w }} />
+                ))}
               </div>
-              {/* Boutons séances */}
+              {/* Horaires */}
               <div className="sk-sessions-row">
-                {[0, 1, 2, 3].map(j => (
-                  <div key={j} className="sk-session-pill sk-shine" />
+                {sk.pills.map((w, j) => (
+                  <div key={j} className="sk-session-pill sk-shine" style={{ width: w }} />
                 ))}
               </div>
             </div>
@@ -434,7 +470,16 @@ export default function BookingFlow({ initialRoute }) {
   const [openDropdown, setOpenDropdown] = useState(null) // 'group' | 'sort' | null
   const [expandedFilms, setExpandedFilms] = useState(new Set())
 
-  const [loading, setLoading] = useState(false)
+  // Chargé dès le premier rendu, et non au premier effet. Le catalogue est
+  // demandé dans un effet, qui ne s'exécute qu'après la peinture : partir de
+  // `false` faisait rendre au serveur, puis peindre au client, un écran de
+  // films vide — « Aucun film programmé ce jour » et pas de bandeau — avant
+  // que la requête soit seulement partie. Sur une connexion lente ce faux
+  // état vide restait à l'écran le temps du chargement du script.
+  //
+  // À `true`, le HTML servi est déjà celui de l'attente : le squelette est
+  // visible avant même que React ait repris la main.
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   // ── Fermeture de la vente en ligne ──────────────────────────────────────────
@@ -1520,18 +1565,27 @@ export default function BookingFlow({ initialRoute }) {
 
           <hr className="section-divider" />
 
-          {/* Sélecteur de dates — masqué en mode PAR FILM */}
-          {groupBy === 'jour' && availableDays.length > 0 && (
-            <DatePicker
-              days={availableDays}
-              selected={selectedDay}
-              onSelect={chooseDay}
-            />
+          {/* Sélecteur de dates — masqué en mode PAR FILM.
+              Pendant le chargement il garde sa place : les dates arrivent avec
+              le catalogue, et une rangée qui s'insère au dernier moment pousse
+              toute la liste vers le bas juste au moment où on la lit. */}
+          {groupBy === 'jour' && (
+            loading
+              ? <DatePickerSkeleton />
+              : availableDays.length > 0 && (
+                  <DatePicker
+                    days={availableDays}
+                    selected={selectedDay}
+                    onSelect={chooseDay}
+                  />
+                )
           )}
 
-          {/* Liste de films — le bandeau d'achat dit la nature de la vente dès
-              le premier écran, avant même qu'un horaire soit cliqué. */}
-          {!loading && visibleFilms.length > 0 && (
+          {/* Le bandeau d'achat dit la nature de la vente dès le premier écran,
+              avant même qu'un horaire soit cliqué. Son texte ne dépend pas de
+              l'API : on l'affiche pendant l'attente plutôt que d'en fantômer
+              deux blocs qui repousseraient ensuite la liste. */}
+          {(loading || visibleFilms.length > 0) && (
             <>
               <AchatBand className="home-achat-band" />
               <BuyHint />
@@ -1542,7 +1596,10 @@ export default function BookingFlow({ initialRoute }) {
 
           {!loading && (
             <div className="films-list">
-              {visibleFilms.length === 0 && (
+              {/* Une erreur réseau parle déjà dans son bandeau : y ajouter
+                  « aucun film programmé » annoncerait une salle fermée alors
+                  que c'est la requête qui a échoué. */}
+              {visibleFilms.length === 0 && !error && (
                 anySessionsOnDay.length > 0
                   ? <SaleClosedNote count={anySessionsOnDay.length} delay={cutoffMinutes} />
                   : <p className="empty-state">{t('home.emptyDay')}</p>
@@ -1570,7 +1627,11 @@ export default function BookingFlow({ initialRoute }) {
                 }
 
                 return (
-                  <div key={film.Id}>
+                  // --i échelonne l'apparition : les fiches se posent dans
+                  // l'ordre de lecture au lieu de remplacer le squelette d'un
+                  // bloc. Le décalage est aussi celui du squelette (0,12 s),
+                  // de sorte que le relais se voit à peine.
+                  <div key={film.Id} className="film-entry" style={{ '--i': Math.min(idx, 6) }}>
                     <hr className="section-divider" />
                     <div className="film-row">
                       {/* Poster */}

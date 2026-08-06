@@ -298,13 +298,43 @@ export default function HeroSlider({ films, loading, synopses, onSelectFilm }) {
     if (e.key === 'ArrowLeft')  { e.preventDefault(); prev() }
   }
 
+  // ─── Écran d'attente ────────────────────────────────────────────────────────
+  // Le bandeau occupe le haut de l'accueil et met plusieurs secondes à se
+  // remplir sur une connexion lente : ce qu'on y met pendant ce temps est la
+  // première chose que voit un client. Un rectangle noir dit « panne » ; on
+  // montre la salle avant la séance — l'écran sombre que balaie lentement le
+  // faisceau du projecteur.
+  //
+  // Le contenu fantôme réutilise les classes réelles (.hero-content,
+  // .hero-content-left, .hero-actions) : titre, mentions, synopsis et boutons
+  // attendent exactement là où ils vont paraître, à la même géométrie et aux
+  // mêmes ruptures de mise en page. La vraie slide s'y substitue sans que rien
+  // ne bouge.
   if (loading) {
     return (
-      <section className="hero-slider hero-slider--loading" aria-hidden="true">
+      <section
+        className="hero-slider hero-slider--loading"
+        aria-busy="true"
+        aria-label={t('hero.loading')}
+      >
         <div className="hero-viewport">
-          <div className="hero-track">
-            <div className="hero-slide">
-              <div className="hero-cover sk-shine" />
+          <div className="hero-plate">
+            <span className="hero-beam" aria-hidden="true" />
+          </div>
+
+          <div className="hero-scrim" />
+
+          <div className="hero-content" aria-hidden="true">
+            <div className="hero-content-left">
+              <span className="hero-ghost hero-ghost--title" />
+              <span className="hero-ghost hero-ghost--title hero-ghost--title2" />
+              <span className="hero-ghost hero-ghost--meta" />
+              <span className="hero-ghost hero-ghost--syn" />
+              <span className="hero-ghost hero-ghost--syn hero-ghost--syn2" />
+            </div>
+            <div className="hero-actions">
+              <span className="hero-ghost hero-ghost--cta" />
+              <span className="hero-ghost hero-ghost--cta hero-ghost--cta2" />
             </div>
           </div>
         </div>

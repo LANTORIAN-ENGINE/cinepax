@@ -575,6 +575,28 @@ body {
   margin-top: 4px;
 }
 
+/* Arrivée d'une fiche. Le squelette part, les fiches se posent — même
+   courbe et même échelonnement que .sk-film-card, pour que le relais se
+   lise comme une continuité et non comme un remplacement.
+
+   Rejoué aussi au changement de jour : React remonte les fiches quand les
+   clés changent, ce qui donne gratuitement la même réponse au clic sur une
+   date. Le décalage est plafonné à six pas — au-delà, la dernière fiche
+   attendrait plus longtemps que la donnée. */
+.film-entry {
+  animation: film-entry-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 0.06s);
+}
+
+@keyframes film-entry-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .film-entry { animation: none; }
+}
+
 .film-row {
   display: flex;
   gap: 28px;
@@ -2683,6 +2705,7 @@ body {
 ══════════════════════════════════════ */
 .sk-films-list {
   width: 100%;
+  margin-top: 4px;   /* comme .films-list */
   animation: sk-fadein 0.3s ease both;
 }
 
@@ -2701,19 +2724,23 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* Mêmes mesures que .film-row : gouttière, respiration verticale et largeur
+   d'affiche. Un squelette qui n'occupe pas la place exacte de ce qu'il
+   annonce fait sauter la page au moment du remplacement — c'est justement
+   ce qu'on cherche à éviter. */
 .sk-film-inner {
   display: flex;
   gap: 28px;
-  padding: 24px 0;
+  padding: 28px 0;
   align-items: flex-start;
 }
 
-/* Poster */
+/* Affiche — même format que .film-poster-wrap img. Pas d'arrondi : les
+   vraies affiches sont à angle vif. */
 .sk-poster {
   width: 200px;
   height: 280px;
   flex-shrink: 0;
-  border-radius: 6px;
 }
 
 /* Bloc infos */
@@ -2769,10 +2796,59 @@ body {
 }
 
 /* Mêmes mesures que .session-time-btn : le squelette doit se retirer
-   sans que les pastilles sautent. */
+   sans que les pastilles sautent. La largeur est posée à l'appel — sans
+   elle, la pastille est un enfant de flex sans contenu, donc large de
+   zéro : la rangée d'horaires n'apparaissait pas du tout. */
 .sk-session-pill {
   height: 46px;
+  min-width: 96px;
   border-radius: 2px;
+}
+
+/* ══════════════════════════════════════
+   SKELETON SÉLECTEUR DE DATES
+   Les dates arrivent avec le catalogue. Sans cette rangée d'attente, le
+   sélecteur s'insère au dernier moment et pousse la liste de films de
+   70 px vers le bas, juste sous les yeux du client.
+══════════════════════════════════════ */
+.sk-date-picker { pointer-events: none; }
+
+.sk-date-picker .date-arrow { color: #e2e2e2; }
+
+.sk-date-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: default;
+}
+
+/* 15 + 8 + 15 = 38 px, soit les deux lignes de .day-name / .day-num à
+   0,85 rem, interligne et gouttière comprises. */
+.sk-date-name,
+.sk-date-num {
+  display: block;
+  height: 15px;
+  border-radius: 4px;
+}
+
+.sk-date-name { width: 38px; }
+.sk-date-num  { width: 52px; }
+
+/* ══════════════════════════════════════
+   SKELETONS — TÉLÉPHONE ÉTROIT
+
+   Le point de rupture 400 px de la liste de films est déclaré bien plus
+   haut dans ce fichier, avant les règles .sk-* : y ranger ces surcharges
+   les ferait perdre au profit des règles de base, plus bas et de même
+   spécificité. La media query est donc redéclarée ici, après ce qu'elle
+   corrige. Sans elle, l'affiche fantôme reste large de 200 px là où la
+   vraie prend toute la colonne, et la fiche se réagence sous les yeux.
+══════════════════════════════════════ */
+@media (max-width: 400px) {
+  .sk-film-inner { flex-direction: column; gap: 16px; padding: 20px 0; }
+  .sk-poster { width: 100%; height: 220px; }
+  .sk-date-item { padding-left: 14px; padding-right: 14px; }
 }
 
 /* ══════════════════════════════════════
@@ -2868,6 +2944,38 @@ body {
   height: 22px;
   border-radius: 5px;
   flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════
+   SKELETONS — MOUVEMENT RÉDUIT
+
+   Un squelette est fait de dizaines de blocs qui balaient en boucle : c'est
+   exactement le motif que ce réglage demande d'éteindre. Les blocs restent,
+   dans le ton médian du balayage — l'attente se lit toujours à sa forme,
+   jamais à son scintillement.
+
+   Ce bloc est déclaré après tous les .sk-* qu'il éteint, y compris le
+   .sk-screen-glow marqué !important : à égalité de spécificité et
+   d'importance, c'est la dernière déclaration qui l'emporte.
+══════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .sk-shine {
+    background: #ececec;
+    animation: none;
+  }
+
+  .sk-shine-dark,
+  .sk-seat-ghost {
+    background: #e3e6ea;
+    animation: none;
+  }
+
+  .sk-films-list,
+  .sk-film-card,
+  .sk-seatmap-wrap,
+  .sk-seat-row { animation: none; }
+
+  .sk-screen-glow { animation: none !important; opacity: 0.6; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -6027,9 +6135,113 @@ body {
 
 .hero-bullet.is-active { background: #fff; opacity: 1; }
 
-/* ── Squelette de chargement ─────────────────────────────────── */
-.hero-slider--loading .hero-viewport { aspect-ratio: 0.96 / 1; }
-.hero-slider--loading .hero-cover { background: #1b1b1e; }
+/* ── Écran d'attente : la salle avant la séance ──────────────────
+   Le bandeau met plusieurs secondes à se remplir sur une connexion lente,
+   et il occupe le premier écran : ce qu'on y montre pendant ce temps est
+   la première impression du site. L'ancienne version posait un aplat
+   #1b1b1e par-dessus .sk-shine — deux classes contre une, le dégradé du
+   shimmer perdait la cascade et l'animation balayait une couleur unie.
+   Résultat : un rectangle noir immobile, qui se lit comme une panne.
+
+   Le remplaçant est la salle avant la séance. L'écran est sombre mais pas
+   éteint (le noir pur n'existe pas dans une salle), et le faisceau du
+   projecteur le balaie lentement. Rien ne clignote : ce qui bouge est une
+   lumière, sur une cadence de projection — pas un indicateur d'interface.
+
+   Aucune règle ne touche .hero-viewport : le cadre d'attente prend le
+   rapport de la vraie slide, portrait au téléphone et 21/9 au bureau. Une
+   surcharge ici l'emporterait sur la media query desktop, plus loin dans
+   le fichier mais moins spécifique, et l'écran passerait du portrait au
+   panoramique au moment où les films arrivent. */
+.hero-slider--loading { background: #131013; }
+
+.hero-plate {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  /* Chaud, très légèrement teinté vers le rouge Cinepax : un écran de salle
+     renvoie la lumière de la lampe, il n'est jamais gris neutre. */
+  background: radial-gradient(122% 92% at 50% 40%, #221c1f 0%, #181416 56%, #110f11 100%);
+}
+
+/* Le faisceau. Déplacé en transform et non en background-position : sur un
+   bandeau plein cadre, repeindre le dégradé à chaque image coûte cher, le
+   composite ne coûte rien. */
+.hero-beam {
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 44%;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 240, 234, 0.04) 32%,
+    rgba(255, 247, 243, 0.11) 50%,
+    rgba(255, 240, 234, 0.04) 68%,
+    transparent 100%
+  );
+  filter: blur(7px);
+  transform: translate3d(-130%, 0, 0);
+  animation: hero-beam-sweep 3.4s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+}
+
+@keyframes hero-beam-sweep {
+  from { transform: translate3d(-130%, 0, 0); }
+  to   { transform: translate3d(350%, 0, 0); }
+}
+
+/* Contenu fantôme. Les barres portent les classes de mise en page réelles
+   (.hero-content, .hero-content-left, .hero-actions) : elles héritent donc
+   du passage en colonne au téléphone, de la rangée au bureau et de la
+   largeur maximale du contenu, sans qu'aucune mesure soit recopiée. */
+.hero-ghost {
+  display: block;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  animation: hero-ghost-pulse 2.6s ease-in-out infinite;
+  animation-delay: var(--g, 0s);
+}
+
+@keyframes hero-ghost-pulse {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 1; }
+}
+
+.hero-ghost--title  { height: clamp(1.75rem, 7vw, 2.5rem); width: 64%; margin-bottom: 7px; }
+.hero-ghost--title2 { width: 38%; margin-bottom: 12px; --g: 0.08s; }
+.hero-ghost--meta   { height: 11px; width: 47%; margin-bottom: 14px; --g: 0.16s; }
+.hero-ghost--syn    { height: 11px; width: 100%; margin-bottom: 7px; --g: 0.24s; }
+.hero-ghost--syn2   { width: 72%; margin-bottom: 0; --g: 0.32s; }
+
+/* Mêmes mesures que .hero-cta, y compris son flex : au téléphone les deux
+   boutons se partagent la largeur, au bureau ils reprennent leur taille. */
+.hero-ghost--cta {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 40px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  --g: 0.4s;
+}
+
+.hero-ghost--cta2 { background: rgba(255, 255, 255, 0.1); --g: 0.48s; }
+
+@media screen and (min-width: 48em) {
+  .hero-ghost--cta  { flex: 0 0 auto; width: 186px; height: 44px; }
+  .hero-ghost--cta2 { width: 158px; }
+}
+
+/* Mouvement réduit : la lampe reste allumée, elle ne balaie plus. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-beam {
+    animation: none;
+    transform: translate3d(110%, 0, 0);
+    opacity: 0.7;
+  }
+  .hero-ghost { animation: none; }
+}
 
 /* ── Accessibilité ───────────────────────────────────────────── */
 .hero-slider :focus-visible {

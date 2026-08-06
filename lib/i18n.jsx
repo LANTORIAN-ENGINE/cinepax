@@ -499,6 +499,7 @@ const DICT = {
       fullscreen: 'Plein écran',
       exitFullscreen: 'Quitter le plein écran',
       readMore: 'Lire la suite',
+      loading: 'Chargement des films à l’affiche',
     },
 
     home: {
@@ -509,6 +510,7 @@ const DICT = {
       alphabetical: 'PAR ORDRE ALPHABÉTIQUE',
       newest: 'PLUS RÉCENT',
       emptyDay: 'Aucun film programmé ce jour.',
+      loading: 'Chargement des séances',
       more: 'Plus',
       less: 'Moins',
       mins: 'min',
@@ -1640,6 +1642,7 @@ const DICT = {
       fullscreen: 'Full screen',
       exitFullscreen: 'Exit full screen',
       readMore: 'Read more',
+      loading: 'Loading films now playing',
     },
 
     home: {
@@ -1650,6 +1653,7 @@ const DICT = {
       alphabetical: 'ALPHABETICAL',
       newest: 'NEWEST',
       emptyDay: 'No movies scheduled for this day.',
+      loading: 'Loading showtimes',
       more: 'More',
       less: 'Less',
       mins: 'min',
