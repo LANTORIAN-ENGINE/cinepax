@@ -1,0 +1,106 @@
+Demande,Status,traité par ETECH,QUESTION POUR CINEPAX
+"- Il s’agit d’un ACHAT ferme et définitif d’une séance de cinéma avec le choix des sièges (et non pas une réservation). Le terme indiqué sera donc ACHAT et non pas réservation Terme utilisé pour la vente: ACHAT TICKET EN LIGNE au lieu de RESERVATION
+",fait,"La terminologie du site a été entièrement revue pour parler d'achat et non plus de réservation, sur
+  toutes les pages et dans les deux langues, et un bandeau « ACHAT · TICKET EN LIGNE » rappelle
+  désormais, à chaque étape du parcours (séances, choix des sièges, paiement), qu'il s'agit d'un achat
+  ferme et définitif avec sièges attribués.",
+- logo cinepax (retirer love…life…fillums),fait,"Logo Cinepax (suppression de ""Love… Life… Films"") : c'est bon, les mentions ont bien été retirées.",
+"- « par heurE de séances »,",fait,PAR HEURE DE SÉANCES a été bien corrigé,
+- durée du film : un format x h xx est il possible ? sinon retirer le S à x minS,fait,"La durée des films s'affiche désormais au format « 2 h 25 » au lieu de « 145 mins », sur l'ensemble du site — page d'accueil, fiches films, programme de la semaine et prochainement",
+- contrôle de l’interdiction et report sur le site de vente en ligne (mention obligatoire),à demander,,à préciser c'est pas claire 
+"- contrôle trailer, version, visuel affiche",à demander,,vous devez l'avoir sur votre backoffice 
+"- bandeau CINEPAX en bas du site, adresse géographique sur une ligne",fait,"Les coordonnées du bas de page sont désormais présentées sur une ligne chacune avec un pictogramme, l'adresse ouvre directement Google Maps et le numéro lance l'appel d'un simple clic",
+"- revoir « nos offres », remonter le programme ?",à demander,,à préciser de quoi vous vouler remonter exactement 
+"- au moins au début, rajouter « pour l’achat de billets merci de cliquer sur l’horaire de la séance de votre choix » ?
+",fait,"Le message ""Pour acheter vos billets, cliquez sur l'horaire de la
+  séance de votre choix"" apparaît sur la page d'accueil comme sur chaque fiche film, l'heure se change
+  en bouton ""Acheter"" au passage du curseur, et les séances complètes s'affichent barrées avec la
+  mention ÉPUISÉ",
+- Y a-t-il moyen de séparer les titre des films et les VO/VF/3D … par un tiret ?,à demander,,cette catégorie vient vraiment des scéances ou du description du scéance pour ajouter le filtre ou les mette en distinction 
+"- Le clic d’un client sur un horaire d’un film sur cinepax.mg aboutit bien directement sur l’écran de sélection d’un siège de la séance concernée (à discuter)
+",fait,"Les résumés de films fournis par Veezi contiennent des signes de mise en forme (étoiles autour des
+  titres, retours à la ligne) que notre site n'interprétait pas : des symboles parasites s'affichaient
+  en clair et les paragraphes étaient collés en un bloc illisible. C'est corrigé sur l'ensemble du site
+  — accueil, liste des séances, fiche film et page « Prochainement » — où les titres cités apparaissent
+  désormais en italique et les paragraphes correctement séparés. Le bandeau d'accueil gagne en plus un
+  lien « Lire la suite », affiché uniquement quand le texte est réellement coupé, qui renvoie vers la
+  fiche du film. Nous en avons profité pour réparer un défaut qui déformait les noms d'acteurs sur la
+  page « Prochainement ». Le tout a été validé sur la totalité du catalogue Veezi (2 371 résumés), sur
+  ordinateur et mobile, sans impact sur le parcours d'achat et sans aucune action requise côté Veezi ou
+  côté client.",
+"- Peut on garder un fond blanc durant tout le parcours d’achat ? (actuellement, le fond est noir à partir du placement jusqu’au mode de paiement qui est moins lisible sur fond noir)
+",fait,"Le parcours d'achat en ligne était sombre à partir du choix des places jusqu'au paiement, ce que le client trouvait peu lisible ; il est désormais clair du premier au dernier écran, dans la continuité du reste
+  du site. Le plan de salle ne cherche plus à imiter une salle éteinte : il se présente comme le plan du guichet, sur fond blanc, où chaque place se lit d'un coup d'œil — libre, occupée, choisie — avec son
+  numéro parfaitement visible, et l'écran de la salle tracé en trait noir franc. Les pages de paiement, de confirmation du billet et de connexion suivent la même logique : fond blanc, textes contrastés, le rouge
+  Cinepax réservé à ce qui engage l'achat. Au passage, trois défauts ont été corrigés : le détail des tarifs était écrit en noir sur fond noir, donc invisible ; le QR code du billet était rouge sur noir, ce qui
+  gêne les lecteurs et l'impression ; et sur téléphone, le bandeau de validation coupait le message en quatre morceaux. Seul l'espace d'administration reste volontairement sombre, car il s'utilise au guichet
+  dans le hall peu éclairé, sur des écrans allumés toute la journée.",
+"- Visuel placement en salle en attente de la confirmation du positionnement des sièges de l’équipe Cinepax
+",à demander,,vous pouvez directement le vérifier sur le site preprod
+- « ECRAN » ECRIT PLUS GRAND,fait,Le mot « ÉCRAN » se lit désormais d'un seul coup d'œil en haut du plan de salle.,
+- LETTRE ET CHIFFRE DES SIEGES EN POLICE BLANCHE si le fond reste noir,fait," Lisibilité des numéros de sièges — corrigé. Le retour demandait des lettres et numéros en blanc « si le fond reste noir » : le plan de salle n'est plus sur fond noir depuis la refonte du parcours d'achat, donc
+  écrire en blanc les aurait rendus invisibles. La gêne signalée était néanmoins réelle, mais d'origine différente — tant que le canal CINEP n'est pas activé côté Veezi, tous les sièges s'affichent en gris «
+  éteint » et le numéro y était trop pâle. Les numéros et lettres de rangée ont donc été assombris et légèrement agrandis sur tous les états du plan, y compris ceux qui n'apparaîtront qu'une fois CINEP activé ;
+  tous respectent désormais le seuil d'accessibilité WCAG AA, mobile compris. Reste à cocher « CINEP » dans la grille de programmation Veezi pour que les places deviennent sélectionnables et à jour.",
+"- Légende : uniquement libre, sélectionné et occupé + éventuellement non dispo",à demander,,"il existe déjà plusieur légende dans votre backoffice, je pense que vous pouvez le gérer depuis votre backoffice "
+- Rajout du visuel des tarifs ?,fait,"Les tarifs sont désormais visibles de bout en bout : un semainier sur la page « Nos offres » — sept
+  colonnes, une par jour, le prix en grand et une étiquette rouge « Bon plan » sur le mardi et le jeudi
+  — et, dans le parcours d'achat, un sélecteur de billets par tranche d'âge qui apparaît dès qu'une
+  place est choisie, avec un total qui se recalcule en direct et se retrouve à l'identique sur l'écran
+  de paiement puis sur le billet de confirmation, les montants provenant pour l'instant de l'affiche
+  officielle Cinepax en attendant l'activation de la vente en ligne côté Veezi.",
+"- Et de la mention « une pièce d’identité pourra vous être demandée au contrôle pour justifier votre âge »
+",à verifier,,
+"- Rajout de « achat définitif, non échangeable, non remboursable »",fait,"- Le message « achat définitif, non échangeable, non remboursable » apparaît désormais à chaque étape
+  de l'achat — de la liste des films jusqu'au billet, y compris à l'impression",
+"- A chaque QR CODE, rajout du film, date, salle et horaire séance, nombre de places et intitulé tarif pour faciliter le passage au contrôle (sur écran et éventuellement sur
+ l’impression)
+",fait,"- Le QR code et le billet portent maintenant le film, la date, l'horaire, la salle, le nombre de
+  places et le tarif, à l'écran comme à l'impression, pour que le contrôle à l'entrée se fasse d'un coup
+  d'œil.
+",
+- Gestion de la data avec accord du client (via le site admin ?) (RGPD),fait,"RGPD — le consentement du client à l'usage de ses données
+
+  Nous avons ajouté au site une mention RGPD que chaque client doit accepter avant de créer son compte. Elle dit en clair ce que Cinepax collecte (nom, e-mail, téléphone, historique d'achats), à quoi cela sert,
+  combien de temps c'est conservé et comment demander l'accès, la correction ou l'effacement de ses données. Pour que cette acceptation ait une valeur, le client ne peut pas cocher la case sans avoir ouvert le
+  document : la case reste verrouillée tant qu'il n'a pas fait défiler le texte jusqu'au bout, comme sur les grands sites de vente en ligne. Une barre de progression lui montre où il en est, pour que le blocage
+  s'explique de lui-même au lieu d'être subi. À chaque acceptation, le système enregistre la date, l'heure et la version exacte du texte accepté — c'est la preuve à produire en cas de litige ou de contrôle. Le
+  client retrouve à tout moment, dans son espace personnel, la liste de ce qu'il a accepté et peut relire le texte tel qu'il était au moment de son accord. Un bandeau discret en bas d'écran rappelle enfin aux
+  visiteurs ce que nous faisons de leurs données ; il n'y a pas de fenêtre bloquante à cookies, car le site n'utilise aucun traceur publicitaire — il n'y avait donc aucune permission à demander.
+",
+"- CGU CGV ET PDD, Où vont-ils apparaître ? sur cinepax.mg",fait," CGU, CGV, PDD — les documents contractuels et leur gestion par l'administrateur
+
+  Trois autres documents complètent le dispositif : les conditions générales d'utilisation (les règles d'usage du site et du compte), les conditions générales de vente (qui posent noir sur blanc que l'achat en
+  ligne est ferme et définitif, non remboursable, et ce qui se passe si une séance est annulée) et la politique de protection des données (le document détaillé, qui reprend chaque traitement un par un). Ils sont
+  accessibles depuis le pied de page sur toutes les pages du site, depuis une page d'accueil dédiée qui les regroupe, et les conditions de vente sont rappelées juste au-dessus du bouton de paiement,
+  consultables sans quitter la commande. Point important pour l'exploitation : l'administrateur rédige et modifie lui-même ces textes depuis son espace, avec un éditeur de texte semblable à Word (gras, titres,
+  listes, liens), en français et en anglais — sans passer par un développeur et sans mise en ligne technique. Une nuance qui compte : corriger une faute de frappe n'ennuie personne, alors que publier une
+  nouvelle version redemande son accord à tous les clients. C'est donc l'administrateur qui décide, en cochant une case dédiée, si le changement est assez important pour justifier une nouvelle acceptation — et
+  l'écran lui annonce le nombre exact de clients concernés avant qu'il ne valide.
+",
+- Création libéllé sur l'horaire du film pour faciliter la navigation (à verifier),à demander,,"besoin de précision sur le filtre, genre matiné, soiré ou autre "
+- Uniformiser les textes du web en langue français,à verifier,déjà vérifier,
+"- Pas de lettre ""e"" sur HEURE de l'onglet ""PAR HEURE DE SEANCE"" de la page Actuellement web",à verifier,déjà vérifier ,
+"- Le mot ""Aujourd'hui"" sur Prochainement avec guillemets au lieu d'apostrophe",fait,"- Le mot « Aujourd'hui » et tous les textes du site utilisent désormais la bonne apostrophe
+  française.",
+"- A remplacer ""TBC: To be confirmed"" par le classification exact du film ou terme en FR",fait,"- La mention technique « TBC » est remplacée par la classification du film en français ; lorsque le
+  distributeur ne l'a pas encore fournie, le site affiche « Classification en attente ».",
+"- ""A modifier automatiquement le synopsis du film FR en synopsis FR et idem EN en EN pour ne faire manuellement à chaque création de la version du film.""
+",fait,"Le site affiche désormais chaque synopsis dans la langue du visiteur : il récupère d'abord le texte déjà rédigé par le distributeur sur la version VF ou VO du film, et ne le fait traduire automatiquement que
+  ▎ lorsqu'il n'existe pas — ce qui corrige au passage les fiches françaises qui affichaient de l'anglais.",
+"- Couleur sièges, toutes les sélections, etc...: A garder toutes les couleurs sur Veezi POS",à demander,,"On a pas acces constament au rendu du POS, si vous pouvez nous le rappeler l'ergonomie pour que ça soit en phase avec le site "
+- Possibilité de bloquer le siège cassé en attendant la réparation,à demander,Depuis le backoffice ,"si vous avez déjà une options de bloquer les sièges depuis le backoffice alors c'est bon, sinon on peut l'implémenter mais manuellement sur chaque salle "
+- Police de caractère à augmenter pour faciliter la lecture,fait,"-La taille du texte a été augmentée de 12,5 % sur l'ensemble du site pour en faciliter la lecture,
+  sans modifier la mise en page.",
+- A mettre en evidence la place choisie par le Client - A écrire en capitale et en bas une fois selectionnée les numéros (A écrire en capitale juste en bas de l'écran une fois selectionnée les numéros),fait,"- Quand un client choisit ses places sur le plan de salle, elles ressortent maintenant nettement en rouge et leurs numéros s'affichent en toutes lettres capitales juste sous l'écran (par ex. « D5 D6 D7 »), pour
+  qu'il vérifie d'un coup d'œil ce qu'il achète — au passage, nous avons corrigé un défaut qui rognait la moitié droite de la salle sur téléphone et rendait ces sièges impossibles à sélectionner.",
+- Legendes des sièges à diminuer sur Veezi POS - A supprimer ceux inutiles (Places libres - Places disponibles - Places occupées - Reservations),à demander,,ça vient des retours depuis le backoffice 
+- Mise en place formulaire pour les clients fidèles ou priviliégiés,à demander,,"Que contient le formulaire, on aimerai avoir plus de précision surtout sur le flow "
+- Maximum d'informations/guides pour les clients en ligne: Assistance sous forme liens ou guide pour explications les démarches (ex : Nombre de chiffres à taper sur la carte bancaire),fait,"Le site accompagne désormais le client à chaque étape de l'achat en ligne : de petites bulles d'aide expliquent au moment voulu ce qu'il faut saisir — notamment les 16 chiffres de la carte, avec un compteur
+  qui se remplit à mesure qu'on tape, et un schéma indiquant où lire le code à 3 chiffres au dos —, préviennent que la banque enverra un code par SMS, précisent pourquoi certaines séances n'affichent ni plan de
+  salle ni tarif (elles restent en vente à la caisse), et renvoient vers une nouvelle page « Aide » accessible depuis le menu et le bas de page, qui détaille le parcours complet et répond aux dix questions les
+  plus fréquentes — le tout en français et en anglais, sans rien changer au fonctionnement existant.",
+- Numéro téléphone standard cinepax: A ne pas mettre à ligne le 01 sur (+261)3405735,fait,,
+- Diminuer le temps de disponibilité des films sur le web après ouverture vente sur Veezi backoffice,fait,"Les séances ne sont plus proposées à l'achat sur le site dans les dernières minutes avant leur début — le délai (60 minutes par défaut) se règle librement depuis l'espace d'administration, sans intervention
+  technique, et s'applique immédiatement à tout le site.",
+"- Ajouter un onglet ""ACHAT EN LIGNE"" OU ""RESERVER"" à côté heure du film ou bien une fois pointez sur l'horaire du film",fait,déjà intégré par rapport au autre ,
