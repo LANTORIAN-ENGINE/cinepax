@@ -83,7 +83,6 @@ export default function RegisterPage() {
 
   return (
     <div className="auth-form-box">
-      <img src="/logo2.png" alt="Cinepax" className="auth-logo" />
       <h1 className="auth-title">{t('auth.registerTitle')}</h1>
       <p className="auth-subtitle">{t('auth.registerSubtitle')}</p>
 

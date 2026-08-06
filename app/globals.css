@@ -4342,15 +4342,8 @@ body {
   padding: 48px 32px; background: var(--a-bg);
 }
 .auth-form-box { width: 100%; max-width: 380px; }
-/* Le logo est fourni avec son fond noir incrusté. Sur la navbar et le pied de
-   page (#000) il se fond tout seul. Ici la page est blanche : « screen »
-   effacerait le logo entier au lieu de son fond. On assume donc le
-   rectangle et on en fait une plaque — comme le talon ACHAT, le seul
-   objet sombre d'un parcours clair. */
-.auth-logo {
-  height: 46px; width: auto; margin-bottom: 28px;
-  border-radius: 5px; display: block;
-}
+/* Pas de logo en tête de formulaire : la barre de navigation le porte déjà
+   au-dessus. Le titre ouvre le bloc, le panneau visuel tient l'identité. */
 .auth-title {
   font-size: var(--ts-xl); font-weight: 700; color: var(--a-ink);
   letter-spacing: -0.02em; margin-bottom: 6px;
@@ -4743,10 +4736,8 @@ body {
   overflow-y: auto;
 }
 .admin-sidebar-brand {
-  display: flex; align-items: center; gap: 11px;
   padding: 20px 18px; border-bottom: 1px solid var(--a-line-2);
 }
-.admin-brand-logo { height: 34px; width: auto; mix-blend-mode: screen; }
 .admin-brand-name { font-size: var(--ts-sm); font-weight: 700; color: var(--a-ink); }
 .admin-brand-role {
   font-size: var(--ts-2xs); color: var(--a-accent); font-weight: 700;

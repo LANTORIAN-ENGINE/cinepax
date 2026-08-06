@@ -67,12 +67,11 @@ export default function AdminLayout({ children }) {
 
       {/* ── Sidebar ── */}
       <aside className={`admin-sidebar ${sideOpen ? 'open' : ''}`}>
+        {/* Le logo est déjà porté par la barre de navigation, juste au-dessus
+            de ce rail : ici il ne reste que ce qui nomme l'espace. */}
         <div className="admin-sidebar-brand">
-          <img src="/logo2.png" alt="Cinepax" className="admin-brand-logo" />
-          <div>
-            <p className="admin-brand-name">Cinepax</p>
-            <p className="admin-brand-role">{t('adminNav.brandRole')}</p>
-          </div>
+          <p className="admin-brand-name">Cinepax</p>
+          <p className="admin-brand-role">{t('adminNav.brandRole')}</p>
         </div>
 
         <nav className="admin-nav">

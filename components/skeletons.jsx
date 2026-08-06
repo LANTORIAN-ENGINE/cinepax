@@ -36,12 +36,9 @@ export function AdminChromeSkeleton() {
     <div className="admin-wrap" aria-busy="true" aria-label="Chargement">
       <aside className="admin-sidebar">
         <div className="admin-sidebar-brand">
-          <Bar w={34} h={34} r={6} />
-          <div style={{ flex: 1 }}>
-            <Bar w="62%" h={11} d={0.04} />
-            <span style={{ display: 'block', height: 5 }} />
-            <Bar w="82%" h={9} d={0.08} />
-          </div>
+          <Bar w={64} h={11} />
+          <span style={{ display: 'block', height: 5 }} />
+          <Bar w={112} h={9} d={0.04} />
         </div>
         <nav className="admin-nav">
           {[0, 1, 2, 3].map(i => (
