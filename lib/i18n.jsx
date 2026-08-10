@@ -362,6 +362,7 @@ const DICT = {
       gateLocked: 'Ouvrez chaque document et lisez-le jusqu’au bout pour pouvoir cocher.',
       gateRemaining: 'Reste à lire : {docs}',
       gateDone: 'Documents lus. Vous pouvez cocher.',
+      gateTicked: 'Documents lus, case cochée. Décochez-la si vous refusez.',
       consentMissing: 'Cochez les cases obligatoires pour continuer.',
       consentSaveError: 'Votre acceptation n’a pas pu être enregistrée. Réessayez.',
 
@@ -1528,6 +1529,7 @@ const DICT = {
       gateLocked: 'Open each document and read it to the end before ticking.',
       gateRemaining: 'Still to read: {docs}',
       gateDone: 'Documents read. You can tick the box.',
+      gateTicked: 'Documents read, box ticked. Untick it if you disagree.',
       consentMissing: 'Tick the required boxes to continue.',
       consentSaveError: 'Your acceptance could not be saved. Please try again.',
 

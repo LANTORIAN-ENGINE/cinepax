@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useI18n } from '@/lib/i18n'
 import LegalDocModal from '@/components/LegalDocModal'
 import { IconCheck, IconLock, IconAlert } from '@/components/icons'
@@ -14,6 +14,13 @@ import { IconCheck, IconLock, IconAlert } from '@/components/icons'
 // ouverts et parcourus jusqu'au bout. Le composant ne dit pas seulement
 // « non » : il montre lesquels restent à lire, et le lien pour les ouvrir.
 //
+// Le dernier document lu jusqu'au bout coche la case. Redemander un clic
+// après avoir descendu deux textes entiers ne prouve rien de plus : le geste
+// qui engage, c'est la lecture, puis le bouton de validation. La case reste
+// décochable — et une case sans verrou de lecture n'est jamais pré-cochée,
+// sans quoi elle serait cochée à l'affichage, ce qu'aucun consentement ne
+// supporte.
+//
 // Composant contrôlé — le parent tient la liste des groupes acceptés, parce
 // que c'est lui qui devra l'envoyer à /api/legal/consent.
 
@@ -21,6 +28,23 @@ export default function LegalConsent({ groups, value = [], onChange, error = nul
   const { t } = useI18n()
   const [readSlugs, setReadSlugs] = useState(() => new Set())
   const [openDoc, setOpenDoc] = useState(null)
+
+  // Les groupes déjà cochés d'eux-mêmes. Sans cette mémoire, décocher
+  // rappellerait aussitôt l'effet, et la case se recocherait toute seule.
+  const autoTicked = useRef(new Set())
+
+  useEffect(() => {
+    const ready = (groups || []).filter(g =>
+      g.gated.length > 0 &&
+      g.gated.every(slug => readSlugs.has(slug)) &&
+      !value.includes(g.group) &&
+      !autoTicked.current.has(g.group)
+    )
+    if (!ready.length) return
+
+    ready.forEach(g => autoTicked.current.add(g.group))
+    onChange?.([...new Set([...value, ...ready.map(g => g.group)])])
+  }, [groups, readSlugs, value, onChange])
 
   if (!groups?.length) return null
 
@@ -93,7 +117,7 @@ export default function LegalConsent({ groups, value = [], onChange, error = nul
             <p className={`lgc-hint ${locked ? '' : 'is-done'}`}>
               {locked
                 ? t('legal.gateRemaining', { docs: remainingTitles })
-                : t('legal.gateDone')}
+                : t(checked ? 'legal.gateTicked' : 'legal.gateDone')}
             </p>
           </div>
         )

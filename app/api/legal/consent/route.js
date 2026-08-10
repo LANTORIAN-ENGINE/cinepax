@@ -91,17 +91,64 @@ export async function POST(request) {
 
   // Revenir sur un consentement (l'accepter à nouveau, ou le retirer) met à
   // jour la ligne existante : c'est l'état courant qui compte, pas le nombre
-  // de fois qu'on a cliqué. Les index uniques partiels distinguent le cas
-  // « compte » du cas « adresse seule ».
-  const conflict = subject.userId
-    ? 'user_id, slug, version'
-    : 'guest_email, slug, version'
-
-  const { error: upErr } = await supabase
+  // de fois qu'on a cliqué.
+  //
+  // Cette relecture tient lieu d'`upsert`. Les deux index d'unicité sont
+  // partiels — `WHERE user_id IS NOT NULL` d'un côté, une expression
+  // `lower(btrim(guest_email))` de l'autre — et PostgREST ne sait pas
+  // décrire un tel arbitre : Postgres refusait l'écriture avec « there is no
+  // unique or exclusion constraint matching the ON CONFLICT specification ».
+  // Aucun consentement ne s'enregistrait, ni à l'inscription ni à la
+  // connexion. On relit donc l'état, on met à jour ce qui existe, on insère
+  // le reste ; les index restent le filet contre les doublons.
+  const held = supabase
     .from('legal_consents')
-    .upsert(rows, { onConflict: conflict })
+    .select('id, slug, version')
+    .in('slug', docs.map(d => d.slug))
 
-  if (upErr) return Response.json({ error: upErr.message }, { status: 500 })
+  const { data: existing, error: exErr } = subject.userId
+    ? await held.eq('user_id', subject.userId)
+    : await held.is('user_id', null).eq('guest_email', subject.guestEmail)
+
+  if (exErr) return Response.json({ error: exErr.message }, { status: 500 })
+
+  const heldId = new Map((existing || []).map(r => [`${r.slug}@${r.version}`, r.id]))
+  const toUpdate = []
+  const toInsert = []
+  for (const row of rows) {
+    const id = heldId.get(`${row.slug}@${row.version}`)
+    if (id) toUpdate.push(id)
+    else toInsert.push(row)
+  }
+
+  // Ce qui change est le même pour toutes les lignes — le document et sa
+  // version, eux, ne bougent pas. Une seule requête suffit donc.
+  if (toUpdate.length) {
+    const { error } = await supabase
+      .from('legal_consents')
+      .update({
+        accepted,
+        context,
+        locale,
+        ip:          rows[0].ip,
+        user_agent:  rows[0].user_agent,
+        accepted_at: now,
+      })
+      .in('id', toUpdate)
+
+    if (error) return Response.json({ error: error.message }, { status: 500 })
+  }
+
+  if (toInsert.length) {
+    const { error } = await supabase.from('legal_consents').insert(toInsert)
+
+    // 23505 : la même trace est arrivée entre la relecture et l'insertion
+    // (deux onglets, un double clic). Elle vaut la nôtre — on n'échoue pas
+    // sur un consentement déjà enregistré.
+    if (error && error.code !== '23505') {
+      return Response.json({ error: error.message }, { status: 500 })
+    }
+  }
 
   return Response.json({
     ok: true,

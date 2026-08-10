@@ -69,6 +69,15 @@ export default function LoginPage() {
       const data = await res.json()
 
       if (res.ok && data.pending?.length) {
+        // Le compte n'est pas ouvert tant que les documents ne sont pas
+        // acceptés : on referme la session sur-le-champ, sinon la barre
+        // annonce « connecté » au milieu d'une étape qui ne l'est pas, et
+        // un simple retour en arrière suffirait à entrer sans avoir coché.
+        //
+        // Fermeture locale seulement : le jeton déjà en main reste valable
+        // le temps de signer l'enregistrement du consentement, après quoi
+        // la connexion est rejouée pour de bon.
+        await supabase.auth.signOut({ scope: 'local' })
         setPending({ slugs: data.pending, next, token })
         setLoading(false)
         return
@@ -95,7 +104,26 @@ export default function LoginPage() {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${pending.token}` },
         body: JSON.stringify({ slugs: pending.slugs, context: 'login', locale: lang }),
       })
-      if (!res.ok) { setConsentErr(t('legal.consentSaveError')); return }
+      if (!res.ok) {
+        const detail = await res.json().catch(() => null)
+        console.error('consentement non enregistré', res.status, detail)
+        setConsentErr(t('legal.consentSaveError'))
+        return
+      }
+
+      // La trace est déposée : la session peut s'ouvrir. Le mot de passe est
+      // toujours dans le formulaire — rien à redemander.
+      const supabase = createClient()
+      const { error: back } = await supabase.auth.signInWithPassword({ email, password })
+      if (back) {
+        // Cas improbable (jeton expiré pendant la lecture, mot de passe changé
+        // ailleurs) : le consentement est enregistré, seule la connexion est à
+        // refaire. On rend le formulaire plutôt qu'un écran mort.
+        setPending(null)
+        setError(back.message)
+        return
+      }
+
       router.push(pending.next)
     } catch {
       setConsentErr(t('legal.consentSaveError'))
