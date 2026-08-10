@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
 import { IconUser } from '@/components/icons'
@@ -75,14 +76,14 @@ export default function NavAuth() {
         </span>
       </span>
 
-      <a href="/auth/login" className="nav-signin nav-signin--live">
+      <Link href="/auth/login" className="nav-signin nav-signin--live">
         <span className="nav-signin-avatar"><IconUser size={15} /></span>
         <span className="nav-signin-label">
           <span className="nav-signin-clip">
             <span className="nav-signin-text">{t('auth_nav.login')}</span>
           </span>
         </span>
-      </a>
+      </Link>
     </div>
   )
 
@@ -93,12 +94,12 @@ export default function NavAuth() {
     <div className="nav-auth-wrap nav-user-wrap">
       {/* Raccourci admin visible dans la navbar */}
       {isAdmin && (
-        <a href="/admin" className="nav-admin-link">
+        <Link href="/admin" className="nav-admin-link">
           <svg viewBox="0 0 20 20" fill="currentColor" width="13" height="13">
             <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd"/>
           </svg>
           {t('auth_nav.admin')}
-        </a>
+        </Link>
       )}
 
       {/* Avatar + dropdown */}
@@ -129,45 +130,45 @@ export default function NavAuth() {
               {/* Menu selon le rôle */}
               {isAdmin ? (
                 <>
-                  <a href="/admin" className="nav-dd-item nav-dd-item--primary" onClick={() => setOpen(false)}>
+                  <Link href="/admin" className="nav-dd-item nav-dd-item--primary" onClick={() => setOpen(false)}>
                     <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
                       <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
                     </svg>
                     {t('auth_nav.dashboard')}
-                  </a>
-                  <a href="/admin/reservations" className="nav-dd-item" onClick={() => setOpen(false)}>
+                  </Link>
+                  <Link href="/admin/reservations" className="nav-dd-item" onClick={() => setOpen(false)}>
                     <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
                       <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm6 7a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-3 3a1 1 0 100 2h.01a1 1 0 100-2H10zm-4 1a1 1 0 011-1h.01a1 1 0 110 2H7a1 1 0 01-1-1zm1-4a1 1 0 100 2h.01a1 1 0 100-2H7zm2 1a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1zm4-4a1 1 0 100 2h.01a1 1 0 100-2H13zM9 9a1 1 0 011-1h.01a1 1 0 110 2H10A1 1 0 019 9zm-3 0a1 1 0 100 2h.01a1 1 0 100-2H6z" clipRule="evenodd"/>
                     </svg>
                     {t('auth_nav.reservations')}
-                  </a>
-                  <a href="/admin/clients" className="nav-dd-item" onClick={() => setOpen(false)}>
+                  </Link>
+                  <Link href="/admin/clients" className="nav-dd-item" onClick={() => setOpen(false)}>
                     <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
                       <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
                     </svg>
                     {t('auth_nav.clients')}
-                  </a>
-                  <a href="/admin/prix" className="nav-dd-item" onClick={() => setOpen(false)}>
+                  </Link>
+                  <Link href="/admin/prix" className="nav-dd-item" onClick={() => setOpen(false)}>
                     <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
                       <path fillRule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
                     </svg>
                     {t('auth_nav.pricing')}
-                  </a>
+                  </Link>
                   <div className="nav-dd-sep" />
-                  <a href="/" className="nav-dd-item nav-dd-item--muted" onClick={() => setOpen(false)}>
+                  <Link href="/" className="nav-dd-item nav-dd-item--muted" onClick={() => setOpen(false)}>
                     <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
                       <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm3 2h6v4H7V5zm8 8v2h1v-2h-1zm-2-2H7v4h6v-4zm2 0h1V9h-1v2zm1-4V5h-1v2h1zM5 5H4v2h1V5zM4 9H3v2h1V9zm0 4H3v2h1v-2z" clipRule="evenodd"/>
                     </svg>
                     {t('auth_nav.publicSite')}
-                  </a>
+                  </Link>
                 </>
               ) : (
-                <a href="/mon-compte" className="nav-dd-item" onClick={() => setOpen(false)}>
+                <Link href="/mon-compte" className="nav-dd-item" onClick={() => setOpen(false)}>
                   <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
                     <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"/>
                   </svg>
                   {t('auth_nav.myBookings')}
-                </a>
+                </Link>
               )}
 
               <button className="nav-dd-item nav-dd-logout" onClick={logout}>

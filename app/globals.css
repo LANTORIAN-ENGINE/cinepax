@@ -4316,6 +4316,9 @@ body {
 }
 .ask-rail-cell:last-child { border-right: none; }
 
+/* Corps de page en attente, barre latérale déjà en place */
+.ask-page-stack { display: flex; flex-direction: column; gap: 10px; }
+
 /* Les onglets restent lisibles pendant l'attente mais inertes */
 .compte-tab:disabled { cursor: default; opacity: 1; }
 

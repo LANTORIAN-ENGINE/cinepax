@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { QRCodeSVG } from 'qrcode.react'
 import { createClient } from '@/lib/supabase'
@@ -226,7 +227,7 @@ export default function MonComptePage() {
               <div className="compte-empty">
                 <IconTicket size={44} />
                 <p>{t('account.empty')}</p>
-                <a href="/" className="compte-empty-cta">{t('account.bookNow')}</a>
+                <Link href="/" className="compte-empty-cta">{t('account.bookNow')}</Link>
               </div>
             )}
 
@@ -260,7 +261,7 @@ export default function MonComptePage() {
               <div className="compte-empty">
                 <IconMail size={44} />
                 <p>{t('account.reqEmpty')}</p>
-                <a href="/contact" className="compte-empty-cta">{t('account.reqEmptyCta')}</a>
+                <Link href="/contact" className="compte-empty-cta">{t('account.reqEmptyCta')}</Link>
               </div>
             ) : (
               <>
@@ -288,7 +289,7 @@ export default function MonComptePage() {
                     </>
                   )
                 })()}
-                <a href="/contact" className="compte-req-cta">{t('account.reqAskAgain')}</a>
+                <Link href="/contact" className="compte-req-cta">{t('account.reqAskAgain')}</Link>
               </>
             )}
           </div>

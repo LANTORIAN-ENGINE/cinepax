@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
 import { IconArrowRight } from '@/components/icons'
@@ -86,10 +87,10 @@ export default function AdminDashboard() {
       <div className="admin-section">
         <div className="admin-section-header">
           <h2 className="admin-section-title">{t('dashboard.latest')}</h2>
-          <a href="/admin/reservations" className="admin-section-link">
+          <Link href="/admin/reservations" className="admin-section-link">
             {t('dashboard.viewAll')}
             <IconArrowRight size={14} />
-          </a>
+          </Link>
         </div>
 
         {recent.length === 0 ? (

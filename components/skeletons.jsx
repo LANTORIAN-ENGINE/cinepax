@@ -79,6 +79,27 @@ export function AdminChromeSkeleton() {
   )
 }
 
+/* ── Corps de page seul, pendant une navigation dans l'administration ───────
+   Sert de repli au Suspense de `app/admin/loading.jsx`. La barre latérale est
+   déjà à l'écran et y reste : ce squelette ne dessine que la colonne de
+   droite. On ne sait pas encore quelle page arrive — il n'imite donc aucune
+   en particulier, il tient la place et le rythme, rien de plus. */
+export function AdminPageSkeleton() {
+  return (
+    <div className="admin-page" aria-busy="true" aria-label="Chargement">
+      <div className="admin-page-header">
+        <Bar w={210} h={26} r={6} />
+        <Bar w={130} h={12} d={0.06} />
+      </div>
+      <div className="ask-page-stack">
+        {[0, 1, 2, 3, 4].map(i => (
+          <Bar key={i} h={i === 0 ? 62 : 46} r={10} d={0.06 * i} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /* ── Tableau de bord ────────────────────────────────────────────────────────
    Les quatre intitulés sont connus : ils s'affichent en clair, seuls les
    nombres attendent. */
