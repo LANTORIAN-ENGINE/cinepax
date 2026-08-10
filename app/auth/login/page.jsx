@@ -2,7 +2,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase'
+import { createClient, createProbeClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
 import { useLegalDocuments } from '@/lib/useLegal'
 import { buildConsentGroups } from '@/lib/legal'
@@ -46,10 +46,12 @@ export default function LoginPage() {
     setError(null)
     setLoading(true)
 
-    const supabase = createClient()
-    if (!supabase) { setError(t('auth.errSupabase')); setLoading(false); return }
+    // Le mot de passe se vérifie sur le client de contrôle : rien n'est écrit
+    // dans le navigateur tant qu'on ne sait pas si des documents attendent.
+    const probe = createProbeClient()
+    if (!probe) { setError(t('auth.errSupabase')); setLoading(false); return }
 
-    const { data: signIn, error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data: signIn, error } = await probe.auth.signInWithPassword({ email, password })
     if (error) {
       setError(error.message === 'Invalid login credentials'
         ? t('auth.errCreds')
@@ -58,27 +60,23 @@ export default function LoginPage() {
       return
     }
 
-    const { data: { user } } = await supabase.auth.getUser()
-    const next  = await landing(supabase, user)
-    const token = signIn?.session?.access_token
+    const session = signIn?.session
+    const next    = await landing(probe, signIn.user)
 
     // Cet appel réclame aussi les consentements laissés sous l'adresse
     // avant la création du compte — voir GET /api/legal/consent.
     try {
-      const res  = await fetch('/api/legal/consent', { headers: { Authorization: `Bearer ${token}` } })
+      const res  = await fetch('/api/legal/consent', {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
       const data = await res.json()
 
       if (res.ok && data.pending?.length) {
-        // Le compte n'est pas ouvert tant que les documents ne sont pas
-        // acceptés : on referme la session sur-le-champ, sinon la barre
-        // annonce « connecté » au milieu d'une étape qui ne l'est pas, et
-        // un simple retour en arrière suffirait à entrer sans avoir coché.
-        //
-        // Fermeture locale seulement : le jeton déjà en main reste valable
-        // le temps de signer l'enregistrement du consentement, après quoi
-        // la connexion est rejouée pour de bon.
-        await supabase.auth.signOut({ scope: 'local' })
-        setPending({ slugs: data.pending, next, token })
+        // Des documents attendent : la session reste en mémoire, elle ne
+        // devient celle du navigateur qu'une fois le consentement enregistré.
+        // La barre continue donc d'afficher un visiteur, et un retour en
+        // arrière ne fait entrer personne.
+        setPending({ slugs: data.pending, next, session })
         setLoading(false)
         return
       }
@@ -87,7 +85,36 @@ export default function LoginPage() {
       // aboutit quand même et la demande reviendra au prochain passage.
     }
 
+    if (!(await openSession(session))) {
+      setError(t('auth.errSupabase'))
+      setLoading(false)
+      return
+    }
+
     router.push(next)
+  }
+
+  // Remise de la session au client principal : c'est ici, et seulement ici,
+  // que le navigateur devient connecté. Pas de second mot de passe à
+  // présenter — la session obtenue plus tôt est intacte, on n'a jamais
+  // révoqué son jeton.
+  async function openSession(session) {
+    const supabase = createClient()
+    if (!supabase) return false
+
+    if (session?.access_token && session?.refresh_token) {
+      const { error } = await supabase.auth.setSession({
+        access_token:  session.access_token,
+        refresh_token: session.refresh_token,
+      })
+      if (!error) return true
+    }
+
+    // Filet : si la remise échoue (réseau, jeton périmé), le mot de passe est
+    // toujours dans le formulaire. Mieux vaut une seconde présentation qu'un
+    // écran qui refuse une connexion pourtant valide.
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    return !error
   }
 
   async function confirmConsent() {
@@ -101,26 +128,35 @@ export default function LoginPage() {
     try {
       const res = await fetch('/api/legal/consent', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${pending.token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${pending.session?.access_token}`,
+        },
         body: JSON.stringify({ slugs: pending.slugs, context: 'login', locale: lang }),
       })
+
       if (!res.ok) {
         const detail = await res.json().catch(() => null)
         console.error('consentement non enregistré', res.status, detail)
+
+        // Le serveur ne reconnaît plus le porteur : une lecture qui a duré
+        // plus d'une heure a laissé le jeton expirer. Rien ne sert de
+        // réessayer avec le même — on renvoie au formulaire en le disant.
+        if (detail?.error === 'identite_requise') {
+          setPending(null)
+          setError(t('legal.consentExpired'))
+          return
+        }
+
         setConsentErr(t('legal.consentSaveError'))
         return
       }
 
-      // La trace est déposée : la session peut s'ouvrir. Le mot de passe est
-      // toujours dans le formulaire — rien à redemander.
-      const supabase = createClient()
-      const { error: back } = await supabase.auth.signInWithPassword({ email, password })
-      if (back) {
-        // Cas improbable (jeton expiré pendant la lecture, mot de passe changé
-        // ailleurs) : le consentement est enregistré, seule la connexion est à
-        // refaire. On rend le formulaire plutôt qu'un écran mort.
+      // La trace est déposée : la session peut enfin devenir celle du
+      // navigateur.
+      if (!(await openSession(pending.session))) {
         setPending(null)
-        setError(back.message)
+        setError(t('legal.consentExpired'))
         return
       }
 

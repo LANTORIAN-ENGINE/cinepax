@@ -365,6 +365,7 @@ const DICT = {
       gateTicked: 'Documents lus, case cochée. Décochez-la si vous refusez.',
       consentMissing: 'Cochez les cases obligatoires pour continuer.',
       consentSaveError: 'Votre acceptation n’a pas pu être enregistrée. Réessayez.',
+      consentExpired: 'Votre session a expiré pendant la lecture. Reconnectez-vous : les documents vous seront reproposés.',
 
       // Rappel de nouvelle version, à la connexion
       updateTitle: 'Nos documents ont changé',
@@ -1532,6 +1533,7 @@ const DICT = {
       gateTicked: 'Documents read, box ticked. Untick it if you disagree.',
       consentMissing: 'Tick the required boxes to continue.',
       consentSaveError: 'Your acceptance could not be saved. Please try again.',
+      consentExpired: 'Your session expired while you were reading. Please sign in again — the documents will come back.',
 
       updateTitle: 'Our documents have changed',
       updateLead: 'Since your last visit, {docs} {verb} been updated. Please read them again before continuing.',
