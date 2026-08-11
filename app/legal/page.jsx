@@ -15,22 +15,23 @@ import { IconArrowRight, IconShield, IconMail } from '@/components/icons'
 //
 // La souche découpée à gauche de chaque carte reprend le motif du billet :
 // c'est le même geste que le plan du guichet dans le tunnel d'achat.
+//
+// L'ouverture (.ed-head) et la bande sombre de pied sont celles de la page
+// « À propos » : ce sont les deux seules pages du site qu'on lit au lieu
+// d'acheter, et elles doivent se reconnaître comme telles.
 
 export default function LegalHubPage() {
   const { t, locale } = useI18n()
   const { documents, loading } = useLegalDocuments()
 
   return (
-    <div className="page-container">
-      <div className="section-header">
-        <div>
-          <p className="legal-eyebrow">{t('legal.hubEyebrow')}</p>
-          <h1 className="section-title">{t('legal.hubTitle')}</h1>
-        </div>
-      </div>
-      <hr className="section-divider" />
-
-      <p className="legal-hub-lead">{t('legal.hubLead')}</p>
+    <div className="page-container ed-page">
+      <header className="ed-head">
+        <p className="ed-eyebrow">{t('legal.hubEyebrow')}</p>
+        <h1 className="ed-title">{t('legal.hubTitle')}</h1>
+        <p className="ed-lead">{t('legal.hubLead')}</p>
+      </header>
+      <hr className="ed-rule" />
 
       {loading ? (
         <ul className="legal-hub-grid" aria-busy="true">

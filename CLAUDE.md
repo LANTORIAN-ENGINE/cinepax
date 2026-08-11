@@ -17,6 +17,7 @@ Décision client : la vente est un **achat ferme et définitif** d'une séance a
 - **Framework** : Next.js 16 (App Router), React 19
 - **Node** : 24.x
 - **Style** : CSS pur dans `app/globals.css` — pas de Tailwind, pas de CSS Modules
+- **Polices** : Bebas Neue (affichage) et DM Sans, chargées par `next/font/google` dans `app/layout.jsx` et exposées en `--font-display` / `--font-sans`. **Ne pas revenir à un `@import` distant dans `globals.css`** : Turbopack le retire du bundle de production, sans erreur ni avertissement, et les 48 déclarations qui nomment ces polices retombent silencieusement sur Arial
 - **Langage** : JavaScript (pas TypeScript)
 - **Tests** : aucun test automatisé
 - **Déploiement** : Vercel (`vercel.json` minimal)
@@ -213,6 +214,26 @@ Aucune policy d'écriture n'est ouverte sur `legal_documents` : tout passe par `
 ### Ancienne page de conditions
 
 `/termes-et-conditions` **redirige vers `/legal`** (`next.config.mjs`). Le texte recopié de cinepax.mg désignait « les lois du gouvernement du Pakistan » comme droit applicable ; il est repris, corrigé et scindé en CGU/CGV. L'original reste dans `lib/contenu.js` (constante `TERMES`).
+
+## Pages éditoriales — `/a-propos` et `/legal`
+
+Les deux seules pages qu'on lit au lieu d'acheter. Elles partagent une ouverture
+(`.ed-head` : surtitre rouge, titre au corps d'affiche, chapeau) et une
+ponctuation : une **bande sombre pleine largeur**, les deux salles sur
+`/a-propos`, l'encart de contact sur `/legal`.
+
+- **Sortie pleine largeur** : `width: 100vw` + `margin-inline: calc(50% - 50vw)`
+  depuis l'intérieur du conteneur centré. La coupe qui empêche la barre de
+  défilement horizontale est sur **`.main-content`**, pas sur le conteneur — la
+  poser sur `.page-container` rognerait la bande à sa boîte de remplissage.
+  `overflow-x: clip` et non `hidden` : `clip` ne crée pas de conteneur de
+  défilement, les `position: sticky` (rail d'administration, sommaire des
+  documents) continuent de se caler sur la fenêtre.
+- **Parallaxe des deux salles** : chaque plaque porte son propre halo — la photo
+  elle-même, floutée et masquée en radial. Au défilement, un `requestAnimationFrame`
+  écrit une seule variable `--par` par plaque (−1 à l'entrée, +1 à la sortie) ;
+  la photo coulisse dans son cadre, le halo dérive à l'inverse. Aucun rendu React
+  n'est déclenché, et le tout s'annule sous `prefers-reduced-motion`.
 
 ## Fichiers hors Next.js (legacy / archive)
 

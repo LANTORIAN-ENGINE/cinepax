@@ -28,6 +28,8 @@ const DICT = {
 
     about: {
       title: 'À propos de nous',
+      eyebrow: 'Groupe Talys · Tana Water Front',
+      gallery: 'Nos salles en images',
       screens: 'Salles',
       seats: 'Places',
       sound: 'Son',
@@ -1231,6 +1233,8 @@ const DICT = {
 
     about: {
       title: 'About us',
+      eyebrow: 'Talys Group · Tana Water Front',
+      gallery: 'Our screens in pictures',
       screens: 'Screens',
       seats: 'Seats',
       sound: 'Sound',
