@@ -138,6 +138,11 @@ const DICT = {
       posterAlt: 'Grille tarifaire Cinepax Madagascar',
       posterCaption: 'Tarifs hors avant-première et événements spéciaux.',
       events: 'Événements et services',
+      // Les visuels d'offres portent leur propre petite typographie : la
+      // vignette la recadre, la fiche la rend lisible.
+      enlarge:  'Agrandir',
+      cardOpen: 'Agrandir l’affiche : {title}',
+      contact:  'Contact',
     },
 
     terms: { title: 'Termes et conditions' },
@@ -1332,6 +1337,9 @@ const DICT = {
       posterAlt: 'Cinepax Madagascar rate card',
       posterCaption: 'Rates exclude previews and special events.',
       events: 'Events and services',
+      enlarge:  'Enlarge',
+      cardOpen: 'Enlarge the poster: {title}',
+      contact:  'Contact',
     },
 
     terms: { title: 'Terms & conditions' },

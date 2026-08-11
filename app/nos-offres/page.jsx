@@ -5,6 +5,8 @@ import { useI18n } from '@/lib/i18n'
 import { OFFRES } from '@/lib/contenu'
 import { weekdayName } from '@/lib/tarifs'
 import { TarifWeekSkeleton } from '@/components/skeletons'
+import OfferView from '@/components/OfferView'
+import { IconExpand } from '@/components/icons'
 
 // ─── Nos offres ───────────────────────────────────────────────────────────────
 // Les visuels promotionnels sont recopiés de cinepax.mg : ce sont des créations
@@ -25,6 +27,9 @@ export default function NosOffresPage() {
 
   const [tarifs, setTarifs]   = useState(null)
   const [loading, setLoading] = useState(true)
+  // L'offre dont la fiche est ouverte, ou null. La vignette est un recadrage
+  // de l'affiche : ce qu'elle coupe se lit ici.
+  const [opened, setOpened]   = useState(null)
 
   useEffect(() => {
     fetch('/api/tarifs')
@@ -50,7 +55,22 @@ export default function NosOffresPage() {
         <div className="offer-grid">
           {OFFRES.cards.map(card => (
             <article key={card.src} className="offer-card">
-              <img src={card.src} alt="" loading="lazy" />
+              {/* La vignette est le bouton, et rien d'autre : l'adresse en
+                  dessous reste un lien, ce qu'elle ne pourrait pas être à
+                  l'intérieur d'un bouton. */}
+              <button
+                type="button"
+                className="offer-card-media"
+                onClick={() => setOpened(card)}
+                aria-label={t('offers.cardOpen', { title: card.title })}
+              >
+                <img src={card.src} alt="" loading="lazy" />
+                <span className="offer-card-zoom" aria-hidden="true">
+                  <IconExpand size={15} />
+                  {t('offers.enlarge')}
+                </span>
+              </button>
+
               <div className="offer-card-body">
                 <h3 className="offer-card-title">{card.title}</h3>
                 <p className="offer-card-text">{card.text}</p>
@@ -62,6 +82,8 @@ export default function NosOffresPage() {
           ))}
         </div>
       </section>
+
+      {opened && <OfferView offer={opened} onClose={() => setOpened(null)} />}
     </div>
   )
 }

@@ -7535,13 +7535,83 @@ body {
   border-radius: 12px;
   overflow: hidden;
   background: #fff;
+  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.3, 1),
+              box-shadow 0.35s cubic-bezier(0.2, 0.7, 0.3, 1),
+              border-color 0.35s;
 }
 
-.offer-card img {
+/* Le survol se déclenche sur la vignette — le seul endroit cliquable — mais
+   soulève la carte entière. C'est la carte qu'on prend en main, pas l'image ;
+   et une carte qui réagit là où elle ne se clique pas ment sur son compte. */
+.offer-card:has(.offer-card-media:hover),
+.offer-card:has(.offer-card-media:focus-visible) {
+  transform: translateY(-3px);
+  border-color: #dcdcdc;
+  box-shadow: 0 16px 32px -18px rgba(17, 12, 10, 0.45);
+}
+
+.offer-card-media {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  /* Le noir de la salle sous l'affiche, le temps qu'elle charge. */
+  background: #141010;
+  font: inherit;
+  color: inherit;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+.offer-card-media:focus-visible {
+  outline: 2px solid #ff3044;
+  /* Vers l'intérieur : la carte masque ce qui dépasse d'elle. */
+  outline-offset: -2px;
+}
+
+/* La vignette est un recadrage — le 16/9 coupe déjà les bords d'un visuel qui
+   n'est ni en 16/9 ni fait pour cette taille — et au repos elle serre d'un cran
+   de plus. Le survol relâche : l'image ne grossit pas vers le curseur, elle
+   s'ouvre. C'est ce que fait le clic, en grand. */
+.offer-card-media img {
   display: block;
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
+  transform: scale(1.06);
+  transition: transform 0.55s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.offer-card-media:hover img,
+.offer-card-media:focus-visible img { transform: scale(1); }
+
+/* Toujours visible, jamais seulement au survol : sur un écran tactile une
+   affordance qui attend le curseur n'arrive jamais. Elle passe au rouge quand
+   le curseur est dessus — même signal que l'affiche du programme. */
+.offer-card-zoom {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 2px;
+  background: rgba(20, 16, 15, 0.82);
+  color: #f7f2ef;
+  font-family: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: background 0.18s, color 0.18s;
+}
+
+.offer-card-media:hover .offer-card-zoom,
+.offer-card-media:focus-visible .offer-card-zoom {
+  background: #ff3044;
+  color: #fff;
 }
 
 .offer-card-body { padding: 16px 18px 20px; }
@@ -7565,6 +7635,171 @@ body {
 }
 
 .offer-card-contact:hover { text-decoration: underline; }
+
+/* ═══════════════════════════════════════════════════════════════
+   FICHE D'OFFRE
+
+   Le même noir, la même barre (.pzoom-bar, plus bas) et les mêmes gestes que
+   la visionneuse du programme : c'est la même salle qui s'éteint, il n'y a pas
+   deux façons de regarder une affiche sur ce site.
+
+   La différence tient au rail. L'affiche d'une offre porte une adresse et un
+   numéro imprimés : agrandie, ils se lisent enfin — mais une image ne se copie
+   pas et ne se clique pas. Le rail redit donc à côté, en texte, ce que l'affiche
+   dit en petit. Il est achromatique à dessein : les quatre visuels arrivent en
+   magenta, en jaune, en rouge, et un rail coloré en contrarierait toujours un.
+═══════════════════════════════════════════════════════════════ */
+.offer-view {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  background: #0b0909;
+  animation: pzoom-in 0.2s ease both;
+}
+
+.offer-view-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+.offer-view-stage {
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px 16px;
+  overflow: hidden;
+  cursor: zoom-in;
+  touch-action: none;
+}
+
+.offer-view-stage.is-zoomed { cursor: grab; }
+.offer-view-stage.is-dragging { cursor: grabbing; }
+
+.offer-view-img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  user-select: none;
+  -webkit-user-drag: none;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+/* Sous 60em le rail passe sous l'affiche et se plafonne : l'affiche garde la
+   moitié haute de l'écran, qui est ce qu'on est venu voir. */
+.offer-view-rail {
+  display: flex;
+  flex-direction: column;
+  max-height: 42vh;
+  padding: 18px 20px 24px;
+  border-top: 2px solid #ff3044;
+  background: #141110;
+  overflow-y: auto;
+}
+
+.offer-view-title {
+  margin: 0 0 10px;
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.6rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  color: #f7f2ef;
+}
+
+.offer-view-text {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #b9aba4;
+}
+
+.offer-view-contact { margin: 18px 0 0; }
+
+.offer-view-label {
+  display: block;
+  margin-bottom: 7px;
+  font-family: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8a7b74;
+}
+
+.offer-view-contact a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 2px;
+  color: #f7f2ef;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+}
+
+.offer-view-contact a:hover {
+  background: #ff3044;
+  border-color: #ff3044;
+  color: #fff;
+}
+
+.offer-view-contact a:focus-visible {
+  outline: 2px solid #ff3044;
+  outline-offset: 2px;
+}
+
+/* Le mode d'emploi des gestes n'est pas le texte de l'offre : il descend au
+   pied du rail, derrière un filet, là où on va le chercher plutôt que là où
+   on le lit par accident. */
+.offer-view-hint {
+  margin: 22px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.66rem;
+  line-height: 1.5;
+  color: #8a7b74;
+}
+
+/* Dès qu'il y a la largeur, le rail se met debout à droite : l'affiche récupère
+   toute la hauteur, qui est la dimension qui lui manquait. */
+@media screen and (min-width: 60em) {
+  .offer-view-body {
+    grid-template-rows: none;
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
+
+  .offer-view-stage { padding: 0 10px 28px 28px; }
+
+  .offer-view-rail {
+    max-height: none;
+    padding: 26px 28px 32px;
+    border-top: none;
+    border-left: 2px solid #ff3044;
+  }
+
+  .offer-view-title { font-size: 1.9rem; }
+
+  /* Le rail fait toute la hauteur : le filet du mode d'emploi se cale en bas,
+     plutôt que de flotter au milieu d'une colonne vide. */
+  .offer-view-hint { margin-top: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .offer-view { animation: none; }
+  .offer-card,
+  .offer-card-media img { transition: none; }
+  .offer-card-media img { transform: none; }
+}
 
 /* ═══════════════════════════════════════════════════════════════
    PROGRAMME
