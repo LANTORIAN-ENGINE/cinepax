@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useI18n, formatDuration } from '@/lib/i18n'
 import { fixImageUrl } from '@/lib/images'
-import { IconDownload } from '@/components/icons'
+import { IconDownload, IconExpand } from '@/components/icons'
+import PosterZoom from '@/components/PosterZoom'
 import { ratingLabel } from '@/lib/classification'
 import { isSaleOpen, DEFAULTS as VENTE_DEFAUTS } from '@/lib/ventes'
 
@@ -36,14 +37,18 @@ function ProgrammeSkeleton() {
           <div className="prog-day-head">
             <div className="sk-shine" style={{ width: 140, height: 18, borderRadius: 6 }} />
           </div>
+          {/* Même géométrie que .prog-row : affiche, titre, ligne de méta,
+              rangée de pastilles. Ce que le squelette occupe, la fiche
+              l'occupera — le remplacement ne déplace rien. */}
           {[0, 1, 2].map(i => (
             <div key={i} className="prog-row">
               <div className="prog-poster sk-shine" />
-              <div style={{ flex: 1 }}>
-                <div className="sk-shine" style={{ width: '42%', height: 14, borderRadius: 6 }} />
-                <div className="prog-times" style={{ marginTop: 12 }}>
+              <div className="prog-info">
+                <div className="sk-shine" style={{ width: '42%', height: 15, borderRadius: 2 }} />
+                <div className="sk-shine" style={{ width: '26%', height: 10, borderRadius: 2, marginTop: 12 }} />
+                <div className="prog-times" style={{ marginTop: 20 }}>
                   {[0, 1, 2].map(j => (
-                    <div key={j} className="sk-shine" style={{ width: 62, height: 30, borderRadius: 6 }} />
+                    <div key={j} className="sk-shine" style={{ width: 96, height: 46, borderRadius: 2 }} />
                   ))}
                 </div>
               </div>
@@ -63,6 +68,7 @@ export default function ProgrammePage() {
   const [error, setError]     = useState(null)
   const [vente, setVente]     = useState(VENTE_DEFAUTS)
   const [now, setNow]         = useState(() => Date.now())
+  const [zoom, setZoom]       = useState(false)
 
   useEffect(() => {
     fetch('/api/programme')
@@ -161,17 +167,45 @@ export default function ProgrammePage() {
               {t('programme.posterDownload')}
             </a>
           </div>
-          <a href="/api/programme/affiche" target="_blank" rel="noreferrer" className="prog-poster-frame">
+
+          {/* L'affiche est peinte sur le noir exact de son propre fond
+              (#141010) : le panneau n'a plus de cadre, l'image se fond dedans
+              et occupe toute la largeur de la page. Elle monte jusqu'à la
+              hauteur de la fenêtre — au-delà, un format 9:16 pleine largeur
+              ferait deux écrans et demi de haut, et la semaine passerait
+              sous l'horizon. */}
+          <button
+            type="button"
+            className="prog-poster-stage"
+            onClick={() => setZoom(true)}
+            aria-label={t('programme.posterOpen')}
+          >
             <img src="/api/programme/affiche" alt={t('programme.posterAlt')} loading="lazy" />
-          </a>
+            <span className="prog-poster-zoom" aria-hidden="true">
+              <IconExpand size={15} />
+              {t('programme.posterOpen')}
+            </span>
+          </button>
+
           <p className="prog-poster-note">{t('programme.posterNote')}</p>
         </section>
+      )}
+
+      {zoom && (
+        <PosterZoom
+          src="/api/programme/affiche"
+          alt={t('programme.posterAlt')}
+          onClose={() => setZoom(false)}
+        />
       )}
 
       {/* La semaine complète fait plusieurs écrans de haut : ces raccourcis
           évitent de la faire défiler pour atteindre un jour précis. */}
       {!loading && days.length > 0 && (
-        <h2 className="prog-detail-title">{t('programme.detailTitle')}</h2>
+        <div className="prog-detail-head">
+          <h2 className="section-title">{t('programme.detailTitle')}</h2>
+          <hr className="section-divider" />
+        </div>
       )}
 
       {/* Ce qui se lit sans s'acheter en ligne : une pastille grisée dans la

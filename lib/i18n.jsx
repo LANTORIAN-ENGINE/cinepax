@@ -153,6 +153,14 @@ const DICT = {
       posterAlt: 'Programme de la semaine chez Cinepax Madagascar',
       posterNote: 'Générée à partir des séances Veezi : elle suit la programmation sans être redéposée.',
       detailTitle: 'Toutes les séances',
+      // Visionneuse de l'affiche. Les horaires y font 10 px à la taille de la
+      // page : le zoom n'est pas un ornement, c'est la façon de les lire.
+      posterOpen:  'Agrandir',
+      zoomIn:      'Zoomer',
+      zoomOut:     'Dézoomer',
+      zoomReset:   'Taille réelle',
+      zoomClose:   'Fermer la visionneuse',
+      zoomHint:    'Molette ou pincement pour zoomer · glisser pour déplacer · Échap pour fermer',
     },
 
     comingSoon: {
@@ -1339,6 +1347,12 @@ const DICT = {
       posterAlt: 'Cinepax Madagascar weekly schedule',
       posterNote: 'Generated from Veezi showtimes: it follows the schedule without being re-uploaded.',
       detailTitle: 'All showtimes',
+      posterOpen:  'Enlarge',
+      zoomIn:      'Zoom in',
+      zoomOut:     'Zoom out',
+      zoomReset:   'Actual size',
+      zoomClose:   'Close viewer',
+      zoomHint:    'Scroll or pinch to zoom · drag to move · Esc to close',
     },
 
     comingSoon: {

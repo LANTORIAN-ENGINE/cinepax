@@ -155,6 +155,36 @@ export const IconPlus = p => (
   </Icon>
 )
 
+// Loupe de IconSearch, signe en plus : les trois icônes de zoom partagent
+// exactement le même cercle et la même queue, seul le glyphe intérieur change.
+// Posées côte à côte dans la barre de la visionneuse, elles ne bougent pas.
+export const IconZoomIn = p => (
+  <Icon {...p}>
+    <circle cx="10.8" cy="10.8" r="6.3" />
+    <path d="M15.5 15.5L20 20" />
+    <path d="M10.8 8.2v5.2M8.2 10.8h5.2" />
+  </Icon>
+)
+
+export const IconZoomOut = p => (
+  <Icon {...p}>
+    <circle cx="10.8" cy="10.8" r="6.3" />
+    <path d="M15.5 15.5L20 20" />
+    <path d="M8.2 10.8h5.2" />
+  </Icon>
+)
+
+// Agrandir : quatre coins qui s'écartent. Le geste est celui de l'affiche
+// qu'on tire aux angles, pas celui d'une loupe qu'on approche.
+export const IconExpand = p => (
+  <Icon {...p}>
+    <path d="M9.4 4.4H5.6a1.2 1.2 0 00-1.2 1.2v3.8" />
+    <path d="M14.6 4.4h3.8a1.2 1.2 0 011.2 1.2v3.8" />
+    <path d="M19.6 14.6v3.8a1.2 1.2 0 01-1.2 1.2h-3.8" />
+    <path d="M4.4 14.6v3.8a1.2 1.2 0 001.2 1.2h3.8" />
+  </Icon>
+)
+
 /* ── Données ────────────────────────────────────────────────── */
 
 export const IconCalendar = p => (
