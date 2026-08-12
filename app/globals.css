@@ -86,7 +86,16 @@ body {
 
 /* ═══════════════════════════════════════════════════════════════
    NAVBAR
+
+   --nav-h est la hauteur réelle de la barre. Elle est collante : tout ce
+   qui veut occuper « le reste de l'écran » (page de connexion, espace
+   client, colonne d'administration) se calcule dessus. La valeur était
+   écrite 64 px en dur à quatre endroits ; sur mobile, où la barre en
+   faisait 186, la page de connexion se centrait dans une boîte plus haute
+   que l'écran et laissait un écran vide au-dessus du formulaire.
 ═══════════════════════════════════════════════════════════════ */
+:root { --nav-h: 64px; }
+
 .navbar {
   background: #000;
   position: sticky;
@@ -105,7 +114,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px;
+  height: var(--nav-h);
 }
 
 .navbar-logo {
@@ -131,9 +140,6 @@ body {
   display: flex;
   align-items: center;
 }
-
-/* Les rubriques secondaires vivent dans « Plus » au-delà de 768px. */
-.navbar-sections-inline { display: none; }
 
 .nav-link {
   color: #fff;
@@ -224,12 +230,22 @@ body {
   transform: translateY(-1.4px);
 }
 
-/* Entre la bascule à deux rangs (768 px) et ~1020 px, la barre tient déjà sur
-   un seul rang tout juste : les sept pictogrammes lui coûtent 76 px et la
-   feraient déborder de l'écran. Le mot porte le sens, l'icône ne fait que le
-   doubler — c'est donc elle qui cède. Le menu déroulant, lui, a sa propre
-   largeur et garde les siennes. */
-@media (min-width: 769px) and (max-width: 1020px) {
+/* ── Les trois régimes de la barre ────────────────────────────
+   Largeurs mesurées sur la barre elle-même (logo + rubriques + compte +
+   langue), en français, qui est la langue la plus longue des deux :
+
+     avec pictogrammes   1073 px
+     sans pictogrammes    989 px
+
+   D'où les bascules : au-dessus de 1080 px la barre complète ; entre 990 et
+   1079 px le mot seul, l'icône ne faisant que le doubler ; en dessous de
+   990 px le tiroir.
+
+   Les deux bornes étaient auparavant à 769 et 1020 px, choisies sans ces
+   mesures : la barre débordait de l'écran sur toute la bande 769-989 px, et
+   de nouveau entre 1021 et 1072 px où les pictogrammes revenaient trop tôt.
+   Au-delà de 1080 px, rien ne change. */
+@media (min-width: 990px) and (max-width: 1079px) {
   .navbar-sections .nav-icon { display: none; }
 }
 
@@ -246,6 +262,267 @@ body {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MENU MOBILE — bouton sandwich et tiroir
+
+   Sept rubriques ne tiennent pas dans une barre de téléphone. Elles
+   défilaient jusqu'ici sur un second rang, coupé au bord de l'écran :
+   « PROGRAMME » et tout ce qui suit ne se trouvaient qu'en poussant la
+   rangée du doigt, sans rien qui l'annonce. La barre revient à un seul
+   rang et le menu se replie derrière un bouton.
+
+   Tout ce bloc ne s'affiche qu'en dessous de 769 px (voir la bascule plus
+   bas) : au-dessus, la barre est inchangée.
+═══════════════════════════════════════════════════════════════ */
+.nav-burger {
+  display: none;   /* → grid sous 769 px */
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-right: -8px;   /* le pictogramme s'aligne sur la marge, pas sa cible */
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s var(--nav-ez);
+}
+
+.nav-burger:active { background: rgba(255, 255, 255, 0.08); }
+.nav-burger:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+
+/* Trois barres qui deviennent une croix. Les deux extrêmes se rejoignent
+   au centre puis pivotent — le geste dit que le même bouton referme ce
+   qu'il vient d'ouvrir. */
+.nav-burger-bars {
+  position: relative;
+  display: block;
+  width: 20px;
+  height: 14px;
+}
+
+.nav-burger-bars span {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transition: transform 0.34s var(--nav-ez), opacity 0.18s var(--nav-ez);
+}
+
+.nav-burger-bars span:nth-child(1) { top: 0; }
+.nav-burger-bars span:nth-child(2) { top: 6px; }
+.nav-burger-bars span:nth-child(3) { top: 12px; }
+
+.navbar.drawer-open .nav-burger-bars span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.navbar.drawer-open .nav-burger-bars span:nth-child(2) { opacity: 0; transform: scaleX(0.4); }
+.navbar.drawer-open .nav-burger-bars span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+/* ── Voile ── */
+.nav-scrim {
+  display: none;   /* → block sous 769 px */
+  position: fixed;
+  inset: 0;
+  z-index: 190;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s var(--nav-ez);
+}
+
+.navbar.drawer-open .nav-scrim { opacity: 1; pointer-events: auto; }
+
+/* ── Panneau ──
+   Il se pose par-dessus la barre plutôt qu'en dessous : un tiroir qui
+   laisserait dépasser la barre au-dessus de lui ne se lit pas comme un
+   plan mais comme un rabat. */
+.nav-drawer {
+  display: none;   /* → flex sous 769 px */
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 210;
+  width: min(84vw, 340px);
+  background: #0b0b0d;
+  border-left: 1px solid #232327;
+  box-shadow: -24px 0 60px -20px rgba(0, 0, 0, 0.9);
+  transform: translateX(100%);
+  transition: transform 0.36s var(--nav-ez);
+  overscroll-behavior: contain;
+
+  /* Encoche et barre de gestes des téléphones récents */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-right: env(safe-area-inset-right);
+}
+
+.navbar.drawer-open .nav-drawer { transform: translateX(0); }
+
+/* La perforation de pellicule qui longe le bord — le même motif que le
+   panneau des pages de connexion. C'est le seul ornement du tiroir, et il
+   dit de quoi la maison parle. */
+.nav-drawer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 9px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    #1e1e22 0 10px,
+    transparent 10px 26px
+  );
+  pointer-events: none;
+}
+
+.nav-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: var(--nav-h);
+  padding: 0 12px 0 26px;
+  border-bottom: 1px solid #1c1c20;
+  flex-shrink: 0;
+}
+
+.nav-drawer-title {
+  font-family: var(--font-display), 'Helvetica Neue', sans-serif;
+  font-size: 1.25rem;
+  letter-spacing: 0.14em;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.nav-drawer-close {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: #8d8d94;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s, background 0.15s;
+}
+
+.nav-drawer-close:active { background: rgba(255, 255, 255, 0.07); color: #fff; }
+.nav-drawer-close:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+
+.nav-drawer-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 12px 20px 18px;
+}
+
+/* L'intitulé de bloc sépare ce qu'on vient acheter de ce qu'on vient
+   savoir. Deux mots, jamais lus deux fois — d'où le corps réduit. */
+.nav-drawer-group {
+  margin: 16px 0 6px 8px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #5f5f68;
+}
+
+.nav-drawer-body .nav-drawer-group:first-child { margin-top: 6px; }
+
+.nav-drawer-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-height: 48px;
+  padding: 0 12px;
+  border-radius: 9px;
+  color: #d5d5da;
+  text-decoration: none;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s var(--nav-ez), color 0.15s var(--nav-ez);
+}
+
+.nav-drawer-link:active { background: #17171b; color: #fff; }
+.nav-drawer-link:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+
+.nav-drawer-link .nav-icon { opacity: 0.6; }
+
+/* La page en cours porte le rouge de la maison, posé en filet vertical :
+   le même repère que le trait sous l'onglet actif de la barre large. */
+.nav-drawer-link.active {
+  background: rgba(232, 25, 44, 0.1);
+  color: #fff;
+}
+
+.nav-drawer-link.active .nav-icon { opacity: 1; color: #ff3044; }
+
+.nav-drawer-link.active::before {
+  content: '';
+  position: absolute;
+  left: -18px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 22px;
+  border-radius: 0 3px 3px 0;
+  background: var(--t-red);
+}
+
+.nav-drawer-label { min-width: 0; }
+
+/* ── Pied : appeler, s'y rendre ── */
+.nav-drawer-foot {
+  flex-shrink: 0;
+  padding: 12px 12px 16px 18px;
+  border-top: 1px solid #1c1c20;
+  background: #08080a;
+}
+
+.nav-drawer-foot .nav-drawer-group { margin-top: 2px; }
+
+.nav-drawer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nav-drawer-action {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 9px;
+  color: #b6b6be;
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 600;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, color 0.15s;
+}
+
+.nav-drawer-action svg { flex-shrink: 0; color: #ff3044; }
+.nav-drawer-action:active { background: #17171b; color: #fff; }
+.nav-drawer-action:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-drawer, .nav-scrim, .nav-burger-bars span { transition: none; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -944,6 +1221,69 @@ body {
   .session-time-cta { transition: none; }
 }
 
+/* ── La fiche film sur téléphone ──────────────────────────────
+   L'affiche prenait toute la largeur et poussait les horaires à un écran
+   plus bas : neuf films faisaient 5 700 px de page, et l'on ne voyait
+   jamais un titre et son horaire en même temps. La fiche revient à la
+   géométrie de /programme — affiche à gauche, titre et durée à droite,
+   horaires en pleine largeur dessous : le même objet se lit pareil des deux
+   côtés du site.
+
+   `display: contents` sur .film-info : sans lui, les horaires resteraient
+   prisonniers de la colonne de droite. Le balisage ne bouge pas, l'ordre de
+   lecture non plus — seule la boîte intermédiaire s'efface. */
+@media (max-width: 560px) {
+  .film-row {
+    display: grid;
+    grid-template-columns: 116px minmax(0, 1fr);
+    gap: 0 15px;
+    padding: 22px 0 24px;
+    align-items: start;
+  }
+
+  .film-info { display: contents; }
+
+  .film-poster-wrap { width: 116px; grid-column: 1; grid-row: 1 / span 3; }
+  .film-poster-wrap img { width: 116px; height: 172px; }
+  .film-poster-placeholder { width: 116px; height: 172px; font-size: 2.4rem; }
+
+  /* L'affiche rétrécit, le bouton de bande-annonce aussi. */
+  .play-btn-overlay { width: 30px; height: 30px; bottom: 7px; left: 7px; }
+
+  .film-title  { grid-column: 2; grid-row: 1; font-size: 1rem; margin-bottom: 5px; }
+  .film-meta   { grid-column: 2; grid-row: 2; margin-bottom: 8px; }
+  .film-synopsis {
+    grid-column: 2;
+    grid-row: 3;
+    font-size: 0.84rem;
+    line-height: 1.5;
+    margin-bottom: 0;
+  }
+
+  /* Les horaires reprennent la largeur entière : c'est le geste de la page,
+     il ne se joue pas dans une colonne de 220 px. */
+  .film-sessions {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(94px, 1fr));
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .session-time-btn { min-width: 0; width: 100%; padding: 8px 6px; }
+}
+
+/* Sous 400 px l'affiche se resserre encore, sans changer de principe :
+   deux colonnes d'horaires restent lisibles. */
+@media (max-width: 400px) {
+  .film-row { grid-template-columns: 96px minmax(0, 1fr); gap: 0 13px; }
+  .film-poster-wrap { width: 96px; }
+  .film-poster-wrap img { width: 96px; height: 142px; max-height: none; }
+  .film-poster-placeholder { width: 96px; height: 142px; }
+  .film-sessions { grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); }
+}
+
 /* ═══════════════════════════════════════════════════════════════
    EMPTY STATE
 ═══════════════════════════════════════════════════════════════ */
@@ -1212,12 +1552,50 @@ body {
   text-transform: lowercase;
 }
 
+/* ── L'en-tête de film sous 860 px ────────────────────────────
+   Sur écran large, l'affiche déborde sous le bandeau noir et la colonne de
+   contenu se décale de sa largeur pour la contourner :
+   `padding-left: 24 + 175 + 48 = 247 px`. Ce décalage ne tenait compte que
+   de l'affiche, jamais de ce qui restait derrière : à 768 px il laissait
+   497 px au plan de salle, qui en réclame 550 — les derniers sièges de
+   chaque rangée disparaissaient sous la coupe de la salle, sans un mot.
+
+   Le débord s'arrête donc à 860 px, largeur en dessous de laquelle il ne
+   reste plus la place. L'affiche rentre dans le rang, le décalage tombe, et
+   le plan retrouve toute la colonne. */
+@media (max-width: 860px) {
+  .film-hero-inner { align-items: flex-start; padding-bottom: 24px; gap: 26px; }
+  .film-hero-poster { margin-bottom: 0; width: 140px; }
+  .film-hero-poster img { width: 140px; height: 203px; }
+  .film-hero-poster-placeholder { width: 140px; height: 203px; margin-bottom: 0; }
+  .film-hero-info { padding-bottom: 0; }
+  .film-sessions-inner { padding: 40px 24px 56px; }
+}
+
 @media (max-width: 640px) {
-  .film-hero-inner { flex-direction: column; align-items: flex-start; padding-bottom: 20px; }
-  .film-hero-poster { margin-bottom: 0; width: 120px; }
-  .film-hero-poster img { width: 120px; height: 174px; }
-  .film-hero-info h1 { font-size: 1.3rem; }
+  /* Cadrage haut : l'affiche et le titre partent de la même ligne. Le
+     débord sous le bandeau, qui donne son relief à la version large, ne
+     tient pas ici — l'information est plus haute que l'affiche, et
+     l'aligner par le bas décrochait l'une de l'autre. */
+  .film-hero-inner { gap: 18px; padding-bottom: 22px; }
+  .film-hero-poster { width: 104px; }
+  .film-hero-poster img { width: 104px; height: 151px; }
+  .film-hero-poster-placeholder { width: 104px; height: 151px; font-size: 2rem; }
+  .film-hero-info { gap: 9px; }
+  .film-hero-info h1 { font-size: 1.22rem; }
   .film-sessions-inner { padding: 24px 24px 48px; }
+}
+
+/* L'affiche restait au-dessus du titre et l'en-tête coûtait un demi-écran
+   avant la première séance. Elle reprend sa place à gauche : le titre, la
+   classification et l'horaire se lisent à côté d'elle, comme sur la fiche
+   de la liste. Sous 400 px, elle se resserre encore d'un cran. */
+@media (max-width: 400px) {
+  .film-hero-inner { gap: 14px; }
+  .film-hero-poster { width: 88px; }
+  .film-hero-poster img { width: 88px; height: 128px; }
+  .film-hero-poster-placeholder { width: 88px; height: 128px; }
+  .film-hero-info h1 { font-size: 1.1rem; }
 }
 
 /* Les réductions mobiles du plan de salle ne sont PAS ici : elles vivent à la
@@ -1563,8 +1941,12 @@ body {
   background: none;
   cursor: default;
   position: relative;
-  width: 32px;
-  height: 26px;
+  /* Les deux mesures passent par la salle (--seat-w / --seat-h posés sur
+     .cinema-hall) : sur téléphone, elles se calculent sur la largeur de
+     l'écran au lieu d'être figées par palier. Sur écran large, les valeurs
+     de repli sont celles d'avant, au pixel près. */
+  width: var(--seat-w, 32px);
+  height: var(--seat-h, 26px);
   flex-shrink: 0;
   user-select: none;
   /* Forme : dossier arrondi en haut, assise quasi-carrée en bas */
@@ -1856,9 +2238,17 @@ body {
    dernière déclaration qui gagne, media query ou pas. */
 
 /* ── Tablette / grand téléphone ── */
+/* 30 px, et non 27 : c'est le plafond de la formule fluide du palier
+   suivant. Sans cette égalité, le siège rapetissait quand l'écran
+   s'élargissait — 30 px à 560, 27 px à 561. */
 @media (max-width: 640px) {
-  .cinema-hall { padding: 32px 14px 26px; border-radius: 14px; }
-  .seat { width: 27px; height: 22px; border-radius: 6px 6px 3px 3px; padding-top: 2px; }
+  .cinema-hall {
+    --seat-w: 30px;
+    --seat-h: 25px;
+    padding: 32px 14px 26px;
+    border-radius: 14px;
+  }
+  .seat { border-radius: 6px 6px 3px 3px; padding-top: 2px; }
   .seat-num { font-size: 0.5rem; }
   .seat-group { gap: 3px; }
   .seating-area { gap: 5px; }
@@ -1869,25 +2259,52 @@ body {
   .seat-stamp { font-size: 0.72rem; padding: 3px 8px 4px; }
 }
 
-/* ── Petit téléphone ── */
-@media (max-width: 460px) {
-  .cinema-hall { padding: 24px 8px 20px; border-radius: 12px; }
-  .seat { width: 21px; height: 18px; border-radius: 5px 5px 2px 2px; padding-top: 2px; }
-  .seat-num { font-size: 0.46rem; }
-  .seat-group { gap: 2px; }
-  .seating-area { gap: 4px; }
-  .aisle { width: 12px; min-width: 12px; height: 22px; }
-  /* La lettre ne descend plus avec le siège : elle tient le même corps qu'en
-     tablette. C'est le repère qu'on cherche en premier sur un petit écran. */
-  .row-label { width: 14px; min-width: 14px; font-size: 0.52rem; }
-  .seat::before { left: 4px; right: 4px; }
+/* ── Téléphone — la salle prend toute la largeur ──────────────
+   Le plan est le seul objet du site dont la largeur commande directement
+   l'usage : c'est là qu'on vise du doigt. Il sort donc de la gouttière de
+   page, et la taille du siège se calcule sur ce qui reste.
+
+   La rangée la plus large des quatre salles (CPX MADA 1, rangée G) tient
+   douze sièges en deux groupes : deux lettres de rangée, douze sièges, dix
+   intervalles et une allée. La formule ci-dessous est cette rangée, résolue
+   pour le siège — le plan remplit donc exactement l'écran, quel qu'il soit.
+
+   Auparavant deux paliers figés, 27 px puis 21 px : à 320 px la rangée
+   réclamait 345 px et la salle, qui coupe ce qui dépasse, mangeait les
+   derniers sièges sans rien dire. À 390 px le siège passe de 21 à 26 px. */
+@media (max-width: 560px) {
+  .cinema-hall {
+    /* 100vw − (2×6 padding salle) − (2×13 lettres) − (10×3 intervalles)
+                − (10 allée) = 100vw − 78 px, pour douze sièges */
+    --seat-w: clamp(18px, calc((100vw - 78px) / 12), 30px);
+    --seat-h: calc(var(--seat-w) * 0.82);
+
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+    padding: 26px 6px 22px;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+
+  .seat { border-radius: 5px 5px 2px 2px; padding-top: 2px; }
+  /* Le numéro suit le siège, avec un plancher : sous ~8 px il ne se lit
+     plus, et c'est la seule chose qu'on lise une fois le siège trouvé. */
+  .seat-num { font-size: clamp(0.46rem, calc(var(--seat-w) / 2.6), 0.58rem); }
+  .seat-group { gap: 3px; }
+  .seating-area { gap: 5px; }
+  .aisle { width: 10px; min-width: 10px; height: 22px; }
+  /* La lettre ne descend pas avec le siège : c'est le repère qu'on cherche
+     en premier sur un petit écran. */
+  .row-label { width: 13px; min-width: 13px; font-size: 0.52rem; }
+  .seat::before { left: 22%; right: 22%; }
   .seat::after { height: 4px; left: -1px; right: -1px; }
   /* Pas de règle .screen-label ici : le clamp() de la règle de base gère
      déjà la descente en taille, et un override figé la ré-écraserait. */
   .projector-beam { width: 480px; }
   /* Le bandeau ne descend pas en corps : c'est ce qu'on relit avant de payer.
      Seul l'espacement des lettres se resserre pour tenir la ligne. */
-  .seat-readout { min-height: 46px; margin-top: 12px; gap: 6px; padding: 0 4px; }
+  .seat-readout { min-height: 46px; margin-top: 12px; gap: 6px; padding: 0 10px; }
   .seat-readout-prompt { letter-spacing: 0.14em; padding-left: 0.14em; }
   .seat-readout-label  { letter-spacing: 0.18em; padding-left: 0.18em; }
   .seat-readout-list { gap: 5px; }
@@ -2014,10 +2431,59 @@ body {
   .booking-bar {
     flex-direction: column;
     align-items: stretch;
-    gap: 14px;
-    padding: 16px 18px;
+    gap: 12px;
+    padding: 14px 16px;
   }
   .booking-bar-cta { width: 100%; }
+}
+
+/* ── Sur téléphone, la barre suit le doigt ────────────────────
+   Le plan de salle, la répartition des billets et la mention de vente ferme
+   font trois écrans de haut : le bouton « Continuer » se trouvait sous tout
+   cela, hors de vue au moment même où l'on vient de choisir sa place. On ne
+   le déplace pas — il reste où il est dans le document, à sa place dans
+   l'ordre de lecture et au clavier — mais il se cale au bas de l'écran tant
+   qu'il n'y est pas encore arrivé.
+
+   `sticky` plutôt que `fixed` : la barre garde sa hauteur dans le flux, elle
+   ne recouvre donc jamais le pied de page, et rien n'a besoin de compenser
+   par une marge basse. Elle ne se colle que lorsqu'il y a quelque chose à
+   confirmer — la consigne « sélectionnez vos places », elle, se lit au ras
+   du plan. */
+@media (max-width: 700px) {
+  .booking-bar.visible {
+    position: sticky;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    z-index: 120;
+    border-width: 1.5px;
+    box-shadow:
+      0 -1px 0 rgba(255, 255, 255, 0.9),
+      0 14px 34px -14px rgba(20, 22, 26, 0.45),
+      0 2px 16px rgba(232, 25, 44, 0.1);
+  }
+
+  /* Récapitulatif sur un seul rang : le décompte et les codes à gauche, le
+     montant calé à droite — c'est l'ordre dans lequel on les relit. */
+  .booking-bar.visible .booking-bar-info {
+    flex-wrap: nowrap;
+    align-items: baseline;
+    gap: 7px;
+  }
+
+  .booking-bar.visible .booking-bar-sep { display: none; }
+
+  .booking-bar.visible .seats-list {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .booking-bar.visible .booking-bar-price,
+  .booking-bar.visible .booking-bar-tarif { margin-left: auto; }
+
+  /* Le pouce vise le bouton, pas le texte au-dessus. */
+  .booking-bar-cta { min-height: 50px; font-size: 0.86rem; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -2603,50 +3069,50 @@ body {
 /* ═══════════════════════════════════════════════════════════════
    RESPONSIVE
 ═══════════════════════════════════════════════════════════════ */
-@media (max-width: 768px) {
-  /* Deux rangs : compte et langue en haut à droite, rubriques en dessous.
-     Sur un rang unique les rubriques repoussaient les utilitaires hors de
-     l'écran. La pastille de connexion tient désormais dans ce rang, alors
-     qu'un couple de boutons devait être masqué. */
-  .navbar-inner { height: auto; padding: 8px 16px; }
-  .navbar-logo img { height: 38px; }
-  /* min-width:0 est indispensable : sans lui, cet élément flex se dimensionne
-     sur son contenu et le width:100% des enfants se calcule sur cette largeur
-     débordante au lieu de celle de l'écran. */
-  .navbar-right { flex: 1; min-width: 0; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
-  .navbar-links { order: 3; width: 100%; min-width: 0; }
+@media (max-width: 989px) {
+  /* Un seul rang, une seule hauteur — celle de la barre large, moins quatre
+     pixels. Les rubriques passent dans le tiroir ; ne restent ici que le
+     logo, le compte, la langue et le bouton qui ouvre le reste.
+     La marge suit celle de la page (.page-container) : 24 px, ramenés à 14
+     sur les largeurs de téléphone. */
+  .navbar-inner { padding: 0 24px; }
+  .navbar-logo img { height: 40px; }
+  .navbar-right { gap: 6px; flex-shrink: 0; }
 
-  /* Sept rubriques ne tiennent pas sur une ligne : la rangée défile.
-     « Plus » cède la place aux liens en clair, un menu déroulant étant
-     rogné par overflow-x. */
-  .navbar-sections {
-    width: 100%;
-    min-width: 0;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-  .navbar-sections::-webkit-scrollbar { display: none; }
-  .nav-more { display: none; }
-  .navbar-sections-inline { display: contents; }
+  /* La rangée de rubriques et le menu « Plus » vivent désormais dans le
+     tiroir. Rien n'est perdu : le tiroir les porte toutes les huit, en
+     clair, sans rien à faire défiler. */
+  .navbar-links { display: none; }
 
-  .nav-link { height: 40px; padding: 0 14px; font-size: 0.68rem; flex: 0 0 auto; }
-  .nav-link.active::after { left: 14px; right: 14px; }
+  .nav-burger { display: grid; }
+  .nav-scrim  { display: block; }
+  .nav-drawer { display: flex; }
+
+  /* La pastille de connexion perd son mot : à côté du logo et du sandwich,
+     la silhouette suffit, et le rang tient jusqu'à 320 px. */
+  .lang-code { display: none; }
+  .lang-trigger { padding: 0 7px; gap: 5px; height: 34px; }
+
+  /* Déclaré ici plutôt qu'en tête de feuille : à spécificité égale, c'est la
+     dernière règle qui gagne, et celle-ci doit passer après le 64 px de
+     référence. Tout ce qui se calcule sur « le reste de l'écran » suit. */
+  :root { --nav-h: 60px; }
 }
 
-/* « ACTUELLEMENT » + « PROCHAINEMENT » réclament 378 px : sous cette largeur
-   on retire les pictogrammes et on resserre pour rester dans l'écran. */
+/* Largeurs de téléphone : la barre se resserre sur la marge de page. */
+@media (max-width: 640px) {
+  .navbar-inner { padding: 0 14px; }
+  .navbar-logo img { height: 36px; }
+}
+
+/* Sous 400 px on ne retire plus rien : le rang ne porte que quatre objets,
+   et chacun garde sa cible tactile. */
 @media (max-width: 400px) {
-  .nav-icon { display: none; }
-  .nav-link { padding: 0 9px; font-size: 0.63rem; letter-spacing: 0.04em; }
-  .nav-link.active::after { left: 9px; right: 9px; }
+  .navbar-inner { padding: 0 12px; }
+  .navbar-logo img { height: 32px; }
 
-  .film-row { flex-direction: column; gap: 16px; }
-  .film-poster-wrap { width: 100%; }
-  .film-poster-wrap img { width: 100%; height: auto; max-height: 320px; }
-  .film-poster-placeholder { width: 100%; height: 220px; }
-
+  /* La fiche film ne bascule plus en colonne ici : elle garde sa géométrie
+     affiche-à-gauche, réglée avec le reste au chapitre des fiches. */
   .section-header { padding: 18px 0 14px; }
   .section-filters { gap: 8px; }
 
@@ -2853,18 +3319,26 @@ body {
 .sk-date-num  { width: 52px; }
 
 /* ══════════════════════════════════════
-   SKELETONS — TÉLÉPHONE ÉTROIT
+   SKELETONS — TÉLÉPHONE
 
-   Le point de rupture 400 px de la liste de films est déclaré bien plus
-   haut dans ce fichier, avant les règles .sk-* : y ranger ces surcharges
-   les ferait perdre au profit des règles de base, plus bas et de même
-   spécificité. La media query est donc redéclarée ici, après ce qu'elle
-   corrige. Sans elle, l'affiche fantôme reste large de 200 px là où la
-   vraie prend toute la colonne, et la fiche se réagence sous les yeux.
+   Les points de rupture de la liste de films sont déclarés bien plus haut
+   dans ce fichier, avant les règles .sk-* : y ranger ces surcharges les
+   ferait perdre au profit des règles de base, plus bas et de même
+   spécificité. Les media queries sont donc redéclarées ici, après ce
+   qu'elles corrigent. Sans elles, l'affiche fantôme reste large de 200 px
+   là où la vraie en fait 116, et la fiche se réagence sous les yeux.
+
+   Le squelette n'a que deux blocs (affiche, informations) là où la fiche en
+   a quatre : il garde donc sa rangée, avec l'affiche à la taille réelle.
 ══════════════════════════════════════ */
+@media (max-width: 560px) {
+  .sk-film-inner { gap: 15px; padding: 22px 0 24px; }
+  .sk-poster { width: 116px; height: 172px; }
+  .sk-sessions-row { gap: 8px; }
+}
+
 @media (max-width: 400px) {
-  .sk-film-inner { flex-direction: column; gap: 16px; padding: 20px 0; }
-  .sk-poster { width: 100%; height: 220px; }
+  .sk-poster { width: 96px; height: 142px; }
   .sk-date-item { padding-left: 14px; padding-right: 14px; }
 }
 
@@ -3451,10 +3925,16 @@ body {
    SKELETON SEAT — responsive (mirrors .seat breakpoints)
 ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 640px) {
-  .sk-seat-ghost { width: 27px; height: 22px; border-radius: 6px 6px 3px 3px; }
+  .sk-seat-ghost { width: 30px; height: 25px; border-radius: 6px 6px 3px 3px; }
 }
-@media (max-width: 460px) {
-  .sk-seat-ghost { width: 21px; height: 18px; border-radius: 5px 5px 2px 2px; }
+/* Le squelette suit la même formule que le siège : ce qu'il occupe, le plan
+   l'occupera, et le remplacement ne déplace rien. */
+@media (max-width: 560px) {
+  .sk-seat-ghost {
+    width: clamp(18px, calc((100vw - 78px) / 12), 30px);
+    height: calc(clamp(18px, calc((100vw - 78px) / 12), 30px) * 0.82);
+    border-radius: 5px 5px 2px 2px;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -3647,6 +4127,33 @@ body {
 
 .nav-dd-logout { color: #f87171; }
 .nav-dd-logout:hover { background: rgba(239,68,68,0.06); color: #ef4444; }
+
+/* Sur téléphone la pastille reste ronde, y compris sans survol : la barre
+   porte déjà le logo, la langue et le bouton du menu, et « CONNEXION » en
+   toutes lettres poussait le tout hors de l'écran. La cible tactile, elle,
+   ne rétrécit pas — elle est portée à 40 px par le slot.
+
+   Cette règle vient après le bloc `hover: none` ci-dessus, qui déploie le
+   libellé : à spécificité égale, seule la position tranche. */
+@media (max-width: 989px) {
+  /* Le gabarit invisible aussi : il réserve la largeur déployée pour que le
+     survol ne décale rien, et sans lui la pastille resterait ronde mais
+     occuperait toujours 122 px — de quoi pousser la barre hors d'un écran de
+     320 px. Sa règle est plus spécifique que celle du gabarit vivant, il
+     faut donc la nommer. */
+  .nav-signin-label,
+  .nav-signin--ghost .nav-signin-label { grid-template-columns: 0fr; }
+  .nav-signin-text  { opacity: 0; }
+  .nav-signin { height: 36px; }
+  .nav-signin-avatar { width: 30px; height: 30px; margin: 0 2px; }
+  .nav-signin-slot { min-width: 36px; }
+
+  /* Le raccourci d'administration double une entrée du menu déroulant :
+     à cette largeur, seule la pastille reste. */
+  .nav-admin-link { display: none; }
+  .nav-user-btn { height: 36px; }
+  .nav-user-avatar { width: 30px; height: 30px; }
+}
 
 /* ═══════════════════════════════════════════════════════════════
    PAYMENT PAGE
@@ -4405,7 +4912,7 @@ body {
    AUTH PAGES (LOGIN / REGISTER)
 ═══════════════════════════════════════════════════════════════ */
 .auth-page {
-  min-height: calc(100vh - 64px);
+  min-height: calc(100vh - var(--nav-h));
   display: grid; grid-template-columns: 45% 55%;
   background: var(--a-bg);
 }
@@ -4602,11 +5109,20 @@ body {
   .auth-form-side { padding: 36px 20px; }
 }
 
+/* Le panneau visuel parti, le formulaire se centrait seul dans une boîte
+   haute d'un écran, et le titre « Connexion » commençait à 180 px du haut,
+   au-dessus de rien. Sur téléphone, il se pose sous la barre : c'est ce
+   qu'on est venu remplir. Le pied de page suit, comme partout ailleurs. */
+@media (max-width: 700px) {
+  .auth-page { min-height: 0; }
+  .auth-form-side { align-items: flex-start; padding: 30px 20px 44px; }
+}
+
 /* ═══════════════════════════════════════════════════════════════
    ESPACE CLIENT — MON COMPTE
 ═══════════════════════════════════════════════════════════════ */
 .compte-page {
-  background: var(--a-bg); min-height: calc(100vh - 64px);
+  background: var(--a-bg); min-height: calc(100vh - var(--nav-h));
   color: var(--a-ink);
 }
 
@@ -4913,7 +5429,7 @@ body {
 .admin-wrap {
   display: grid;
   grid-template-columns: 248px 1fr;
-  min-height: calc(100vh - 64px);
+  min-height: calc(100vh - var(--nav-h));
   background: var(--a-bg);
   color: var(--a-ink);
 }
@@ -4924,7 +5440,7 @@ body {
 .admin-sidebar {
   background: var(--a-panel); border-right: 1px solid var(--a-line-2);
   display: flex; flex-direction: column;
-  position: sticky; top: 64px; height: calc(100vh - 64px);
+  position: sticky; top: var(--nav-h); height: calc(100vh - var(--nav-h));
   overflow-y: auto;
 }
 .admin-sidebar-brand {
@@ -4971,10 +5487,30 @@ body {
 .admin-sidebar-footer { padding: 12px 10px; border-top: 1px solid var(--a-line-2); }
 
 .admin-content { overflow-y: auto; min-width: 0; }
+/* Ouvre la colonne de rubriques quand elle passe en tiroir. C'était un
+   pictogramme gris posé dans le vide, qu'on ne lisait pas comme un bouton :
+   il prend le cadre et le fond des commandes de l'espace, et une cible de
+   44 px. */
 .admin-menu-toggle {
-  display: none; background: none; border: none;
-  color: var(--a-ink-2); padding: 14px 16px; cursor: pointer;
+  display: none;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  margin: 14px 0 2px 16px;
+  padding: 0 14px;
+  border: 1px solid var(--a-line);
+  border-radius: var(--r-sm);
+  background: var(--a-panel);
+  color: var(--a-ink-2);
+  font-family: inherit;
+  font-size: var(--ts-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.16s var(--ez), color 0.16s var(--ez);
 }
+
+.admin-menu-toggle:active { background: var(--a-hover); color: var(--a-ink); }
+.admin-menu-toggle:focus-visible { outline: 2px solid var(--a-accent); outline-offset: 2px; }
 
 /* Le plafond de largeur suit la barre latérale : sur 1920 px le contenu
    occupe l'écran au lieu de laisser un vide à droite, sans devenir
@@ -5461,12 +5997,12 @@ body {
 @media (max-width: 900px) {
   .admin-wrap { grid-template-columns: 1fr; }
   .admin-sidebar {
-    position: fixed; top: 64px; left: 0; z-index: 500;
+    position: fixed; top: var(--nav-h); left: 0; z-index: 500;
     width: 264px; transform: translateX(-100%);
     transition: transform 0.24s var(--ez);
   }
   .admin-sidebar.open { transform: translateX(0); }
-  .admin-menu-toggle { display: block; }
+  .admin-menu-toggle { display: inline-flex; }
   .admin-page { padding-top: 8px; }
   .compte-header-inner, .compte-tabs, .compte-content { padding-inline: 18px; }
 }
@@ -5496,6 +6032,30 @@ body {
   .dash-figure:last-child { border-bottom: none; }
   .admin-page-title { font-size: var(--ts-lg); }
   .compte-tab { margin-right: 14px; }
+}
+
+/* Les trois onglets de l'espace client — achats, demandes, profil — avec
+   leurs compteurs, dépassent la largeur d'un téléphone. Ils défilent plutôt
+   que de se comprimer : un onglet dont on ne lit plus le mot n'est plus un
+   onglet. Le voile latéral dit qu'il en reste sur le côté ; la rangée se
+   cale sur celui qui est ouvert au chargement.
+
+   La barre de défilement elle-même est masquée : elle traverserait le filet
+   rouge de l'onglet actif. */
+@media (max-width: 700px) {
+  .compte-tabs {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    -webkit-mask-image: linear-gradient(to right,
+      transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
+    mask-image: linear-gradient(to right,
+      transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
+  }
+  .compte-tabs::-webkit-scrollbar { display: none; }
+  .compte-tab { flex: 0 0 auto; scroll-snap-align: start; min-height: 46px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -7266,6 +7826,44 @@ body {
   color: #777;
 }
 
+/* ── Coordonnées sur téléphone ──
+   L'intitulé tenait une colonne fixe de 96 px face à la valeur ; il restait
+   68 px pour « sales.marketing@cinepax.mg », qui sortait de l'écran. Il
+   passe au-dessus : la ligne y gagne toute la largeur, et les deux
+   informations se lisent dans l'ordre où on les cherche.
+
+   Téléphone, WhatsApp et e-mail deviennent des cibles pleine largeur : sur
+   un téléphone, ce sont des gestes, pas des textes à recopier. */
+@media (max-width: 560px) {
+  .contact-lines li {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 3px;
+    padding: 11px 0;
+  }
+
+  .contact-line-label { flex: none; }
+
+  .contact-lines a,
+  .contact-lines span:not(.contact-line-label) {
+    font-size: 0.95rem;
+    overflow-wrap: anywhere;
+  }
+
+  .hours-row { gap: 10px; }
+  .hours-day { min-width: 0; }
+
+  /* Deux pastilles sur un rang, chacune assez large pour être visée. */
+  .contact-socials { gap: 8px; }
+  .contact-social {
+    flex: 1;
+    text-align: center;
+    padding: 12px 10px;
+  }
+
+  .contact-map, .contact-map iframe { min-height: 260px; }
+}
+
 /* ═══════════════════════════════════════════════════════════════
    CONTACT — formulaire
    ───────────────────────────────────────────────────────────────
@@ -7676,6 +8274,27 @@ body {
 .tarif-age input:focus-visible + span {
   outline: 2px solid var(--t-red);
   outline-offset: 2px;
+}
+
+/* Les quatre tranches d'âge réclament 513 px d'un seul tenant : sur un
+   téléphone elles sortaient de l'écran, et la quatrième — « Adulte » — ne
+   se trouvait qu'en poussant la page de côté. Elles se replient sur deux
+   rangs plutôt que de défiler : quatre choix se montrent, ils ne se
+   cherchent pas. Chaque pastille prend la moitié de la largeur pour que la
+   grille reste lisible comme une grille. */
+@media (max-width: 700px) {
+  .tarif-ages {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 3px;
+  }
+  .tarif-age { flex: 1 1 calc(50% - 3px); min-width: 0; }
+  .tarif-age span {
+    text-align: center;
+    padding: 10px 8px;
+    white-space: normal;
+  }
 }
 
 /* — La semaine — */
@@ -8445,15 +9064,46 @@ body {
   .prog-poster { flex-basis: 120px; width: 120px; }
 }
 
-/* L'affiche descend avec l'écran plutôt que d'écraser le titre : sous 400 px
-   la rangée garde sa forme horizontale — sept jours de fiches empilées
-   pleine largeur feraient de l'horaire un rouleau. */
+/* Sur téléphone, les horaires descendent sous l'affiche et prennent toute
+   la largeur, comme sur la fiche de l'accueil : les mêmes pastilles se
+   rangent de la même façon des deux côtés du site. Elles se partageaient
+   auparavant la colonne de droite, laissant une bande vide sous l'affiche
+   et deux horaires par rangée là où il en tient trois. */
+@media (max-width: 560px) {
+  .prog-row {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 0 14px;
+    padding: 20px 0 22px;
+    align-items: start;
+  }
+
+  .prog-info { display: contents; }
+
+  .prog-poster { grid-column: 1; grid-row: 1 / span 2; width: 92px; }
+  .prog-film-title { grid-column: 2; grid-row: 1; font-size: 0.98rem; }
+  .prog-film-meta  { grid-column: 2; grid-row: 2; margin-bottom: 0; }
+
+  .prog-times {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .prog-time { min-width: 0; padding: 7px 8px; }
+}
+
+/* Sous 400 px l'affiche se resserre encore ; la rangée garde sa forme —
+   sept jours de fiches empilées pleine largeur feraient de l'horaire un
+   rouleau. */
 @media (max-width: 400px) {
-  .prog-row { gap: 14px; padding: 20px 0; }
-  .prog-poster { flex-basis: 76px; width: 76px; }
+  .prog-row { grid-template-columns: 76px minmax(0, 1fr); gap: 0 12px; }
+  .prog-poster { width: 76px; }
   .prog-film-title { font-size: 0.95rem; }
-  .prog-times { gap: 8px; }
-  .prog-time { min-width: 84px; padding: 7px 11px; }
+  .prog-times { grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); }
 }
 
 /* Raccourcis vers un jour du programme — les onglets du sélecteur de dates
@@ -8516,7 +9166,7 @@ body {
 }
 
 /* Compense la barre de navigation collante lors d'un saut d'ancre */
-.prog-day { scroll-margin-top: 80px; }
+.prog-day { scroll-margin-top: calc(var(--nav-h) + 16px); }
 
 /* ── Affiche du programme ───────────────────────────────────────
    Générée par /api/programme/affiche depuis les séances Veezi.
@@ -8943,7 +9593,7 @@ body {
   color: var(--t-ink);
   /* L'ancre du sommaire vise le titre : sans ce dégagement, la barre de
      navigation collante le recouvrirait à l'arrivée. */
-  scroll-margin-top: 88px;
+  scroll-margin-top: calc(var(--nav-h) + 24px);
 }
 
 .legal-prose h3 {
@@ -9568,7 +10218,7 @@ body {
   }
   .legal-toc {
     position: sticky;
-    top: 88px;
+    top: calc(var(--nav-h) + 24px);
     max-height: calc(100vh - 120px);
     overflow-y: auto;
   }
@@ -11761,7 +12411,7 @@ body {
 /* — Sections — */
 .guide-section {
   padding-top: 40px;
-  scroll-margin-top: 84px;   /* la navbar est collante */
+  scroll-margin-top: calc(var(--nav-h) + 20px);   /* la navbar est collante */
 }
 
 .guide-h2 {
@@ -11920,7 +12570,7 @@ body {
   border-left: 3px solid var(--t-red);
   border-radius: 8px;
   background: var(--t-paper);
-  scroll-margin-top: 84px;
+  scroll-margin-top: calc(var(--nav-h) + 20px);
 }
 
 .guide-secu p {
@@ -12084,6 +12734,16 @@ body {
   .guide-contact { flex-direction: column; align-items: flex-start; }
   .guide-tab th, .guide-tab td { padding: 10px 8px; }
   .guide-tab tbody th { white-space: normal; }
+}
+
+/* Les trois colonnes du tableau des champs de carte — nom, longueur, où le
+   lire — tenaient encore 340 px avec « 16 chiffres » insécable. Sous 420 px
+   la longueur se coupe elle aussi : elle ne se lit pas d'un bloc, elle se
+   compare à ce qu'on a sous les yeux. */
+@media (max-width: 420px) {
+  .guide-tab { font-size: 0.78rem; }
+  .guide-tab th, .guide-tab td { padding: 9px 6px; }
+  .guide-tab-combien { white-space: normal; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -12391,4 +13051,71 @@ body {
   .gm-panneau { animation: none; }
   .gm-corps .guide-section.est-visee .guide-h2,
   .gm-corps .guide-secu.est-visee { animation: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TACTILE — le socle mobile
+
+   Dernier chapitre de la feuille, et c'est voulu : ces règles sont un
+   plancher, pas une variante. À spécificité égale, c'est la dernière
+   déclaration qui gagne — elles doivent donc passer après tout ce qu'elles
+   relèvent, quel que soit l'endroit où ce quelque chose est écrit.
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Le zoom de saisie d'iOS ──
+   Safari agrandit la page dès qu'on entre dans un champ dont le corps
+   calculé descend sous 16 px, et n'y revient jamais tout seul : la mise en
+   page saute, la barre de navigation sort de l'écran, et le client finit
+   son adresse e-mail dans une page qui a bougé sous ses doigts.
+
+   Le corps de référence du site vaut 17 px sur téléphone : 0,88 rem font
+   14,96 px et 0,9375 rem 15,94 px — sous le seuil des deux côtés. max()
+   relève le plancher sans écraser ce qui le dépasse déjà : sur les écrans
+   où la référence monte à 18 px, la valeur d'origine reprend la main. */
+@media (max-width: 989px) {
+  .cfield input,
+  .cfield textarea,
+  .cfield-select select        { font-size: max(16px, 0.92rem); }
+  .pay-field input             { font-size: max(16px, 0.88rem); }
+  .auth-field input            { font-size: max(16px, var(--ts-md)); }
+  .pc-label-input              { font-size: max(16px, var(--ts-md)); }
+  .admin-search-input,
+  .admin-price-input           { font-size: max(16px, var(--ts-sm)); }
+  .pc-color-select             { font-size: max(16px, var(--ts-xs)); }
+}
+
+/* ── Cibles tactiles ──
+   Un doigt vise autour de 9 mm ; sous 44 px, on touche ce qui est à côté.
+   Ce qui suit relève les commandes qui restaient sous ce seuil, sans
+   toucher au plan de salle, dont la géométrie est celle d'une salle et se
+   règle avec elle. */
+@media (max-width: 989px) {
+  .pay-field input,
+  .cfield input,
+  .cfield-select select,
+  .admin-search-input,
+  .auth-field input { min-height: 46px; }
+
+  .btn-primary,
+  .pay-btn,
+  .admin-search-btn,
+  .cform-submit { min-height: 46px; }
+
+  /* Les deux boutons du répartiteur de billets : ils se pressent plusieurs
+     fois de suite, c'est le geste le plus répété de l'étape. */
+  .ticket-step-btn { min-width: 40px; min-height: 40px; }
+
+  /* Rien ne clignote en bleu au premier contact : le site a ses propres
+     états pressés, tous déclarés. */
+  a, button, label, summary, [role='button'] {
+    -webkit-tap-highlight-color: rgba(232, 25, 44, 0.12);
+  }
+}
+
+/* ── Le pouce et le bas de l'écran ──
+   Sur les téléphones à barre de gestes, les derniers pixels de la page sont
+   sous le doigt qui referme l'application. Le pied de page y ajoute la
+   hauteur que le système lui prend. */
+@media (max-width: 989px) {
+  .footer-bottom { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
 }

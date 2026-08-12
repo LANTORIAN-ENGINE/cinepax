@@ -35,7 +35,10 @@ export function Navbar() {
   const { t } = useI18n()
   const pathname = usePathname()
   const [moreOpen, setMoreOpen] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
   const moreRef = useRef(null)
+  const burgerRef = useRef(null)
+  const drawerRef = useRef(null)
 
   // Referme « Plus » au changement de page et sur clic extérieur / Échap.
   useEffect(() => { setMoreOpen(false) }, [pathname])
@@ -52,10 +55,42 @@ export function Navbar() {
     }
   }, [moreOpen])
 
+  // ── Tiroir mobile ───────────────────────────────────────────────
+  // Un lien touché change de page : le tiroir se referme de lui-même.
+  useEffect(() => { setDrawerOpen(false) }, [pathname])
+
+  // Tant qu'il est ouvert, la page ne défile pas derrière lui, Échap le
+  // referme, et le focus part sur le premier lien puis revient au bouton.
+  useEffect(() => {
+    if (!drawerOpen) return
+    const { body } = document
+    const scrollbar = window.innerWidth - document.documentElement.clientWidth
+    const prevOverflow = body.style.overflow
+    const prevPad = body.style.paddingRight
+    body.style.overflow = 'hidden'
+    if (scrollbar > 0) body.style.paddingRight = `${scrollbar}px`
+
+    function onKey(e) { if (e.key === 'Escape') setDrawerOpen(false) }
+    document.addEventListener('keydown', onKey)
+
+    drawerRef.current?.querySelector('.nav-drawer-link')?.focus()
+
+    return () => {
+      body.style.overflow = prevOverflow
+      body.style.paddingRight = prevPad
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [drawerOpen])
+
+  function closeDrawer() {
+    setDrawerOpen(false)
+    burgerRef.current?.focus()
+  }
+
   const inMore = SECONDARY.some(l => l.href === pathname)
 
   return (
-    <nav className="navbar">
+    <nav className={`navbar ${drawerOpen ? 'drawer-open' : ''}`}>
       <div className="navbar-inner">
         <Link href="/" className="navbar-logo">
           <img src="/logo2.png" alt="Cinepax Madagascar" />
@@ -104,27 +139,103 @@ export function Navbar() {
                 )}
               </div>
 
-              {/* Sur mobile la rangée défile horizontalement : un menu déroulant
-                  y serait rogné, donc les rubriques secondaires s'affichent
-                  en ligne. Masqué au-delà, où « Plus » les regroupe. */}
-              <div className="navbar-sections-inline">
-                {SECONDARY.map(link => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`nav-link ${pathname === link.href ? 'active' : ''}`}
-                  >
-                    <link.Icon />
-                    {t(link.key)}
-                  </Link>
-                ))}
-              </div>
             </div>
           </div>
           {/* Compte et langue forment le groupe d'utilitaires, calé à droite :
               même hauteur, même pastille, séparés de la navigation. */}
           <NavAuth />
           <LanguageSwitcher />
+
+          {/* Le bouton du tiroir ne paraît qu'en dessous de 768 px — au-dessus,
+              les rubriques tiennent dans la barre et « Plus » range le reste. */}
+          <button
+            ref={burgerRef}
+            type="button"
+            className="nav-burger"
+            aria-expanded={drawerOpen}
+            aria-controls="nav-drawer"
+            aria-label={drawerOpen ? t('nav.close') : t('nav.open')}
+            onClick={() => (drawerOpen ? closeDrawer() : setDrawerOpen(true))}
+          >
+            <span className="nav-burger-bars" aria-hidden>
+              <span /><span /><span />
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Tiroir mobile ───────────────────────────────────────────
+          Le voile et le panneau restent dans le document, fermés : c'est ce
+          qui permet au panneau de repartir vers la droite au lieu de
+          disparaître d'un coup. `inert` retire tout ce qu'il contient du
+          parcours au clavier tant qu'il est refermé. */}
+      <div
+        className="nav-scrim"
+        onClick={closeDrawer}
+        aria-hidden
+        inert={!drawerOpen}
+      />
+
+      <div
+        id="nav-drawer"
+        ref={drawerRef}
+        className="nav-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('nav.menu')}
+        inert={!drawerOpen}
+      >
+        <div className="nav-drawer-head">
+          <span className="nav-drawer-title">{t('nav.menu')}</span>
+          <button type="button" className="nav-drawer-close" onClick={closeDrawer} aria-label={t('nav.close')}>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        </div>
+
+        <nav className="nav-drawer-body" aria-label={t('nav.menu')}>
+          <p className="nav-drawer-group">{t('nav.groupTickets')}</p>
+          {PRIMARY.map(link => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`nav-drawer-link ${pathname === link.href ? 'active' : ''}`}
+              aria-current={pathname === link.href ? 'page' : undefined}
+            >
+              <link.Icon />
+              <span className="nav-drawer-label">{t(link.key)}</span>
+            </Link>
+          ))}
+
+          <p className="nav-drawer-group">{t('nav.groupInfo')}</p>
+          {SECONDARY.map(link => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`nav-drawer-link ${pathname === link.href ? 'active' : ''}`}
+              aria-current={pathname === link.href ? 'page' : undefined}
+            >
+              <link.Icon />
+              <span className="nav-drawer-label">{t(link.key)}</span>
+            </Link>
+          ))}
+        </nav>
+
+        {/* Les deux gestes qu'un téléphone fait mieux qu'un écran de bureau :
+            appeler la caisse, et lancer l'itinéraire. */}
+        <div className="nav-drawer-foot">
+          <p className="nav-drawer-group">{t('nav.groupReach')}</p>
+          <div className="nav-drawer-actions">
+            <a className="nav-drawer-action" href={TEL_HREF}>
+              <IconPhone size={15} />
+              {CONTACT.phoneDisplay}
+            </a>
+            <a className="nav-drawer-action" href={MAPS_URL} target="_blank" rel="noreferrer">
+              <IconMapPin size={15} />
+              {t('footer.openMaps')}
+            </a>
+          </div>
         </div>
       </div>
     </nav>

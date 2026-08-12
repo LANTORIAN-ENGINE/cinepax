@@ -23,6 +23,15 @@ const DICT = {
       terms: 'TERMES ET CONDITIONS',
       help: 'AIDE',
       more: 'PLUS',
+      // Tiroir mobile : le menu se replie derrière un seul bouton, et les
+      // rubriques s'y rangent en deux blocs — ce qu'on vient acheter, et ce
+      // qu'on vient savoir.
+      menu: 'Menu',
+      close: 'Fermer le menu',
+      open: 'Ouvrir le menu',
+      groupTickets: 'Billetterie',
+      groupInfo: 'Informations',
+      groupReach: 'Nous joindre',
     },
     lang: { label: 'Langue', fr: 'Français', en: 'Anglais' },
 
@@ -873,6 +882,7 @@ const DICT = {
     adminNav: {
       brandRole: 'Administration',
       menu: 'Ouvrir le menu',
+      sections: 'Rubriques',
       dashboard: 'Tableau de bord',
       reservations: 'Achats',
       clients: 'Clients',
@@ -1290,6 +1300,12 @@ const DICT = {
       terms: 'TERMS & CONDITIONS',
       help: 'HELP',
       more: 'MORE',
+      menu: 'Menu',
+      close: 'Close menu',
+      open: 'Open menu',
+      groupTickets: 'Tickets',
+      groupInfo: 'Information',
+      groupReach: 'Reach us',
     },
 
     about: {
@@ -2052,6 +2068,7 @@ const DICT = {
     adminNav: {
       brandRole: 'Administration',
       menu: 'Open menu',
+      sections: 'Sections',
       dashboard: 'Dashboard',
       reservations: 'Purchases',
       clients: 'Customers',

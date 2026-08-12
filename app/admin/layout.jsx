@@ -166,7 +166,11 @@ export default function AdminLayout({ children }) {
           aria-label={t('adminNav.menu')}
           aria-expanded={sideOpen}
         >
-          <IconMenu size={22} />
+          <IconMenu size={19} />
+          {/* Le mot accompagne le pictogramme : seul, il se lisait comme un
+              ornement posé en haut de page. Il ne paraît qu'en dessous de
+              900 px, là où la colonne devient un tiroir. */}
+          <span className="admin-menu-toggle-label">{t('adminNav.sections')}</span>
         </button>
         {children}
       </div>
