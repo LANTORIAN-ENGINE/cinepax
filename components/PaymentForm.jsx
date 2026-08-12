@@ -5,6 +5,7 @@ import { useI18n } from '@/lib/i18n'
 import AchatBand from './AchatBand'
 import FinalSaleNotice from './FinalSaleNotice'
 import LegalCheckoutNotice from './LegalCheckoutNotice'
+import BniPaymentZone from './BniPaymentZone'
 import Aide, { AideChiffres, AideCarte, AideNote } from './Aide'
 
 function fixImageUrl(url) {
@@ -24,6 +25,7 @@ export default function PaymentForm({
   formatPrice,
   onConfirm,
   onBack,
+  onCheckoutChange,
 }) {
   const { t } = useI18n()
   const [user,         setUser]         = useState(null)
@@ -81,6 +83,19 @@ export default function PaymentForm({
   // celui de l'étape paiement, que le tunnel gère de son côté.
   const checkoutStage = fallbackCard ? 'carte' : (bniIframeHtml || bniLoading) ? 'bni' : null
   const stageRef = useRef(null)
+
+  // Le tunnel referme les séances à l'heure dite, y compris sous les pieds d'un
+  // client déjà en train de payer. Une fois la commande créée et la banque
+  // ouverte, il est trop tard pour se raviser : la réservation existe, et
+  // reprendre l'écran laisserait le client sans billet et sans recours. On
+  // prévient donc le tunnel dès que le sous-écran s'ouvre, et jusqu'à ce que le
+  // formulaire disparaisse.
+  const signalerRef = useRef(onCheckoutChange)
+  signalerRef.current = onCheckoutChange
+  useEffect(() => {
+    signalerRef.current?.(checkoutStage != null)
+  }, [checkoutStage])
+  useEffect(() => () => signalerRef.current?.(false), [])
 
   useEffect(() => {
     if (checkoutStage === stageRef.current) return
@@ -501,10 +516,7 @@ export default function PaymentForm({
               <p>{t('payment.bniConnecting')}</p>
             </div>
           ) : (
-            <div
-              className="bni-checkout-frame"
-              dangerouslySetInnerHTML={{ __html: bniIframeHtml }}
-            />
+            <BniPaymentZone className="bni-checkout-frame" html={bniIframeHtml} />
           )}
 
           <p className="bni-checkout-note">

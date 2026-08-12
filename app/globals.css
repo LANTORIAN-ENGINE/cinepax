@@ -5643,12 +5643,21 @@ body {
 .bni-checkout-sep    { color: #c3c8cf; }
 .bni-checkout-seats  { color: var(--t-ink-3); }
 .bni-checkout-amount { color: var(--t-red-ink); font-weight: 700; }
-.bni-checkout-frame  { padding: 20px 16px; display: flex; justify-content: center; }
+/* Colonne, et non ligne : la passerelle insère son propre voile d'attente
+   (.mipsLoader) juste avant l'iframe pendant le traitement 3-D Secure. En
+   ligne il se poserait à côté du cadre ; il doit le coiffer. */
+.bni-checkout-frame  {
+  padding: 20px 16px;
+  display: flex; flex-direction: column; align-items: center;
+}
 .bni-checkout-frame iframe {
   width: 100% !important; max-width: 480px;
   min-height: 720px; border-radius: 8px;
   background: #fff;
 }
+/* gomips.js dimensionne son voile en dur sur la largeur déclarée à l'API
+   (480 px). On le ramène sur la largeur réelle du cadre. */
+.bni-checkout-frame .mipsLoader { width: 100% !important; max-width: 480px; }
 .bni-checkout-loading {
   display: flex; flex-direction: column; align-items: center;
   gap: 16px; min-height: 720px; justify-content: center;

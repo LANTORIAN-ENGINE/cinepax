@@ -115,6 +115,35 @@ Endpoints à activer quand le canal CINEP sera disponible :
 - `POST /RESTTicketing.svc/order/tickets` — créer la commande avec les sièges
 - `POST /RESTTicketing.svc/order/payment` — finaliser le paiement
 
+## Zone de paiement BNI / MIPS — elle n'entre dans la page qu'une fois
+
+`POST /api/bni-pay/load` renvoie un fragment tout fait — un `<script src="gomips.js">`
+suivi d'une `<iframe src="go.mips.mu/mipsit.php?c=…">`. Cette iframe est une
+**session bancaire vivante** : la reposer, c'est la rouvrir à zéro et perdre le
+numéro de carte à moitié saisi.
+
+`components/BniPaymentZone.jsx` la pose **une seule fois**, à la main, dans un
+`<div ref>` sans enfant JSX. Ne pas revenir à `dangerouslySetInnerHTML` :
+
+- React 19 ne compare plus la chaîne `__html`, il compare l'objet `{ __html }`
+  **par identité** (`nextProp !== lastProp` dans `updateProperties`). Or le JSX
+  en crée un neuf à chaque rendu → `domElement.innerHTML = …` réexécuté à chaque
+  rendu → iframe détruite et rechargée. Avec l'horloge des ventes qui bat toutes
+  les 30 s, le client perdait sa saisie deux fois par minute.
+- `innerHTML` n'exécute jamais les `<script>` qu'il pose : `gomips.js` (voile
+  d'attente 3-D Secure + `gomips.css`) n'avait jamais tourné. Il est recréé en
+  vrai élément **après** l'iframe, qu'il cherche dès son exécution.
+
+Corollaire général : **une fonction composant ne se déclare pas dans le corps
+d'un autre composant** — son identité change à chaque rendu et React remonte
+tout son sous-arbre. C'est ce que faisait `FilmHero`, qui reconstruisait le plan
+de salle à chaque clic sur un siège ; il vit désormais au module.
+
+Le garde « séance refermée » de `BookingFlow` s'efface devant un paiement engagé
+(`checkoutEngage`) : la commande est déjà créée et la banque a la main, reprendre
+l'écran laisserait le client sans billet. `/api/bookings/create` a déjà tranché à
+l'instant qui compte.
+
 ## Images des films
 
 `fixImageUrl()` dans `page.jsx` gère 3 cas :

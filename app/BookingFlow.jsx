@@ -418,6 +418,82 @@ function RestoringSkeleton({ step }) {
   )
 }
 
+// ─── Hero de film, partagé par les étapes séances / places / séance refermée ──
+//
+// Déclaré ici, au module, et non dans le corps de BookingFlow : une fonction
+// composant définie à l'intérieur d'un autre composant change d'identité à
+// chaque rendu, et React démonte alors tout son sous-arbre pour le remonter à
+// l'identique. Le plan de salle — position de défilement, transitions, effets —
+// était ainsi reconstruit à chaque clic sur un siège et à chaque battement de
+// l'horloge des ventes. Le hero ne se referme plus que sur ses props.
+function FilmHero({ film, error, onBack, backLabel, extraMeta, children }) {
+  const { t, lang } = useI18n()
+  const backdrop = filmBackdrop(film)
+  const poster   = filmPoster(film)
+  return (
+    <div className="film-detail-page">
+      {error && <div className="error-banner fd-error">⚠ {error}</div>}
+
+      <div
+        className="film-hero"
+        style={backdrop ? { backgroundImage: `url(${backdrop})` } : {}}
+      >
+        <div className="film-hero-nav">
+          <button className="film-back-link" onClick={onBack}>{backLabel}</button>
+        </div>
+
+        <div className="film-hero-inner">
+          <div className="film-hero-poster">
+            {poster
+              ? <img src={poster} alt={film.Title} />
+              : <div className="film-hero-poster-placeholder">{film.Title.charAt(0)}</div>
+            }
+          </div>
+
+          <div className="film-hero-info">
+            <h1>{film.Title}</h1>
+            <span className="now-playing-badge">{t('film.nowPlaying')}</span>
+
+            <div className="film-rating-row">
+              {ratingLabel(film.Rating, t) && (
+                <span className="rating-badge" title={ratingTitle(film.Rating, t)}>
+                  {ratingLabel(film.Rating, t)}
+                </span>
+              )}
+              {film.Advisory && <span className="advisory-text">{film.Advisory}</span>}
+            </div>
+
+            {(film.Duration || film.Genre) && (
+              <p className="film-meta-hero">
+                {film.Duration && formatDuration(film.Duration, lang)}
+                {film.Duration && film.Genre && ' | '}
+                {genreLabel(film.Genre, t)}
+              </p>
+            )}
+
+            {extraMeta && <p className="film-hero-extra-meta">{extraMeta}</p>}
+
+            <button className="trailer-btn">
+              <span className="trailer-play-icon">
+                <svg viewBox="0 0 20 20" fill="currentColor" width="10" height="10">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                </svg>
+              </span>
+              {t('film.trailer')}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="film-sessions-section">
+        <div className="film-sessions-inner">
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Page principale ──────────────────────────────────────────────────────────
 // `initialRoute` vient du segment d'URL servi par Next (app/film/…/page.jsx).
 // Sur l'accueil il vaut { step: 'films' } : le tunnel démarre alors exactement
@@ -464,6 +540,9 @@ export default function BookingFlow({ initialRoute }) {
   const [priceSource, setPriceSource] = useState(null)        // 'veezi' | 'session' | 'price_card' | 'reference'
   const [loadingPrice, setLoadingPrice] = useState(false)
   const [bookingResult, setBookingResult] = useState(null)
+  // Paiement engagé : la commande est créée et la banque a la main. Voir le
+  // garde « séance refermée » plus bas, qui s'efface devant lui.
+  const [checkoutEngage, setCheckoutEngage] = useState(false)
 
   const [groupBy, setGroupBy] = useState('jour')   // 'jour' | 'film'
   const [sortBy, setSortBy] = useState('heure')     // 'heure' | 'alpha' | 'recent'
@@ -1070,73 +1149,6 @@ export default function BookingFlow({ initialRoute }) {
 
   const totalCents = orderResult?.Order?.TotalPrice ?? null
 
-  // ── Composant hero réutilisable ──────────────────────────────────────────────
-  function FilmHero({ film, onBack, backLabel, extraMeta, children }) {
-    const backdrop = filmBackdrop(film)
-    const poster   = filmPoster(film)
-    return (
-      <div className="film-detail-page">
-        {error && <div className="error-banner fd-error">⚠ {error}</div>}
-
-        <div
-          className="film-hero"
-          style={backdrop ? { backgroundImage: `url(${backdrop})` } : {}}
-        >
-          <div className="film-hero-nav">
-            <button className="film-back-link" onClick={onBack}>{backLabel}</button>
-          </div>
-
-          <div className="film-hero-inner">
-            <div className="film-hero-poster">
-              {poster
-                ? <img src={poster} alt={film.Title} />
-                : <div className="film-hero-poster-placeholder">{film.Title.charAt(0)}</div>
-              }
-            </div>
-
-            <div className="film-hero-info">
-              <h1>{film.Title}</h1>
-              <span className="now-playing-badge">{t('film.nowPlaying')}</span>
-
-              <div className="film-rating-row">
-                {ratingLabel(film.Rating, t) && (
-                  <span className="rating-badge" title={ratingTitle(film.Rating, t)}>
-                    {ratingLabel(film.Rating, t)}
-                  </span>
-                )}
-                {film.Advisory && <span className="advisory-text">{film.Advisory}</span>}
-              </div>
-
-              {(film.Duration || film.Genre) && (
-                <p className="film-meta-hero">
-                  {film.Duration && formatDuration(film.Duration, lang)}
-                  {film.Duration && film.Genre && ' | '}
-                  {genreLabel(film.Genre, t)}
-                </p>
-              )}
-
-              {extraMeta && <p className="film-hero-extra-meta">{extraMeta}</p>}
-
-              <button className="trailer-btn">
-                <span className="trailer-play-icon">
-                  <svg viewBox="0 0 20 20" fill="currentColor" width="10" height="10">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                  </svg>
-                </span>
-                {t('film.trailer')}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="film-sessions-section">
-          <div className="film-sessions-inner">
-            {children}
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   // ── URL profonde en cours de résolution ──────────────────────────────────────
   if (pendingRoute && pendingRoute.step !== 'films') {
@@ -1149,9 +1161,14 @@ export default function BookingFlow({ initialRoute }) {
   // retour du navigateur vers un écran qui n'a plus lieu d'être.
   //
   // La confirmation n'est jamais interceptée : un achat conclu appartient au
-  // client, l'horloge ne le lui reprend pas.
+  // client, l'horloge ne le lui reprend pas. Un paiement en cours non plus :
+  // la commande est déjà créée et la page de la banque est ouverte — la
+  // reprendre laisserait le client sans billet et, s'il vient de valider, sans
+  // son argent. Le contrôle serveur de /api/bookings/create a déjà tranché en
+  // amont, à l'instant qui compte.
   if (selectedFilm && selectedSession
       && (step === 'seats' || step === 'payment')
+      && !checkoutEngage
       && !isOpenForSale(selectedSession)) {
     const backToShowtimes = () => {
       setSelectedSession(null)
@@ -1162,6 +1179,7 @@ export default function BookingFlow({ initialRoute }) {
     return (
       <FilmHero
         film={selectedFilm}
+        error={error}
         onBack={backToShowtimes}
         backLabel={t('film.backToShowtimes')}
         extraMeta={formatTime(sessionTime(selectedSession))}
@@ -1206,6 +1224,7 @@ export default function BookingFlow({ initialRoute }) {
     return (
       <FilmHero
         film={selectedFilm}
+        error={error}
         onBack={() => setStep('sessions')}
         backLabel={t('film.backToShowtimes')}
         extraMeta={`${screenLabel} · ${sessionLabel}`}
@@ -1374,6 +1393,7 @@ export default function BookingFlow({ initialRoute }) {
     return (
       <FilmHero
         film={selectedFilm}
+        error={error}
         onBack={() => setStep('films')}
         backLabel={t('film.backToMovies')}
       >
@@ -1446,6 +1466,7 @@ export default function BookingFlow({ initialRoute }) {
         sessionLabel={formatTime(sessionTime(selectedSession))}
         sessionISOTime={sessionTime(selectedSession)}
         formatPrice={formatPrice}
+        onCheckoutChange={setCheckoutEngage}
         onConfirm={booking => {
           setBookingResult(booking)
           // La confirmation prend la place du formulaire dans l'historique :
