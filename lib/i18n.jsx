@@ -704,6 +704,29 @@ const DICT = {
       payCard: 'BNI / Carte bancaire',
     },
 
+    // ── Les trois temps de la fin du parcours ───────────────────────────────
+    // Le talon d'achat (components/EtapesAchat.jsx). Des noms de choses, pas
+    // de rouages : le client reconnaît « son billet » et « sa place », il ne
+    // sait pas ce qu'est Veezi. La consigne, elle, dit ce qu'il doit faire —
+    // rester — et pourquoi cela vaut la peine.
+    etapes: {
+      aria:     'Avancement de votre achat',
+      paiement: 'Paiement',
+      billet:   'Billet',
+      place:    'Place au cinéma',
+      etat: {
+        aVenir:  'à venir',
+        enCours: 'en cours',
+        faite:   'terminé',
+        ratee:   'à confirmer à l’accueil',
+      },
+      // La consigne dit ce que le client doit faire — rester. Ce que la
+      // machine fait, le bloc d'état juste dessous le dit déjà : le répéter
+      // ici ferait trois fois la même phrase à la suite.
+      tenirPaiement: 'Après le paiement, restez sur cette page : votre billet et votre place s’enregistrent juste après.',
+      tenirPlace:    'Ne fermez pas cette page — votre achat se termine dans un instant.',
+    },
+
     // ── L'enregistrement de la place au cinéma ──────────────────────────────
     // Mêmes mots sur les deux fins de parcours — la confirmation du tunnel
     // (Orange / MVola) et le retour de la banque (carte BNI) : le client doit
@@ -1875,6 +1898,21 @@ const DICT = {
       print: 'Print ticket',
       newBooking: 'Buy another ticket',
       payCard: 'BNI / Bank card',
+    },
+
+    etapes: {
+      aria:     'Purchase progress',
+      paiement: 'Payment',
+      billet:   'Ticket',
+      place:    'Cinema seat',
+      etat: {
+        aVenir:  'to come',
+        enCours: 'in progress',
+        faite:   'done',
+        ratee:   'to confirm at the desk',
+      },
+      tenirPaiement: 'After payment, stay on this page: your ticket and your seat are registered right after.',
+      tenirPlace:    'Keep this page open — your purchase completes in a moment.',
     },
 
     veezi: {

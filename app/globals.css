@@ -4146,7 +4146,10 @@ body {
    définitif — en encre franche sur blanc, sans dégradé ni aplat sombre qui
    noircirait la cartouche et brouillerait le QR. */
 @media print {
-  .conf-actions, .navbar, .site-footer { display: none !important; }
+  /* Le talon d'achat ne suit pas sur le papier : c'est un repère d'attente,
+     et la feuille sort une fois l'attente finie. Ce qu'il resterait à faire,
+     lui, est déjà porté par .conf-manque, qui s'imprime. */
+  .conf-actions, .navbar, .site-footer, .etapes { display: none !important; }
   .conf-page { background: #fff; }
   .conf-card { background: #fff; color: #000; border: none; box-shadow: none; }
 
@@ -5659,6 +5662,134 @@ body {
   color: #3a4761; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em;
   padding: 3px 9px; border-radius: 20px;
 }
+
+/* ─── Le talon d'achat — les trois temps de la fin du parcours ────────────────
+   Trois segments perforés, comme le billet qu'ils fabriquent. Le motif de la
+   déchirure est déjà celui du billet de confirmation (.conf-ticket-perforation)
+   : le repère et son résultat se ressemblent, on comprend l'un par l'autre.
+
+   Le segment en cours est parcouru d'un balayage — c'est le seul mouvement de
+   l'écran, et il dit la seule chose qui compte à cet instant : ça travaille,
+   restez là. Les segments acquis se remplissent au vert du sceau, celui qui a
+   manqué au rouge de la maison. */
+.etapes { text-align: left; }
+
+.etapes-talon {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  align-items: start;
+  list-style: none; margin: 0; padding: 0;
+}
+.etape { position: relative; min-width: 0; padding-inline: 13px; }
+.etape:first-child { padding-left: 0; }
+.etape:last-child  { padding-right: 0; }
+/* La perforation : elle sépare aussi les libellés, comme sur un vrai talon. */
+.etape + .etape::before {
+  content: ''; position: absolute; left: 0; top: -1px; bottom: 0;
+  border-left: 1px dashed var(--t-line);
+}
+
+.etape-jauge {
+  display: block; position: relative; overflow: hidden;
+  height: 4px; border-radius: 2px; margin-bottom: 9px;
+  background: var(--t-line-2);
+  transition: background 0.3s ease;
+}
+.etape--faite   .etape-jauge { background: #15803d; }
+.etape--ratee   .etape-jauge { background: var(--t-red-ink); }
+.etape--enCours .etape-jauge { background: rgba(232, 25, 44, 0.16); }
+.etape--enCours .etape-jauge::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, var(--t-red) 45%, var(--t-red) 55%, transparent);
+  transform: translateX(-100%);
+  animation: etape-balayage 1.6s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+}
+@keyframes etape-balayage { to { transform: translateX(100%); } }
+
+.etape-ligne { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+/* Le numéro est au caractère d'affiche : c'est le chiffre d'un billet. */
+.etape-rang {
+  font-family: var(--font-display), 'Helvetica Neue', sans-serif;
+  font-size: 0.86rem; line-height: 1; letter-spacing: 0.04em;
+  color: var(--t-ink-3); flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.etape-glyphe { flex-shrink: 0; align-self: center; }
+.etape-nom {
+  font-size: 0.75rem; font-weight: 600; line-height: 1.3;
+  color: var(--t-ink-3); min-width: 0;
+}
+
+.etape--aVenir  .etape-rang,
+.etape--aVenir  .etape-nom { color: var(--t-ink-3); opacity: 0.7; }
+.etape--enCours .etape-rang { color: var(--t-red-ink); }
+.etape--enCours .etape-nom  { color: var(--t-ink); font-weight: 700; }
+.etape--faite   .etape-glyphe { color: #15803d; }
+.etape--faite   .etape-nom  { color: var(--t-ink-2); }
+.etape--ratee   .etape-glyphe { color: var(--t-red-ink); }
+.etape--ratee   .etape-nom  { color: var(--t-red-ink); font-weight: 700; }
+
+/* L'état en toutes lettres, pour qui ne voit ni la couleur ni le glyphe. */
+.etape-sr {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+/* ── La consigne : rester ────────────────────────────────────────────────
+   Elle n'apparaît que tant que quelque chose tourne, et disparaît dès que
+   tout est acquis — une consigne qui reste affichée après coup n'est plus
+   lue nulle part. Le point qui bat est le témoin de vie ; c'est lui, pas le
+   texte, qui distingue « ça travaille » de « c'est figé ». */
+.etapes-consigne {
+  display: flex; align-items: flex-start; gap: 9px;
+  margin: 12px 0 0; padding: 10px 12px;
+  border: 1px solid var(--t-line-2); border-radius: 9px;
+  background: var(--t-paper);
+  font-size: 0.75rem; line-height: 1.5; color: var(--t-ink-2);
+}
+.etapes-pouls {
+  width: 7px; height: 7px; margin-top: 4px; flex-shrink: 0;
+  border-radius: 50%; background: var(--t-red);
+  animation: etapes-pouls 1.8s ease-out infinite;
+}
+@keyframes etapes-pouls {
+  0%        { box-shadow: 0 0 0 0 rgba(232, 25, 44, 0.45); }
+  70%, 100% { box-shadow: 0 0 0 7px rgba(232, 25, 44, 0); }
+}
+
+/* Le mouvement n'est qu'un accent : sans lui, le segment en cours reste
+   reconnaissable — il se remplit à plein. */
+@media (prefers-reduced-motion: reduce) {
+  .etape--enCours .etape-jauge::after {
+    background: var(--t-red); transform: none; animation: none;
+  }
+  .etapes-pouls { animation: none; }
+}
+
+/* Sur un téléphone, la colonne ne fait plus qu'une centaine de points : le
+   marqueur posé à côté du libellé lui prend le quart de sa largeur, et
+   « Place au cinéma » se casse en trois lignes. Il passe donc au-dessus, et
+   le libellé récupère toute la colonne. */
+@media (max-width: 400px) {
+  .etape { padding-inline: 9px; }
+  .etape-ligne { flex-direction: column; align-items: flex-start; gap: 3px; }
+  /* En colonne, le centrage qui servait à poser le glyphe sur la ligne de
+     base le décalerait au milieu du libellé : il reprend le bord. */
+  .etape-glyphe { align-self: flex-start; }
+  .etape-nom  { font-size: 0.71rem; }
+  .etape-rang { font-size: 0.78rem; }
+}
+
+/* Placements — le talon prend la mesure de l'écran qui l'accueille. */
+.bni-checkout-etapes {
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--t-line-2);
+}
+.bni-success-etapes { margin-bottom: 20px; }
+.conf-etapes { width: 100%; margin: -14px 0 0; }
+/* Le bloc d'état de la place suit le talon : ses marges négatives, calculées
+   pour venir sous la puce de référence, n'ont plus lieu d'être ici. */
+.conf-etapes + .conf-veezi,
+.conf-etapes + .conf-manque { margin-top: 18px; }
 
 /* ─── BNI Pay — page checkout avec iframe ─────────────────────────────────────
    La page de la banque s'affiche en clair : le formulaire bancaire arrive

@@ -7,6 +7,8 @@ import {
   ATTENTE, RESERVE, lireReponseReservation, placeManquante, texteManque,
 } from '@/lib/veeziEtat'
 import FinalSaleNotice from './FinalSaleNotice'
+import EtapesAchat from './EtapesAchat'
+import { PLACE } from '@/lib/etapesAchat'
 import Aide from './Aide'
 
 export default function BookingConfirmation({
@@ -136,6 +138,15 @@ export default function BookingConfirmation({
           <span className="conf-ref-label">{t('confirmation.reference')}</span>
           <code className="conf-ref-code">{booking?.booking_ref || '—'}</code>
         </div>
+
+        {/* Le talon donne la vue d'ensemble — où l'on en est des trois temps ;
+            la pastille qui suit donne le détail de celui qui reste, avec son
+            numéro de billet. Le repère, puis la pièce. */}
+        {/* Sans référence, l'enregistrement n'est jamais parti et l'étape
+            resterait « en cours » sans fin : il n'y a rien à suivre. */}
+        {booking?.booking_ref && (
+          <EtapesAchat courante={PLACE} veeziEtat={veezi.etat} className="conf-etapes" />
+        )}
 
         {/* Enregistrement de la place au cinéma (Veezi) */}
         {veezi.etat === ATTENTE && (

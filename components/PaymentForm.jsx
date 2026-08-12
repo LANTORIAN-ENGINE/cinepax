@@ -6,6 +6,8 @@ import AchatBand from './AchatBand'
 import FinalSaleNotice from './FinalSaleNotice'
 import LegalCheckoutNotice from './LegalCheckoutNotice'
 import BniPaymentZone from './BniPaymentZone'
+import EtapesAchat from './EtapesAchat'
+import { PAIEMENT } from '@/lib/etapesAchat'
 import Aide, { AideChiffres, AideCarte, AideNote } from './Aide'
 
 function fixImageUrl(url) {
@@ -338,6 +340,10 @@ export default function PaymentForm({
             )}
           </div>
 
+          {/* Le paiement n'est pas la fin : le billet et la place suivent.
+              Le talon le dit avant que le client ne tape son numéro. */}
+          <EtapesAchat courante={PAIEMENT} className="bni-checkout-etapes" />
+
           <FinalSaleNotice when="before" className="bni-final-sale" />
 
           <div className="card-test-banner">
@@ -499,6 +505,11 @@ export default function PaymentForm({
               </>
             )}
           </div>
+
+          {/* La page de la banque est celle où l'on croit avoir fini. Le
+              talon annonce les deux temps qui suivent le débit — et la
+              consigne, de rester jusque-là. */}
+          <EtapesAchat courante={PAIEMENT} className="bni-checkout-etapes" />
 
           <FinalSaleNotice when="before" className="bni-final-sale" />
 

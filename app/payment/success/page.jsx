@@ -9,6 +9,8 @@ import {
   ATTENTE, RESERVE, lireReponseReservation, placeManquante, texteManque,
 } from '@/lib/veeziEtat'
 import FinalSaleNotice from '@/components/FinalSaleNotice'
+import EtapesAchat from '@/components/EtapesAchat'
+import { PLACE } from '@/lib/etapesAchat'
 
 // Charge une image same-origin et la renvoie en PNG data-URL + dimensions,
 // pour l'embarquer dans le PDF (jsPDF a besoin des dimensions pour l'échelle).
@@ -273,6 +275,14 @@ function SuccessContent() {
             <span className="bni-success-ref-label">{t('paySuccess.reference')}</span>
             <span className="bni-success-ref-val">{ref}</span>
           </div>
+        )}
+
+        {/* Le retour de la banque : les deux premiers temps sont acquis — le
+            débit est passé, la référence est là. Reste le troisième, celui
+            que personne ne reprend derrière : le talon le montre en cours et
+            retient le client le temps qu'il aboutisse. */}
+        {ref && (
+          <EtapesAchat courante={PLACE} veeziEtat={veezi.etat} className="bni-success-etapes" />
         )}
 
         {/* Enregistrement de la place au cinéma (Veezi) */}
