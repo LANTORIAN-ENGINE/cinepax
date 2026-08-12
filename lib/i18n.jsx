@@ -249,6 +249,14 @@ const DICT = {
       lead: 'Quatre écrans séparent la liste des films de votre billet. Cette page dit ce qui est attendu à chacun, combien de chiffres taper, et ce qu’il faut faire quand quelque chose coince.',
       sommaire: 'Sur cette page',
 
+      // ── Le guide ouvert par-dessus l'achat ──
+      // Une seule crainte retient le doigt au moment de payer : perdre ce
+      // qu'on vient de saisir. Le pied de la fiche y répond avant qu'on se
+      // la pose, et le bouton dit où il ramène plutôt que « fermer ».
+      modalRester: 'Votre achat reste ouvert derrière cette fiche.',
+      modalPleinePage: 'Ouvrir le guide en entier',
+      modalRetour: 'Revenir à mon achat',
+
       etapesTitre: 'Le parcours',
       etapesLead: 'Comptez trois minutes en tout, carte en main.',
       e1t: 'Choisir la séance',
@@ -1488,6 +1496,10 @@ const DICT = {
       titre: 'Buying your ticket, step by step',
       lead: 'Four screens stand between the film list and your ticket. This page says what each one asks for, how many digits to type, and what to do when something gets stuck.',
       sommaire: 'On this page',
+
+      modalRester: 'Your purchase stays open behind this sheet.',
+      modalPleinePage: 'Open the full guide',
+      modalRetour: 'Back to my purchase',
 
       etapesTitre: 'The journey',
       etapesLead: 'Three minutes in all, card in hand.',

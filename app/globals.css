@@ -11472,18 +11472,32 @@ body {
 
 .aide-corps p + p { margin-top: 8px; }
 
+/* Le renvoi au guide est un bouton et non un lien : il ouvre une fiche
+   par-dessus l'achat au lieu de changer de page. Il en garde l'allure —
+   c'est bien la même promesse au client — d'où le dépouillement du
+   bouton natif. */
 .aide-lien {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   margin-top: 11px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
   font-size: 0.72rem;
   font-weight: 700;
   color: var(--t-red-ink);
   text-decoration: none;
+  cursor: pointer;
 }
 
 .aide-lien:hover { text-decoration: underline; }
+.aide-lien:focus-visible {
+  outline: 2px solid var(--t-red);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
 
 /* — La feuille, sous 560 px — */
 /* Une bulle de 320 px sur un téléphone couvre l'écran sans le dire. En
@@ -11644,13 +11658,24 @@ body {
   display: block;
   width: fit-content;
   margin-top: 7px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
   font-size: 0.74rem;
   font-weight: 700;
   color: var(--t-red-ink);
+  text-align: left;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .aide-note-lien:hover { text-decoration: underline; }
+.aide-note-lien:focus-visible {
+  outline: 2px solid var(--t-red);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
 
 /* — Le libellé et son repère — */
 /* Le repère se pose contre le mot qui pose la question, jamais dans le
@@ -12059,4 +12084,311 @@ body {
   .guide-contact { flex-direction: column; align-items: flex-start; }
   .guide-tab th, .guide-tab td { padding: 10px 8px; }
   .guide-tab tbody th { white-space: normal; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LE GUIDE PAR-DESSUS L'ACHAT — modal ouvert par les bulles d'aide
+
+   « Voir le guide » menait à /aide. Au milieu du paiement, c'était
+   quitter la page : la session bancaire se referme avec elle, les
+   places choisies aussi. Le guide vient donc au client — une fiche
+   posée sur le comptoir, qu'on referme sur un achat intact.
+
+   Rien de neuf au vocabulaire : le panneau reprend la fiche des
+   documents légaux, les sections sont celles de /aide, telles quelles.
+   Deux choses sont ajoutées, et elles servent l'ergonomie plutôt que
+   l'ornement — un sommaire qui reste visible et suit la lecture, et
+   un halo d'une seconde sur la section demandée, pour que le saut à
+   l'ouverture s'explique de lui-même.
+═══════════════════════════════════════════════════════════════ */
+
+.gm-voile {
+  position: fixed;
+  inset: 0;
+  z-index: 950;              /* au-dessus de la bulle d'aide (400) */
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(12, 14, 18, 0.62);
+  backdrop-filter: blur(3px);
+  animation: gm-fondu 0.18s ease-out;
+}
+
+@keyframes gm-fondu { from { opacity: 0; } }
+@keyframes gm-monte { from { opacity: 0; transform: translateY(12px) scale(0.985); } }
+@keyframes gm-glisse { from { transform: translateY(22px); } }
+
+.gm-panneau {
+  display: flex;
+  flex-direction: column;
+  width: min(760px, 100%);
+  max-height: min(88vh, 840px);
+  background: var(--t-surface);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 30px 70px -24px rgba(0, 0, 0, 0.55);
+  animation: gm-monte 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* — L'en-tête — */
+/* `flex-shrink: 0` sur tout ce qui n'est pas le texte : dans une colonne
+   flex sous contrainte de hauteur, le reste se ferait rogner. Le sommaire
+   y était le plus exposé — un conteneur de défilement a une hauteur
+   minimale automatique nulle, il s'écrasait à 24 px et ses puces
+   débordaient par-dessus la lecture. */
+.gm-tete {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 22px 14px;
+}
+
+.gm-tete-texte { flex: 1; min-width: 0; }
+
+.gm-surtitre {
+  font-family: var(--font-display), 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  color: var(--t-red-ink);
+}
+
+.gm-titre {
+  margin-top: 3px;
+  font-family: var(--font-display), 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: 0.015em;
+  color: var(--t-ink);
+}
+
+.gm-croix {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--t-line);
+  border-radius: 8px;
+  background: var(--t-surface);
+  color: var(--t-ink-2);
+  cursor: pointer;
+  transition: background 0.14s, color 0.14s;
+}
+.gm-croix:hover { background: var(--t-hover); color: var(--t-ink); }
+.gm-croix:focus-visible { outline: 2px solid var(--t-red); outline-offset: 2px; }
+
+/* — Le sommaire —
+   Hors de la zone défilante : il ne bouge pas parce qu'il n'a pas à
+   bouger, sans un seul `position: sticky`. Les cinq puces passent à la
+   ligne plutôt que de filer hors du cadre : une section qu'on ne voit
+   pas est une section qui n'existe pas. Sur un téléphone, où deux
+   rangées mangeraient la lecture, elles défilent — et le composant y
+   ramène la puce active. */
+.gm-sommaire {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 2px 22px 14px;
+  background: var(--t-surface);
+  border-bottom: 1px solid var(--t-line);
+}
+
+.gm-sommaire .guide-puce {
+  flex-shrink: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.gm-sommaire .guide-puce:focus-visible {
+  outline: 2px solid var(--t-red);
+  outline-offset: 2px;
+}
+
+/* Placée après `:hover` — même poids, c'est l'ordre qui tranche, et
+   la section où l'on se trouve doit gagner sur le survol d'une autre. */
+.guide-puce.est-actif {
+  border-color: var(--t-red);
+  background: var(--t-red-w);
+  color: var(--t-red-ink);
+}
+
+/* — Le corps —
+   `position: relative` n'est pas décoratif : c'est lui qui fait du
+   cadre l'`offsetParent` des sections, donc ce que mesure le
+   composant pour se poser sur la bonne. */
+.gm-corps {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 22px 28px;
+
+  /* On arrive au milieu du guide : une ligne de la section précédente est
+     tranchée net au bord haut, et ça se lit comme un défaut d'affichage.
+     Le dégradé la fait sortir au lieu de la couper, et dit du même geste
+     qu'il y a du texte au-dessus et en dessous. */
+  --gm-fondu: 20px;
+  -webkit-mask-image: linear-gradient(to bottom,
+    transparent 0, #000 var(--gm-fondu),
+    #000 calc(100% - var(--gm-fondu)), transparent 100%);
+  mask-image: linear-gradient(to bottom,
+    transparent 0, #000 var(--gm-fondu),
+    #000 calc(100% - var(--gm-fondu)), transparent 100%);
+}
+
+.gm-corps:focus-visible { outline: 2px solid var(--t-red); outline-offset: -4px; }
+
+.gm-corps .guide-section { padding-top: 30px; scroll-margin-top: 0; }
+.gm-corps .guide-section:first-child { padding-top: 22px; }
+.gm-corps .guide-secu { scroll-margin-top: 0; }
+
+/* La fiche est plus étroite qu'une page : le tableau et les schémas
+   passent l'un sous l'autre, quelle que soit la taille de la fenêtre. */
+.gm-corps .guide-carte { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+.gm-corps .guide-carte-tableau { overflow-x: auto; }
+.gm-corps .guide-carte-schemas {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 440px;
+}
+
+/* — Le halo de la section demandée —
+   On arrive au milieu du guide sans avoir défilé : sans ce repère,
+   le client croit que la fiche s'est ouverte de travers. L'ombre
+   portée élargit le lavis au-delà du texte, sans boîte à dessiner. */
+.gm-corps .guide-section.est-visee .guide-h2 {
+  animation: gm-vise 1.7s ease-out both;
+}
+
+@keyframes gm-vise {
+  0%, 45% {
+    background-color: var(--t-red-w);
+    box-shadow: -10px 0 0 var(--t-red-w), 10px 0 0 var(--t-red-w);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: -10px 0 0 transparent, 10px 0 0 transparent;
+  }
+}
+
+/* Toutes les ancres ne sont pas des sections : « ce qui se passe ensuite »
+   vise l'encart du code SMS, à l'intérieur de la carte bancaire. Il a
+   déjà une boîte — c'est elle qui s'allume, pas un titre. */
+.gm-corps .guide-secu.est-visee {
+  animation: gm-vise-bloc 1.7s ease-out both;
+}
+
+@keyframes gm-vise-bloc {
+  0%, 45% { background-color: var(--t-red-w); }
+  100%    { background-color: var(--t-paper); }
+}
+
+/* — Le pied —
+   La seule crainte qui retient le doigt au moment de payer, c'est de
+   perdre ce qu'on vient de saisir. Elle se lève ici, et le bouton dit
+   où il ramène plutôt que « fermer ». */
+.gm-pied {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 13px 22px;
+  border-top: 1px solid var(--t-line);
+  background: var(--t-paper);
+}
+
+.gm-rassure {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.78rem;
+  color: var(--t-ink-2);
+}
+
+.gm-rassure svg { flex-shrink: 0; color: var(--t-ok); }
+
+.gm-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-left: auto;
+}
+
+.gm-pleine {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--t-ink-2);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.gm-pleine:hover { color: var(--t-red-ink); text-decoration: underline; }
+.gm-pleine:focus-visible { outline: 2px solid var(--t-red); outline-offset: 3px; border-radius: 3px; }
+
+.gm-retour {
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--t-red);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.14s;
+}
+.gm-retour:hover { background: var(--t-red-deep); }
+.gm-retour:focus-visible { outline: 2px solid var(--t-red); outline-offset: 2px; }
+
+/* — Au téléphone : une feuille qui monte du bas —
+   La forme que le doigt attend, le pouce déjà sur le bouton de
+   retour. Même geste que la feuille d'aide, à l'échelle du guide. */
+@media (max-width: 620px) {
+  .gm-voile { padding: 0; place-items: end stretch; }
+
+  .gm-panneau {
+    width: 100%;
+    max-height: 92vh;
+    border-radius: 14px 14px 0 0;
+    animation: gm-glisse 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .gm-tete { padding: 15px 16px 12px; }
+  .gm-titre { font-size: 1.3rem; }
+
+  /* Les puces filent hors du cadre : le dégradé latéral dit que la
+     rangée continue, là où une puce tranchée dirait qu'elle est cassée. */
+  .gm-sommaire {
+    flex-wrap: nowrap;
+    padding: 2px 16px 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(to right,
+      transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
+    mask-image: linear-gradient(to right,
+      transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
+  }
+  .gm-sommaire::-webkit-scrollbar { display: none; }
+
+  .gm-corps { padding: 0 16px 22px; }
+  .gm-corps .guide-carte-schemas { grid-template-columns: minmax(0, 1fr); max-width: 260px; }
+
+  .gm-pied { padding: 12px 16px; }
+  .gm-rassure { width: 100%; }
+  .gm-actions { width: 100%; justify-content: space-between; }
+  .gm-retour { flex: 1; max-width: 60%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gm-voile,
+  .gm-panneau { animation: none; }
+  .gm-corps .guide-section.est-visee .guide-h2,
+  .gm-corps .guide-secu.est-visee { animation: none; }
 }

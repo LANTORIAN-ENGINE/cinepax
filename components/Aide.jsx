@@ -2,8 +2,10 @@
 
 import { useState, useRef, useEffect, useLayoutEffect, useId } from 'react'
 import { createPortal } from 'react-dom'
-import Link from 'next/link'
 import { useI18n } from '@/lib/i18n'
+import GuideModal from './GuideModal'
+
+export { default as AideCarte } from './AideCarte'
 
 // ─── L'aide au ras du champ ───────────────────────────────────────────────────
 //
@@ -24,8 +26,11 @@ import { useI18n } from '@/lib/i18n'
 //   • en dessous — une feuille qui monte du bas de l'écran, seule forme
 //     lisible quand la bulle ferait la moitié de la largeur du téléphone.
 //
-// Chaque bulle peut renvoyer au guide complet (/aide#ancre) : la réponse courte
-// ici, le déroulé là-bas.
+// Chaque bulle peut renvoyer au guide complet : la réponse courte ici, le
+// déroulé là-bas. « Là-bas » n'est pas une autre page — au milieu du paiement,
+// la quitter referme la session bancaire et perd les places choisies. Le guide
+// s'ouvre donc par-dessus, en modal (`GuideModal`), et se referme sur l'achat
+// intact.
 
 const SEUIL_FEUILLE = 560
 
@@ -40,6 +45,7 @@ export default function Aide({
   const [ouvert, setOuvert] = useState(false)
   const [feuille, setFeuille] = useState(false)
   const [pos, setPos] = useState(null)
+  const [guide, setGuide] = useState(null)
   const repereRef = useRef(null)
   const bulleRef = useRef(null)
   const id = useId()
@@ -128,12 +134,18 @@ export default function Aide({
       <p className="aide-titre" id={`${id}-titre`}>{titre}</p>
       <div className="aide-corps">{children}</div>
       {ancre && (
-        <Link className="aide-lien" href={`/aide#${ancre}`}>
+        // La bulle s'efface au profit du guide : deux surfaces d'aide
+        // empilées ne se lisent pas, et celle du dessous serait cachée.
+        <button
+          type="button"
+          className="aide-lien"
+          onClick={() => { setOuvert(false); setGuide(ancre) }}
+        >
           {t('aide.toutLeGuide')}
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" width="11" height="11" aria-hidden="true">
             <path d="M3 8h10M9 4l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-        </Link>
+        </button>
       )}
     </>
   )
@@ -197,6 +209,16 @@ export default function Aide({
         </div>,
         document.body
       )}
+
+      {/* Le lien du guide part avec la bulle qu'il portait : le modal ne
+          retrouverait rien à qui rendre le focus. On le ramène au repère,
+          d'où tout est reparti. */}
+      {guide && (
+        <GuideModal
+          ancre={guide}
+          onClose={() => { setGuide(null); repereRef.current?.focus() }}
+        />
+      )}
     </>
   )
 }
@@ -240,68 +262,6 @@ export function AideChiffres({ saisis = 0, total = 16, groupe = 4 }) {
   )
 }
 
-// ─── Le schéma de carte ───────────────────────────────────────────────────────
-//
-// Où est le cryptogramme ? La réponse tient en une image et en aucune phrase :
-// c'est un endroit physique sur un objet, au dos et à droite de la bande de
-// signature. Le tracé reprend les encres du site — papier, filet, un rouge pour
-// la zone désignée — et rien d'autre : ce n'est pas une illustration de carte,
-// c'est une flèche.
-export function AideCarte({ face = 'dos' }) {
-  const { t } = useI18n()
-  const legende = face === 'dos' ? t('aide.carteDos') : t('aide.carteRecto')
-
-  return (
-    <figure className="aide-schema">
-      <svg viewBox="0 0 208 132" width="100%" role="img" aria-label={legende}>
-        <rect x="4" y="4" width="200" height="124" rx="12"
-              fill="var(--t-paper)" stroke="var(--t-line)" strokeWidth="1.5" />
-
-        {face === 'dos' ? (
-          <>
-            {/* Bande magnétique */}
-            <rect x="4" y="22" width="200" height="26" fill="var(--t-ink)" opacity="0.82" />
-            {/* Bande de signature + zone du cryptogramme */}
-            <rect x="20" y="66" width="112" height="24" rx="3"
-                  fill="#fff" stroke="var(--t-line)" strokeWidth="1.5" />
-            <rect x="136" y="66" width="46" height="24" rx="3"
-                  fill="var(--t-red-w)" stroke="var(--t-red)" strokeWidth="2" />
-            <g fill="var(--t-red-ink)" fontSize="13" fontWeight="700"
-               fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace">
-              <text x="159" y="83" textAnchor="middle">123</text>
-            </g>
-            {/* Le trait qui désigne — il s'arrête sous la bande magnétique,
-                sinon le point se perd sur le noir. */}
-            <path d="M159 62V56" stroke="var(--t-red)" strokeWidth="2" strokeLinecap="round" />
-            <circle cx="159" cy="53.5" r="2.6" fill="var(--t-red)" />
-          </>
-        ) : (
-          <>
-            {/* Puce */}
-            <rect x="22" y="34" width="30" height="23" rx="4"
-                  fill="none" stroke="var(--t-ink-3)" strokeWidth="1.5" />
-            <path d="M22 45h30M37 34v23" stroke="var(--t-ink-3)" strokeWidth="1.2" />
-            {/* Numéro : quatre groupes de quatre */}
-            <g fill="var(--t-ink-2)">
-              {[0, 1, 2, 3].map(g => (
-                [0, 1, 2, 3].map(c => (
-                  <circle key={`${g}-${c}`} cx={26 + g * 44 + c * 9} cy="80" r="3" />
-                ))
-              ))}
-            </g>
-            <path d="M20 92h168" stroke="var(--t-red)" strokeWidth="2" strokeLinecap="round" />
-            <rect x="20" y="102" width="42" height="14" rx="2"
-                  fill="var(--t-red-w)" stroke="var(--t-red)" strokeWidth="1.5" />
-            <text x="41" y="112.5" textAnchor="middle" fontSize="9" fontWeight="700"
-                  fill="var(--t-red-ink)" fontFamily="ui-monospace, Menlo, monospace">MM/AA</text>
-          </>
-        )}
-      </svg>
-      <figcaption className="aide-schema-legende">{legende}</figcaption>
-    </figure>
-  )
-}
-
 // ─── La note posée dans le flux ───────────────────────────────────────────────
 //
 // Tout ne se demande pas : certaines explications doivent être lues sans qu'on
@@ -314,6 +274,9 @@ export function AideCarte({ face = 'dos' }) {
 // ce qui explique seulement.
 export function AideNote({ titre, children, ancre, ton = 'calme', className = '' }) {
   const { t } = useI18n()
+  const [guide, setGuide] = useState(false)
+  const lienRef = useRef(null)
+
   return (
     <div className={`aide-note aide-note--${ton} ${className}`.trim()} role="note">
       <svg className="aide-note-icone" viewBox="0 0 20 20" fill="none"
@@ -326,9 +289,26 @@ export function AideNote({ titre, children, ancre, ton = 'calme', className = ''
         {titre && <strong className="aide-note-titre">{titre}</strong>}
         {children}
         {ancre && (
-          <Link className="aide-note-lien" href={`/aide#${ancre}`}>{t('aide.toutLeGuide')}</Link>
+          <button type="button" className="aide-note-lien" ref={lienRef}
+                  onClick={() => setGuide(true)}>
+            {t('aide.toutLeGuide')}
+          </button>
         )}
       </div>
+
+      {/* La note du paiement est posée au-dessus de l'iframe de la BNI. Le
+          modal sort par un portail : le sous-arbre du paiement n'est pas
+          retouché, la saisie de carte en cours est intacte au retour.
+
+          Le focus est rendu explicitement : un clic à la souris pose bien
+          le focus sur le bouton, mais pas une ouverture au clavier depuis
+          un autre chemin. On ne laisse pas ce détail au navigateur. */}
+      {guide && (
+        <GuideModal
+          ancre={ancre}
+          onClose={() => { setGuide(false); lienRef.current?.focus() }}
+        />
+      )}
     </div>
   )
 }
