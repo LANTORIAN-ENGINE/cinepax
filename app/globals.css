@@ -4029,6 +4029,36 @@ body {
   border-left: 1px solid rgba(21,128,61,0.3);
 }
 
+/* ── Place non enregistrée au cinéma ──────────────────────────────────────
+   L'achat est payé mais la place n'est pas tenue : l'écran perd son sceau
+   vert et prend ce bloc, qui dit l'anomalie et la démarche à faire. Il est
+   large et à gauche, contrairement à la pastille de succès — on ne survole
+   pas un texte qu'on doit lire en entier. */
+.conf-alert-svg { width: 60px; height: 60px; color: var(--t-red-ink); }
+
+.conf-card--manque .conf-title { color: var(--t-red-ink); }
+
+.conf-manque {
+  display: flex; align-items: flex-start; gap: 11px; text-align: left;
+  width: 100%; margin: -10px 0 26px;
+  padding: 14px 16px; border-radius: 10px;
+  background: var(--t-red-w);
+  border: 1px solid rgba(193,18,31,0.26);
+  border-left: 3px solid var(--t-red-ink);
+  animation: conf-veezi-in 0.35s ease both;
+}
+.conf-manque-icone { color: var(--t-red-ink); flex-shrink: 0; margin-top: 1px; }
+.conf-manque-corps { min-width: 0; }
+.conf-manque-titre {
+  display: block; font-size: 0.84rem; font-weight: 700;
+  color: var(--t-red-ink); margin-bottom: 4px;
+}
+.conf-manque-texte { font-size: 0.78rem; line-height: 1.6; color: var(--t-ink-2); }
+.conf-manque-ref {
+  font-size: 0.78rem; line-height: 1.6; font-weight: 600;
+  color: var(--t-ink); margin-top: 6px;
+}
+
 .conf-qr-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 28px; }
 .conf-qr-frame {
   background: #fff; border: 2px solid var(--t-line);
@@ -4141,6 +4171,18 @@ body {
     break-inside: avoid;
   }
   .final-sale-icon { color: #000 !important; }
+
+  /* La place manquante suit le billet sur le papier : c'est cette feuille que
+     le client tendra à l'accueil, elle doit porter l'anomalie même quand
+     l'imprimante ignore les fonds de couleur. */
+  .conf-manque {
+    background: transparent !important;
+    border: 1px solid #000 !important;
+    border-left: 3px solid #000 !important;
+    break-inside: avoid;
+  }
+  .conf-manque-icone, .conf-manque-titre { color: #000 !important; }
+  .conf-manque-texte, .conf-manque-ref   { color: #000 !important; }
 
   .bni-ticket-row dd, .bk-ticket-row dd, .conf-detail-value { color: #000 !important; }
   .bni-ticket-row dt, .bk-ticket-row dt, .conf-detail-label { color: #333 !important; }
@@ -4684,6 +4726,17 @@ body {
   font-size: var(--ts-md); color: var(--a-ink); font-weight: 700;
   margin-top: 3px; font-variant-numeric: tabular-nums;
 }
+/* Place non enregistrée au cinéma — la carte le dit tant que la séance est
+   devant le client, avec le rouge d'une chose à faire, pas d'une erreur du
+   site : l'achat est payé, il manque un passage à l'accueil. */
+.bk-manque {
+  display: flex; align-items: flex-start; gap: 7px;
+  margin-top: 8px; padding: 8px 11px; border-radius: 8px;
+  background: var(--s-dead-w); color: var(--s-dead);
+  border-left: 3px solid currentColor;
+  font-size: var(--ts-xs); font-weight: 600; line-height: 1.45;
+}
+.bk-manque svg { flex-shrink: 0; margin-top: 1px; }
 .bk-card-right {
   display: flex; flex-direction: column; align-items: stretch; gap: 9px;
   flex-shrink: 0; min-width: 172px;
@@ -4761,6 +4814,14 @@ body {
 .status-pending   { background: var(--s-wait-w); color: var(--s-wait); }
 .status-cancelled { background: var(--s-dead-w); color: var(--s-dead); }
 .status-used      { background: var(--s-done-w); color: var(--s-done); }
+
+/* Ce que le cinéma sait de l'achat — colonne à part de l'état de l'achat.
+   Un achat encaissé sans place au cinéma prend le rouge : c'est la ligne sur
+   laquelle quelqu'un doit agir, elle doit se voir en balayant la liste. */
+.veezi-ok   { background: var(--s-ok-w);   color: var(--s-ok);   }
+.veezi-ko   { background: var(--s-dead-w); color: var(--s-dead); }
+.veezi-warn { background: var(--s-wait-w); color: var(--s-wait); }
+.veezi-none { background: var(--s-done-w); color: var(--s-done); }
 
 /* États des messages de contact. « Nouveau » prend l'accent : c'est le seul
    qui réclame une action, les trois autres décrivent un traitement en cours
@@ -5758,6 +5819,24 @@ body {
 .bni-veezi--error { background: var(--t-red-w); border-color: rgba(193,18,31,0.24); }
 .bni-veezi--error .bni-veezi-msg { color: #9c1420; }
 .bni-veezi-warn { color: var(--t-red-ink); flex-shrink: 0; }
+
+/* Place non enregistrée : le bloc cesse d'être une ligne d'état et devient un
+   paragraphe — titre, ce qui s'est passé, ce qu'il reste à faire. */
+.bni-veezi--error { align-items: flex-start; line-height: 1.55; }
+.bni-veezi--error .bni-veezi-warn { margin-top: 2px; }
+.bni-veezi-titre {
+  display: block; font-size: 0.84rem; font-weight: 700;
+  color: var(--t-red-ink); margin-bottom: 3px;
+}
+.bni-veezi-ref {
+  display: block; margin-top: 6px; font-style: normal;
+  font-weight: 600; color: var(--t-ink);
+}
+.bni-success-icon--manque {
+  background: var(--t-red-w);
+  border-color: rgba(193,18,31,0.3);
+  color: var(--t-red-ink);
+}
 .bni-veezi-spinner {
   width: 15px; height: 15px; flex-shrink: 0; border-radius: 50%;
   border: 2px solid rgba(20,22,26,0.14); border-top-color: #e8192c;

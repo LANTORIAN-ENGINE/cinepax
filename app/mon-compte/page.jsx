@@ -394,9 +394,15 @@ function BookingCard({ booking, qrOpen, setQrOpen, onCancel, cancelBusy }) {
   )
 
   // Annulable = séance à venir, pas déjà annulée / utilisée
-  const cancellable = onCancel &&
-    new Date(booking.session_time) > new Date() &&
+  const aVenir = new Date(booking.session_time) > new Date()
+  const cancellable = onCancel && aVenir &&
     booking.status !== 'cancelled' && booking.status !== 'used'
+
+  // La place n'a pas été enregistrée au cinéma : le client doit le lire ici
+  // aussi, tant que la séance est devant lui — c'est cette carte qu'il rouvre
+  // avant de partir, pas l'écran de confirmation qu'il a fermé.
+  const placeManquante = aVenir && booking.status !== 'cancelled' &&
+    !booking.veezi_booking_number
 
   return (
     <div className={`bk-card ${isOpen ? 'bk-card--open' : ''}`}>
@@ -412,6 +418,16 @@ function BookingCard({ booking, qrOpen, setQrOpen, onCancel, cancelBusy }) {
           <p className="bk-seats">{t('account.seatsLabel')} <strong>{seats}</strong></p>
           {booking.total_amount_cents > 0 && (
             <p className="bk-amount">{formatMGA(booking.total_amount_cents, moneyLocale)}</p>
+          )}
+          {placeManquante && (
+            <p className="bk-manque" role="status">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.9"
+                width="14" height="14" aria-hidden>
+                <path d="M10 2.5l7.5 13H2.5L10 2.5z" strokeLinejoin="round" />
+                <path d="M10 7.4v3.4M10 13.2h.01" strokeLinecap="round" />
+              </svg>
+              {t('account.veeziMissing')}
+            </p>
           )}
         </div>
         <div className="bk-card-right">

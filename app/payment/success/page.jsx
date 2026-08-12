@@ -5,6 +5,9 @@ import { Suspense, useEffect, useRef, useState } from 'react'
 import { QRCodeCanvas } from 'qrcode.react'
 import { useI18n } from '@/lib/i18n'
 import { ticketQrPayload, ticketRows } from '@/lib/ticket'
+import {
+  ATTENTE, RESERVE, lireReponseReservation, placeManquante, texteManque,
+} from '@/lib/veeziEtat'
 import FinalSaleNotice from '@/components/FinalSaleNotice'
 
 // Charge une image same-origin et la renvoie en PNG data-URL + dimensions,
@@ -28,8 +31,9 @@ function SuccessContent() {
   const params = useSearchParams()
   const ref = params.get('ref')
 
-  // Enregistrement de la place au cinéma (Veezi) : pending → reserved | processing | off | error
-  const [veezi, setVeezi] = useState({ state: ref ? 'pending' : 'off', number: null })
+  // Enregistrement de la place au cinéma (Veezi) — voir lib/veeziEtat.js.
+  // Sans référence dans l'URL, il n'y a rien à enregistrer ni rien à en dire.
+  const [veezi, setVeezi] = useState({ etat: ref ? ATTENTE : null })
   const [booking, setBooking] = useState(null)
   const [pdfBusy, setPdfBusy] = useState(false)
   const qrRef = useRef(null)      // <canvas> du QR — source de l'image PDF
@@ -48,18 +52,19 @@ function SuccessContent() {
       .then(r => r.json())
       .then(d => {
         if (d?.booking) setBooking(d.booking)
-        if (d?.veeziBookingNumber) setVeezi({ state: 'reserved', number: String(d.veeziBookingNumber) })
-        else if (d?.skipped)       setVeezi({ state: 'off', number: null })
-        else if (d?.error || d?.ok === false) setVeezi({ state: 'error', number: null })
-        else                       setVeezi({ state: 'processing', number: null })
+        setVeezi(lireReponseReservation(d))
       })
-      .catch(() => setVeezi({ state: 'error', number: null }))
+      .catch(() => setVeezi(lireReponseReservation(null)))
   }, [ref])
 
   function fmtMGA(cents) {
     if (cents == null) return null
     return new Intl.NumberFormat(moneyLocale, { style: 'currency', currency: 'MGA' }).format(cents / 100)
   }
+
+  // Le paiement est passé, mais la place n'est pas tenue au cinéma : l'écran
+  // cesse de dire « c'est fait » et dit ce qu'il reste à faire.
+  const manque = placeManquante(veezi.etat)
 
   // Le billet, dans l'ordre du contrôle — mêmes lignes que sur la confirmation
   // d'achat et dans l'espace client (lib/ticket.js).
@@ -154,7 +159,7 @@ function SuccessContent() {
         y += 7
 
         // N° billet Veezi
-        if (veezi.number) {
+        if (veezi.numero) {
           put(() => {
             doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(120, 120, 120)
             doc.text(t('paySuccess.veeziNum').toUpperCase(), mid, y, { align: 'center' })
@@ -162,9 +167,25 @@ function SuccessContent() {
           y += 4.5
           put(() => {
             doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(25, 25, 25)
-            doc.text(String(veezi.number), mid, y, { align: 'center' })
+            doc.text(String(veezi.numero), mid, y, { align: 'center' })
           })
           y += 7
+        }
+
+        // Place non enregistrée : le papier le porte aussi. Un billet imprimé
+        // survit à l'écran qui l'a annoncé, et c'est lui que le client tendra
+        // à l'accueil — il ne doit pas ressembler à un billet en règle.
+        if (manque) {
+          doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5)
+          const warnLines = doc.splitTextToSize(t('veezi.pdfNotice'), 66)
+          const warnH = 4.2 * warnLines.length + 5.5
+          put(() => {
+            doc.setDrawColor(193, 18, 31); doc.setFillColor(253, 236, 238)
+            doc.roundedRect(8, y, 74, warnH, 1.5, 1.5, 'FD')
+            doc.setTextColor(155, 20, 32)
+            doc.text(warnLines, mid, y + 5.4, { align: 'center' })
+          })
+          y += warnH + 6
         }
 
         // Séparateur + le billet : film, jour, heure, salle, places, tarif,
@@ -228,16 +249,23 @@ function SuccessContent() {
   return (
     <div className="bni-success-page">
       <div className="bni-success-card">
-        <div className="bni-success-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="40" height="40">
-            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" strokeLinecap="round" strokeLinejoin="round"/>
-            <polyline points="22 4 12 14.01 9 11.01" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+        <div className={`bni-success-icon ${manque ? 'bni-success-icon--manque' : ''}`}>
+          {manque ? (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" width="40" height="40" aria-hidden>
+              <path d="M12 3l9.5 16.5h-19L12 3z" strokeLinejoin="round"/>
+              <path d="M12 9.5v4.4M12 17.2h.01" strokeLinecap="round"/>
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="40" height="40">
+              <path d="M22 11.08V12a10 10 0 11-5.93-9.14" strokeLinecap="round" strokeLinejoin="round"/>
+              <polyline points="22 4 12 14.01 9 11.01" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          )}
         </div>
 
-        <h1 className="bni-success-title">{t('paySuccess.title')}</h1>
+        <h1 className="bni-success-title">{manque ? t('veezi.deskTitle') : t('paySuccess.title')}</h1>
         <p className="bni-success-sub">
-          {t('paySuccess.sub')}
+          {manque ? t('veezi.deskSub') : t('paySuccess.sub')}
         </p>
 
         {ref && (
@@ -248,30 +276,34 @@ function SuccessContent() {
         )}
 
         {/* Enregistrement de la place au cinéma (Veezi) */}
-        {veezi.state !== 'off' && (
-          veezi.state === 'reserved' ? (
-            <div className="bni-success-ref">
-              <span className="bni-success-ref-label">{t('paySuccess.veeziNum')}</span>
-              <span className="bni-success-ref-val">{veezi.number}</span>
-            </div>
-          ) : (
-            <div className={`bni-veezi bni-veezi--${veezi.state}`}>
-              {(veezi.state === 'pending' || veezi.state === 'processing') && (
-                <span className="bni-veezi-spinner" aria-hidden />
-              )}
-              {veezi.state === 'error' && (
-                <svg className="bni-veezi-warn" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.9" width="15" height="15" aria-hidden>
-                  <path d="M10 6.5v4.2M10 14h.01" strokeLinecap="round"/>
-                  <path d="M10 2.5l7.5 13H2.5L10 2.5z" strokeLinejoin="round"/>
-                </svg>
-              )}
-              <span className="bni-veezi-msg">
-                {veezi.state === 'pending'    && t('paySuccess.veeziPending')}
-                {veezi.state === 'processing' && t('paySuccess.veeziProcessing')}
-                {veezi.state === 'error'      && t('paySuccess.veeziError')}
-              </span>
-            </div>
-          )
+        {veezi.etat === RESERVE && veezi.numero && (
+          <div className="bni-success-ref">
+            <span className="bni-success-ref-label">{t('paySuccess.veeziNum')}</span>
+            <span className="bni-success-ref-val">{veezi.numero}</span>
+          </div>
+        )}
+
+        {veezi.etat === ATTENTE && (
+          <div className="bni-veezi">
+            <span className="bni-veezi-spinner" aria-hidden />
+            <span className="bni-veezi-msg">{t('veezi.pending')}</span>
+          </div>
+        )}
+
+        {/* Ni spinner ni silence : la place manque, et le client doit repartir
+            en le sachant, avec sa référence et la marche à suivre. */}
+        {manque && (
+          <div className="bni-veezi bni-veezi--error" role="alert">
+            <svg className="bni-veezi-warn" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.9" width="17" height="17" aria-hidden>
+              <path d="M10 2.5l7.5 13H2.5L10 2.5z" strokeLinejoin="round"/>
+              <path d="M10 7.4v3.4M10 13.2h.01" strokeLinecap="round"/>
+            </svg>
+            <span className="bni-veezi-msg">
+              <strong className="bni-veezi-titre">{t('veezi.failTitle')}</strong>
+              {texteManque(veezi.etat, veezi.sieges, t)}
+              {ref && <em className="bni-veezi-ref">{t('veezi.deskRef', { ref })}</em>}
+            </span>
+          </div>
         )}
 
         {/* QR code du billet + téléchargement PDF */}

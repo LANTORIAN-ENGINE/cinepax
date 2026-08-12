@@ -3,6 +3,9 @@ import { useEffect, useRef, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useI18n } from '@/lib/i18n'
 import { ticketQrPayload, ticketRows } from '@/lib/ticket'
+import {
+  ATTENTE, RESERVE, lireReponseReservation, placeManquante, texteManque,
+} from '@/lib/veeziEtat'
 import FinalSaleNotice from './FinalSaleNotice'
 import Aide from './Aide'
 
@@ -19,8 +22,8 @@ export default function BookingConfirmation({
 }) {
   const { t, locale, moneyLocale } = useI18n()
   const [visible, setVisible] = useState(false)
-  // Enregistrement de la place au cinéma (Veezi) : pending → reserved | processing | off
-  const [veezi, setVeezi] = useState({ state: 'pending', number: null })
+  // Enregistrement de la place au cinéma (Veezi) — voir lib/veeziEtat.js.
+  const [veezi, setVeezi] = useState({ etat: ATTENTE })
   const veeziStarted = useRef(false)
   // Le QR porte la référence — c'est elle que le scanner d'admin lit pour
   // retrouver et valider la place — et, autour d'elle, tout ce que le contrôle
@@ -46,6 +49,8 @@ export default function BookingConfirmation({
 
   // Finalise la réservation côté cinéma (Veezi) et affiche le n° de billet
   // dès qu'il est renvoyé. Idempotent côté serveur ; ne s'exécute qu'une fois.
+  // Tout ce qui n'aboutit pas est un échec affiché comme tel : personne ne
+  // reprend cet appel derrière, un « en cours » ne finirait jamais.
   useEffect(() => {
     const ref = booking?.booking_ref
     if (!ref || veeziStarted.current) return
@@ -57,12 +62,8 @@ export default function BookingConfirmation({
       body:    JSON.stringify({ bookingRef: ref }),
     })
       .then(r => r.json())
-      .then(d => {
-        if (d?.veeziBookingNumber) setVeezi({ state: 'reserved', number: d.veeziBookingNumber })
-        else if (d?.skipped)       setVeezi({ state: 'off', number: null })
-        else                       setVeezi({ state: 'processing', number: null })
-      })
-      .catch(() => setVeezi({ state: 'processing', number: null }))
+      .then(d => setVeezi(lireReponseReservation(d)))
+      .catch(() => setVeezi(lireReponseReservation(null)))
   }, [booking?.booking_ref])
 
   function formatMGA(cents) {
@@ -98,24 +99,37 @@ export default function BookingConfirmation({
     ...(booking?.payment_method ? [{ label: t('confirmation.payment'), value: paymentLabels[booking.payment_method] || booking.payment_method }] : []),
   ]
 
+  // Une place qui n'est pas tenue au cinéma change la tête de l'écran : le
+  // paiement est bien encaissé, mais l'achat n'est pas conclu tant que
+  // l'accueil n'a pas attribué la place. Le sceau vert le dirait à tort.
+  const manque = placeManquante(veezi.etat)
+
   return (
     <div className={`conf-page ${visible ? 'conf-visible' : ''}`}>
-      <div className="conf-card">
+      <div className={`conf-card ${manque ? 'conf-card--manque' : ''}`}>
 
         {/* Success icon */}
         <div className="conf-icon-wrap">
-          <svg className="conf-check-svg" viewBox="0 0 60 60" fill="none">
-            <circle className="conf-check-ring" cx="30" cy="30" r="28"
-              stroke="#15803d" strokeWidth="2.5" />
-            <path className="conf-check-path"
-              d="M18 30L26 38L42 22"
-              stroke="#15803d" strokeWidth="3"
-              strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          {manque ? (
+            <svg className="conf-alert-svg" viewBox="0 0 60 60" fill="none" aria-hidden>
+              <circle cx="30" cy="30" r="28" stroke="currentColor" strokeWidth="2.5" opacity="0.4" />
+              <path d="M30 17.5V33" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" />
+              <path d="M30 40.5v.6" stroke="currentColor" strokeWidth="3.8" strokeLinecap="round" />
+            </svg>
+          ) : (
+            <svg className="conf-check-svg" viewBox="0 0 60 60" fill="none">
+              <circle className="conf-check-ring" cx="30" cy="30" r="28"
+                stroke="#15803d" strokeWidth="2.5" />
+              <path className="conf-check-path"
+                d="M18 30L26 38L42 22"
+                stroke="#15803d" strokeWidth="3"
+                strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
         </div>
 
-        <h1 className="conf-title">{t('confirmation.title')}</h1>
-        <p className="conf-subtitle">{t('confirmation.subtitle')}</p>
+        <h1 className="conf-title">{manque ? t('veezi.deskTitle') : t('confirmation.title')}</h1>
+        <p className="conf-subtitle">{manque ? t('veezi.deskSub') : t('confirmation.subtitle')}</p>
 
         {/* Booking ref */}
         <div className="conf-ref-chip">
@@ -124,29 +138,42 @@ export default function BookingConfirmation({
         </div>
 
         {/* Enregistrement de la place au cinéma (Veezi) */}
-        {veezi.state !== 'off' && (
-          <div className={`conf-veezi conf-veezi--${veezi.state}`}>
-            {veezi.state === 'pending' && (
-              <>
-                <span className="conf-veezi-spinner" aria-hidden />
-                <span className="conf-veezi-text">{t('confirmation.veeziPending')}</span>
-              </>
+        {veezi.etat === ATTENTE && (
+          <div className="conf-veezi">
+            <span className="conf-veezi-spinner" aria-hidden />
+            <span className="conf-veezi-text">{t('veezi.pending')}</span>
+          </div>
+        )}
+
+        {veezi.etat === RESERVE && (
+          <div className="conf-veezi conf-veezi--reserved">
+            <svg className="conf-veezi-check" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.4" width="14" height="14">
+              <path d="M4 10.5L8.5 15L16 5.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="conf-veezi-text">{t('veezi.reserved')}</span>
+            {veezi.numero && (
+              <code className="conf-veezi-num">{t('veezi.num', { n: veezi.numero })}</code>
             )}
-            {veezi.state === 'reserved' && (
-              <>
-                <svg className="conf-veezi-check" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.4" width="14" height="14">
-                  <path d="M4 10.5L8.5 15L16 5.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <span className="conf-veezi-text">{t('confirmation.veeziReserved')}</span>
-                <code className="conf-veezi-num">{t('confirmation.veeziNum', { n: veezi.number })}</code>
-              </>
-            )}
-            {veezi.state === 'processing' && (
-              <>
-                <span className="conf-veezi-spinner" aria-hidden />
-                <span className="conf-veezi-text">{t('confirmation.veeziProcessing')}</span>
-              </>
-            )}
+          </div>
+        )}
+
+        {/* L'échec se dit en toutes lettres, avec la marche à suivre : le
+            client a payé, il doit savoir en repartant qu'il lui reste un
+            passage à l'accueil — et l'accueil, quoi lui répondre. */}
+        {manque && (
+          <div className="conf-manque" role="alert">
+            <svg className="conf-manque-icone" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+              strokeWidth="1.9" width="17" height="17" aria-hidden>
+              <path d="M10 2.5l7.5 13H2.5L10 2.5z" strokeLinejoin="round" />
+              <path d="M10 7.4v3.4M10 13.2h.01" strokeLinecap="round" />
+            </svg>
+            <div className="conf-manque-corps">
+              <strong className="conf-manque-titre">{t('veezi.failTitle')}</strong>
+              <p className="conf-manque-texte">{texteManque(veezi.etat, veezi.sieges, t)}</p>
+              <p className="conf-manque-ref">
+                {t('veezi.deskRef', { ref: booking?.booking_ref || '—' })}
+              </p>
+            </div>
           </div>
         )}
 

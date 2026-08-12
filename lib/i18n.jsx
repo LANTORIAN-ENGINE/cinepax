@@ -692,10 +692,6 @@ const DICT = {
       title: 'Achat confirmé !',
       subtitle: 'Votre billet est prêt. Bonne séance !',
       reference: 'Référence',
-      veeziPending: 'Enregistrement de votre place au cinéma…',
-      veeziReserved: 'Place confirmée au cinéma',
-      veeziNum: 'N° {n}',
-      veeziProcessing: 'Enregistrement au cinéma en cours de traitement…',
       qrHint: 'Présentez ce QR code à l’entrée de la salle',
       // Les lignes du billet vivent dans ticket.* — communes à la
       // confirmation, au billet PDF et à l'espace client. Ne restent ici que
@@ -706,6 +702,28 @@ const DICT = {
       print: 'Imprimer le billet',
       newBooking: 'Acheter un autre billet',
       payCard: 'BNI / Carte bancaire',
+    },
+
+    // ── L'enregistrement de la place au cinéma ──────────────────────────────
+    // Mêmes mots sur les deux fins de parcours — la confirmation du tunnel
+    // (Orange / MVola) et le retour de la banque (carte BNI) : le client doit
+    // lire la même chose quel que soit le chemin par lequel il a payé.
+    //
+    // Aucun de ces textes ne parle de « traitement en cours » : rien ne
+    // reprend l'enregistrement derrière, une attente affichée n'aurait pas de
+    // fin. Et aucun ne laisse croire que l'argent est perdu — il ne l'est pas.
+    veezi: {
+      pending:   'Enregistrement de votre place au cinéma…',
+      reserved:  'Place confirmée au cinéma',
+      num:       'N° {n}',
+      deskTitle: 'Achat encaissé — place à confirmer à l’accueil',
+      deskSub:   'Votre paiement est bien reçu. En revanche, la place n’a pas pu être enregistrée dans le système du cinéma : il reste une étape, à faire sur place.',
+      failTitle: 'Place non enregistrée au cinéma',
+      failText:  'Le système du cinéma n’a pas confirmé votre place. Le paiement, lui, est encaissé — il n’y a rien à repayer.',
+      offText:   'Cette séance n’est pas encore ouverte à la vente en ligne dans le système du cinéma. Le paiement est encaissé — il n’y a rien à repayer.',
+      seatsText: 'Les places {seats} viennent d’être prises en salle. Le paiement est encaissé — il n’y a rien à repayer, et l’accueil vous replacera sur la même séance.',
+      deskRef:   'Présentez la référence {ref} à l’accueil avant la séance : elle suffit à faire attribuer votre place.',
+      pdfNotice: 'PLACE NON ENREGISTRÉE — présentez cette référence à l’accueil avant la séance.',
     },
 
     // ── Le billet, tel qu'il est lu au contrôle ─────────────────────────────
@@ -789,6 +807,7 @@ const DICT = {
       saving: 'Enregistrement…',
       logout: 'Déconnexion',
       seatsLabel: 'Places :',
+      veeziMissing: 'Place non enregistrée au cinéma — présentez cette référence à l’accueil avant la séance.',
       close: 'Fermer',
       qrCode: 'QR Code',
       qrHint: "Présentez ce QR code à l’entrée",
@@ -810,9 +829,6 @@ const DICT = {
       sub: 'Votre paiement par carte BNI a bien été reçu. Votre achat est confirmé.',
       reference: 'Référence',
       veeziNum: 'N° billet Veezi',
-      veeziPending: 'Enregistrement de votre place au cinéma…',
-      veeziProcessing: 'Enregistrement en cours — votre place sera confirmée sous peu.',
-      veeziError: "L’enregistrement automatique n’a pas abouti. Conservez votre référence et présentez-la à l’accueil.",
       hint: 'Un email de confirmation vous sera envoyé prochainement.',
       backHome: "Retour à l’accueil",
       qrTitle: 'Votre billet',
@@ -1131,11 +1147,25 @@ const DICT = {
       csvTotal: 'Total',
       csvPayment: 'Paiement',
       csvStatus: 'Statut',
+      csvCinema: 'Cinéma',
+      csvVeeziNum: 'N° Veezi',
       csvDate: 'Date',
       statusConfirmed: 'Confirmé',
       statusPending: 'En attente',
       statusCancelled: 'Annulé',
       statusUsed: 'Utilisé',
+      // Ce que le système du cinéma sait de l'achat — indépendant de l'état
+      // de l'achat chez nous. « Non transmis » est le cas à traiter : le
+      // client a payé, la place n'existe pas dans le back-office.
+      thCinema: 'Cinéma',
+      filterVeeziKo: 'Non transmis',
+      veeziReserved: 'Réservé',
+      veeziNone: 'Non transmis',
+      veeziFailed: 'Échec',
+      veeziSeatTaken: 'Places prises',
+      veeziSkipped: 'Séance hors ligne',
+      veeziReleased: 'Place libérée',
+      dVeezi: 'Enregistrement cinéma',
     },
 
     clients: {
@@ -1838,10 +1868,6 @@ const DICT = {
       title: 'Purchase confirmed!',
       subtitle: 'Your ticket is ready. Enjoy the show!',
       reference: 'Reference',
-      veeziPending: 'Registering your seat at the cinema…',
-      veeziReserved: 'Seat confirmed at the cinema',
-      veeziNum: 'No. {n}',
-      veeziProcessing: 'Cinema registration is being processed…',
       qrHint: 'Show this QR code at the theater entrance',
       session: 'Showtime',
       payment: 'Payment',
@@ -1849,6 +1875,20 @@ const DICT = {
       print: 'Print ticket',
       newBooking: 'Buy another ticket',
       payCard: 'BNI / Bank card',
+    },
+
+    veezi: {
+      pending:   'Registering your seat at the cinema…',
+      reserved:  'Seat confirmed at the cinema',
+      num:       'No. {n}',
+      deskTitle: 'Payment taken — seat still to be confirmed at the desk',
+      deskSub:   'Your payment went through. The seat, however, could not be registered in the cinema’s system: one step remains, to be done on site.',
+      failTitle: 'Seat not registered at the cinema',
+      failText:  'The cinema’s system did not confirm your seat. Your payment has been taken — there is nothing to pay again.',
+      offText:   'This showtime is not open to online sales in the cinema’s system yet. Your payment has been taken — there is nothing to pay again.',
+      seatsText: 'Seats {seats} were just taken in the auditorium. Your payment has been taken — nothing to pay again, and the desk will seat you at the same showtime.',
+      deskRef:   'Show reference {ref} at the desk before the showtime: that is enough to have your seat assigned.',
+      pdfNotice: 'SEAT NOT REGISTERED — show this reference at the desk before the showtime.',
     },
 
     ticket: {
@@ -1927,6 +1967,7 @@ const DICT = {
       saving: 'Saving…',
       logout: 'Log out',
       seatsLabel: 'Seats:',
+      veeziMissing: 'Seat not registered at the cinema — show this reference at the desk before the showtime.',
       close: 'Close',
       qrCode: 'QR Code',
       qrHint: 'Show this QR code at the entrance',
@@ -1948,9 +1989,6 @@ const DICT = {
       sub: 'Your BNI card payment was received. Your purchase is confirmed.',
       reference: 'Reference',
       veeziNum: 'Veezi ticket no.',
-      veeziPending: 'Registering your seat at the cinema…',
-      veeziProcessing: 'Registration in progress — your seat will be confirmed shortly.',
-      veeziError: 'Automatic registration did not complete. Keep your reference and show it at the entrance.',
       hint: 'A confirmation email will be sent to you shortly.',
       backHome: 'Back to home',
       qrTitle: 'Your ticket',
@@ -2263,7 +2301,18 @@ const DICT = {
       csvTotal: 'Total',
       csvPayment: 'Payment',
       csvStatus: 'Status',
+      csvCinema: 'Cinema',
+      csvVeeziNum: 'Veezi no.',
       csvDate: 'Date',
+      thCinema: 'Cinema',
+      filterVeeziKo: 'Not registered',
+      veeziReserved: 'Registered',
+      veeziNone: 'Not registered',
+      veeziFailed: 'Failed',
+      veeziSeatTaken: 'Seats taken',
+      veeziSkipped: 'Showtime offline',
+      veeziReleased: 'Seat released',
+      dVeezi: 'Cinema registration',
       statusConfirmed: 'Confirmed',
       statusPending: 'Pending',
       statusCancelled: 'Cancelled',

@@ -144,6 +144,44 @@ Le garde « séance refermée » de `BookingFlow` s'efface devant un paiement en
 l'écran laisserait le client sans billet. `/api/bookings/create` a déjà tranché à
 l'instant qui compte.
 
+## La place au cinéma — un échec ne se déguise pas en confirmation
+
+`/api/veezi/reserve` n'est appelé que depuis le navigateur : `BookingConfirmation`
+(Orange / MVola) et `/payment/success` (carte BNI). **Rien ne le reprend derrière**
+— ni le callback IMN de la banque, qui n'écrit que `payment_status`, ni tâche
+planifiée, ni action d'administration. Un onglet fermé au retour de MIPS, et
+l'achat reste payé sans exister dans le back-office du cinéma.
+
+Tant que c'est le cas, **tout ce qui n'aboutit pas est un échec affiché comme
+tel** : un « enregistrement en cours » n'aurait pas de fin, et le client
+repartirait en croyant sa place tenue. Le vocabulaire commun vit dans
+`lib/veeziEtat.js` (`lireReponseReservation`, `placeManquante`, `texteManque`) et
+les libellés dans le dictionnaire partagé `veezi.*` — mêmes mots quel que soit le
+moyen de paiement.
+
+| Réponse de la route | État | Ce que voit le client |
+|---|---|---|
+| `veeziBookingNumber` / `ok:true` | `reserve` | sceau vert, n° de billet |
+| `skipped` (aucun détail de billet — CINEP inactif) | `horsLigne` | bloc rouge |
+| `409 step:'availability'` | `siegesPris` | bloc rouge, sièges nommés |
+| `502`, `503`, `404`, réseau coupé | `echec` | bloc rouge |
+
+Les trois derniers changent **la tête de l'écran** : plus de coche verte ni
+d'« Achat confirmé », mais « Achat encaissé — place à confirmer à l'accueil », et
+la marche à suivre avec la référence. Le bloc survit à l'impression et passe dans
+le billet PDF : c'est cette feuille que le client tendra au guichet. Il dit aussi
+que **rien n'est à repayer** — le paiement, lui, est bien passé.
+
+`/mon-compte` porte la même mention sur les achats à venir sans
+`veezi_booking_number`, et `/admin/reservations` a une colonne **Cinéma** (+ filtre
+« Non transmis », + colonnes CSV) : c'est la liste des achats à reprendre à la
+main dans le back-office.
+
+**Une séance que l'API Connect ne voit pas (`ResponseCode 50`) n'est pas
+vendable** : sans plan de salle, `SeatMap` refuse toute sélection. Le drapeau
+`CINEP` dans `SalesVia` (API V1) ne suffit pas à garantir cette visibilité —
+seule la réponse de Connect fait foi.
+
 ## Images des films
 
 `fixImageUrl()` dans `page.jsx` gère 3 cas :

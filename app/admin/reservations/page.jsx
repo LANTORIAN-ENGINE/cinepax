@@ -44,6 +44,32 @@ const STATUS_MAP = {
   used:      { key: 'reservations.statusUsed',      cls: 'status-used'      },
 }
 
+// ── L'achat est-il arrivé au cinéma ? ───────────────────────────────────────
+// Colonne distincte de l'état de l'achat : un achat « confirmé » chez nous
+// peut n'exister nulle part dans le système du cinéma — c'est précisément le
+// cas qu'il faut pouvoir repérer, et que rien n'affichait jusqu'ici.
+//
+// `veezi_status` reste null tant que /api/veezi/reserve n'a pas répondu. Comme
+// l'appel ne part que du navigateur du client, un null durable veut dire que
+// personne n'a jamais tenté l'enregistrement : c'est un manque, pas une attente.
+const VEEZI_MAP = {
+  reserved: { key: 'reservations.veeziReserved', cls: 'veezi-ok'   },
+  none:     { key: 'reservations.veeziNone',     cls: 'veezi-ko'   },
+  failed:   { key: 'reservations.veeziFailed',   cls: 'veezi-ko'   },
+  seatTaken:{ key: 'reservations.veeziSeatTaken',cls: 'veezi-ko'   },
+  skipped:  { key: 'reservations.veeziSkipped',  cls: 'veezi-warn' },
+  released: { key: 'reservations.veeziReleased', cls: 'veezi-none' },
+}
+
+function veeziEtat(b) {
+  if (b.veezi_status === 'cancelled')     return 'released'
+  if (b.veezi_booking_number)             return 'reserved'
+  if (b.veezi_status === 'failed')        return 'failed'
+  if (b.veezi_status === 'seat_unavailable') return 'seatTaken'
+  if (b.veezi_status === 'skipped')       return 'skipped'
+  return 'none'
+}
+
 export default function AdminReservations() {
   const { t, locale, moneyLocale } = useI18n()
   const [bookings,  setBookings]  = useState([])
@@ -68,7 +94,11 @@ export default function AdminReservations() {
       .order('created_at', { ascending: false })
       .limit(100)
 
-    if (f !== 'all') query = query.eq('status', f)
+    // « Non transmis » ne se lit pas dans `status` mais dans l'absence de
+    // numéro Veezi : ce sont les achats qui n'ont pas de place au cinéma, et
+    // qu'il faut aller reprendre à la main dans le back-office.
+    if (f === 'veeziKo') query = query.is('veezi_booking_number', null).neq('status', 'cancelled')
+    else if (f !== 'all') query = query.eq('status', f)
     if (q.trim()) {
       query = query.or(
         `booking_ref.ilike.%${q}%,film_title.ilike.%${q}%,guest_name.ilike.%${q}%,guest_email.ilike.%${q}%`
@@ -174,7 +204,8 @@ export default function AdminReservations() {
       t('reservations.csvReference'), t('reservations.csvFilm'), t('reservations.csvSession'),
       t('reservations.csvScreen'), t('reservations.csvClient'), t('reservations.csvEmail'),
       t('reservations.csvSeats'), t('reservations.csvTotal'), t('reservations.csvPayment'),
-      t('reservations.csvStatus'), t('reservations.csvDate'),
+      t('reservations.csvStatus'), t('reservations.csvCinema'), t('reservations.csvVeeziNum'),
+      t('reservations.csvDate'),
     ]
     const rows = bookings.map(b => [
       b.booking_ref,
@@ -187,6 +218,8 @@ export default function AdminReservations() {
       b.total_amount_cents ? b.total_amount_cents / 100 : 0,
       b.payment_method || '',
       b.status || '',
+      t(VEEZI_MAP[veeziEtat(b)].key),
+      b.veezi_booking_number || '',
       formatDate(b.created_at, locale),
     ])
     const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n')
@@ -254,6 +287,7 @@ export default function AdminReservations() {
             { val: 'confirmed', label: t('reservations.confirmed') },
             { val: 'pending',   label: t('reservations.pending') },
             { val: 'cancelled', label: t('reservations.cancelled') },
+            { val: 'veeziKo',   label: t('reservations.filterVeeziKo') },
           ].map(tab => (
             <button key={tab.val}
               className={`admin-filter-tab ${filter === tab.val ? 'active' : ''}`}
@@ -269,7 +303,7 @@ export default function AdminReservations() {
         <TableSkeleton rows={8} headers={[
           t('reservations.thReference'), t('reservations.thFilm'), t('reservations.thSession'),
           t('reservations.thClient'), t('reservations.thSeats'), t('reservations.thAmount'),
-          t('reservations.thPayment'), t('reservations.thStatus'), '',
+          t('reservations.thPayment'), t('reservations.thStatus'), t('reservations.thCinema'), '',
         ]} />
       ) : bookings.length === 0 ? (
         <p className="admin-empty">{t('reservations.empty')}</p>
@@ -286,12 +320,14 @@ export default function AdminReservations() {
                 <th>{t('reservations.thAmount')}</th>
                 <th>{t('reservations.thPayment')}</th>
                 <th>{t('reservations.thStatus')}</th>
+                <th>{t('reservations.thCinema')}</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {bookings.map(b => {
                 const started = new Date(b.session_time).getTime() <= now
+                const cine    = VEEZI_MAP[veeziEtat(b)]
                 return (
                 <>
                   <tr key={b.id} className={`admin-tr ${expanded === b.id ? 'admin-tr--open' : ''} ${started ? 'admin-tr--past' : 'admin-tr--upcoming'}`}
@@ -316,6 +352,11 @@ export default function AdminReservations() {
                       </span>
                     </td>
                     <td>
+                      <span className={`admin-badge ${cine.cls}`} title={b.veezi_booking_number || undefined}>
+                        {t(cine.key)}
+                      </span>
+                    </td>
+                    <td>
                       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12"
                         style={{ transform: expanded === b.id ? 'rotate(180deg)' : 'rotate(0)', transition: '0.2s' }}>
                         <path d="M3 6l5 5 5-5" strokeLinecap="round"/>
@@ -325,7 +366,7 @@ export default function AdminReservations() {
 
                   {expanded === b.id && (
                     <tr key={`${b.id}-detail`} className="admin-tr-detail">
-                      <td colSpan={9}>
+                      <td colSpan={10}>
                         <div className="admin-detail-panel">
                           <div className="admin-detail-grid">
                             <div><p className="adp-label">{t('reservations.dScreen')}</p><p className="adp-val">{b.screen_name || t('film.screenFallback', { id: b.screen_id })}</p></div>
@@ -333,6 +374,18 @@ export default function AdminReservations() {
                             <div><p className="adp-label">{t('reservations.dEmail')}</p><p className="adp-val">{b.guest_email || '—'}</p></div>
                             <div><p className="adp-label">{t('reservations.dPhone')}</p><p className="adp-val">{b.guest_phone || '—'}</p></div>
                             <div><p className="adp-label">{t('reservations.dBookedOn')}</p><p className="adp-val">{formatDate(b.created_at, locale)}</p></div>
+                            {/* Ce que le cinéma en sait : le n° de réservation
+                                Veezi, ou la raison pour laquelle il n'y en a
+                                pas. Sans cette ligne, un achat sans place au
+                                cinéma ressemblait à tous les autres. */}
+                            <div>
+                              <p className="adp-label">{t('reservations.dVeezi')}</p>
+                              <p className="adp-val">
+                                {b.veezi_booking_number
+                                  ? `${t(cine.key)} · ${b.veezi_booking_number}`
+                                  : t(cine.key)}
+                              </p>
+                            </div>
                           </div>
                           <div className="admin-detail-actions">
                             {b.status !== 'confirmed' && b.status !== 'cancelled' && (
