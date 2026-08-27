@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useI18n, formatDuration } from '@/lib/i18n'
 import { fixImageUrl } from '@/lib/images'
-import { youtubeId } from '@/components/HeroSlider'
+import { TrailerEmbed } from '@/components/BandeAnnonce'
+import { bandeAnnonce, indexerBandesAnnonces, INDEX_VIDE } from '@/lib/bandesAnnonces'
 import RichText from '@/lib/synopsis'
 import { ratingLabel, genreLabel } from '@/lib/classification'
 
@@ -35,10 +36,12 @@ function ComingSoonSkeleton() {
 }
 
 // ─── Fiche détaillée ──────────────────────────────────────────────────────────
-function FilmDialog({ film, onClose }) {
+function FilmDialog({ film, trailers, onClose }) {
   const { t, lang, locale } = useI18n()
-  const videoId = youtubeId(film.trailerUrl)
   const opening = formatOpening(film.openingDate, locale)
+  // Fichier déposé par le cinéma si la fiche en porte un, lien du distributeur
+  // sinon — la même règle que le carrousel d'accueil et la fiche film.
+  const trailer = bandeAnnonce(film, trailers)
 
   useEffect(() => {
     function onKey(e) { if (e.key === 'Escape') onClose() }
@@ -69,13 +72,12 @@ function FilmDialog({ film, onClose }) {
           </svg>
         </button>
 
-        {videoId ? (
+        {trailer ? (
           <div className="cs-dialog-video">
-            <iframe
-              src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1`}
-              title={`${film.title} — ${t('film.trailer')}`}
-              allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
+            <TrailerEmbed
+              trailer={trailer}
+              title={film.title}
+              poster={film.backdrop ? fixImageUrl(film.backdrop) : null}
             />
           </div>
         ) : film.backdrop ? (
@@ -119,6 +121,20 @@ export default function ComingSoonPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(null)
   const [opened, setOpened]   = useState(null)
+  const [trailers, setTrailers] = useState(INDEX_VIDE)
+
+  // Bandes annonces posées dans l'administration. Indépendantes de la langue :
+  // une seule requête, gardée pour toute la visite de la page.
+  useEffect(() => {
+    let annule = false
+    fetch('/api/bandes-annonces')
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (!annule && data?.trailers) setTrailers(indexerBandesAnnonces(data.trailers))
+      })
+      .catch(() => {})
+    return () => { annule = true }
+  }, [])
 
   // La langue fait partie de la requête : le synopsis est résolu côté serveur
   // (fiche sœur VF/VO, puis traduction en cache). Changer de langue relance
@@ -187,7 +203,9 @@ export default function ComingSoonPage() {
         </div>
       )}
 
-      {opened && <FilmDialog film={opened} onClose={() => setOpened(null)} />}
+      {opened && (
+        <FilmDialog film={opened} trailers={trailers} onClose={() => setOpened(null)} />
+      )}
     </div>
   )
 }

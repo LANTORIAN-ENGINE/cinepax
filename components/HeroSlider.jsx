@@ -4,14 +4,18 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useI18n, formatDuration } from '@/lib/i18n'
 import { parseSynopsis, flattenSynopsis, renderSynopsis } from '@/lib/synopsis'
 import { ratingLabel, genreLabel } from '@/lib/classification'
+import { bandeAnnonce, titreOeuvre, vignetteYoutube, INDEX_VIDE } from '@/lib/bandesAnnonces'
+import { TrailerModal } from '@/components/BandeAnnonce'
 
 // ─── Carrousel d'accueil ──────────────────────────────────────────────────────
-// Reproduit le slider vidéo plein cadre de cinepax.mg, alimenté uniquement par
-// les données Veezi dont nous disposons :
-//   • FilmTrailerUrl   → bande annonce YouTube (lue en sourdine sur la slide active)
-//   • BackdropImageUrl → visuel 1920×1080 du CDN Veezi (couverture avant lecture)
-// Aucun appel réseau supplémentaire : la liste de films est celle déjà chargée
-// par la page d'accueil.
+// Reproduit le slider vidéo plein cadre de cinepax.mg. La couverture vient
+// toujours de Veezi (BackdropImageUrl, visuel 1920×1080 du CDN) ; la vidéo,
+// elle, a deux origines possibles :
+//   • le fichier déposé par le cinéma dans /admin/bandes-annonces ;
+//   • à défaut, le lien YouTube saisi par le distributeur (FilmTrailerUrl).
+// C'est lib/bandesAnnonces.js qui tranche, une fois pour tout le site. Aucun
+// appel réseau supplémentaire ici : la liste de films et l'index des bandes
+// annonces sont ceux déjà chargés par la page d'accueil.
 
 const MAX_SLIDES     = 6      // au-delà, le carrousel devient un catalogue
 const IMAGE_SLIDE_MS = 7000   // durée d'une slide sans bande annonce
@@ -19,46 +23,32 @@ const VIDEO_SLIDE_MS = 30000  // extrait de bande annonce avant passage à la su
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-// Extrait l'identifiant d'une URL YouTube (watch?v=, youtu.be/, /embed/).
-export function youtubeId(url) {
-  if (!url) return null
-  const m = String(url).match(
-    /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/
-  )
-  return m ? m[1] : null
-}
-
-// Titre sans les suffixes de version Veezi (VF / VO / 3D / IMAX…), pour
-// regrouper « SPIDER-MAN VF », « … VO », « … 3D VF » sur une seule slide.
-function baseTitle(title = '') {
-  return title
-    .replace(/\b(3D|2D|IMAX|VF|VO|VOST(?:FR)?|SOUS-TITR\S*)\b/gi, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toUpperCase()
-}
-
 // Sélectionne les films mis en avant : un seul par œuvre, visuel obligatoire.
-export function pickHeroFilms(films) {
+// `trailers` est l'index de lib/bandesAnnonces — sans lui, la résolution
+// retombe sur le lien Veezi de chaque fiche, ce qui est le comportement d'avant.
+export function pickHeroFilms(films, trailers = INDEX_VIDE) {
   const seen = new Set()
   const picked = []
   for (const film of films || []) {
-    const videoId = youtubeId(film.FilmTrailerUrl)
-    if (!film.BackdropImageUrl && !videoId) continue
-    const key = videoId || baseTitle(film.Title)
+    const trailer = bandeAnnonce(film, trailers)
+    if (!film.BackdropImageUrl && !trailer) continue
+    // Deux fiches (VF, VO) qui partagent la même vidéo ne font qu'une slide ;
+    // à défaut de vidéo, c'est le titre de l'œuvre qui les regroupe.
+    const key = trailer?.src || trailer?.videoId || titreOeuvre(film.Title)
     if (seen.has(key)) continue
     seen.add(key)
-    picked.push({ film, videoId })
+    picked.push({ film, trailer })
     if (picked.length >= MAX_SLIDES) break
   }
   return picked
 }
 
 // Visuel de couverture. À défaut de backdrop Veezi, la miniature YouTube fait
-// l'affaire — recadrée, car maxresdefault comporte des bandes noires.
-function coverImage(film, videoId) {
+// l'affaire — recadrée, car maxresdefault comporte des bandes noires. Un
+// fichier déposé n'a pas de miniature : on retombe alors sur l'affiche.
+function coverImage(film, trailer) {
   if (film.BackdropImageUrl) return { src: film.BackdropImageUrl, fromYoutube: false }
-  if (videoId) return { src: `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`, fromYoutube: true }
+  if (trailer?.kind === 'youtube') return { src: vignetteYoutube(trailer.videoId), fromYoutube: true }
   return { src: film.FilmPosterUrl, fromYoutube: false }
 }
 
@@ -98,7 +88,95 @@ function useYouTubeApi(enabled) {
 
 // ─── Lecteur de bande annonce ─────────────────────────────────────────────────
 // Monté uniquement sur la slide active : un seul lecteur vit à la fois.
-function TrailerPlayer({ videoId, playing, muted, onStarted, onTick, onEnded }) {
+//
+// Les deux lecteurs présentent la même surface — jouer, couper le son, dire où
+// on en est, dire qu'on a fini — pour que le carrousel n'ait pas à savoir ce
+// qu'il diffuse.
+function TrailerPlayer({ trailer, playing, muted, onStarted, onTick, onEnded }) {
+  if (trailer.kind === 'fichier') {
+    return (
+      <FileTrailer
+        src={trailer.src}
+        playing={playing}
+        muted={muted}
+        onStarted={onStarted}
+        onTick={onTick}
+        onEnded={onEnded}
+      />
+    )
+  }
+  return (
+    <YoutubeTrailer
+      videoId={trailer.videoId}
+      playing={playing}
+      muted={muted}
+      onStarted={onStarted}
+      onTick={onTick}
+      onEnded={onEnded}
+    />
+  )
+}
+
+// ─── Fichier déposé par le cinéma ─────────────────────────────────────────────
+// En sourdine et sans commandes : le carrousel les porte déjà. `muted` est posé
+// en attribut *et* en propriété — un navigateur qui ne voit pas l'attribut au
+// premier rendu refuse le démarrage automatique et la slide resterait figée sur
+// sa couverture.
+//
+// Un fichier illisible (codec que le navigateur ne connaît pas, objet effacé du
+// bucket) ne bloque pas le carrousel : onError enchaîne, exactement comme une
+// vidéo YouTube retirée.
+function FileTrailer({ src, playing, muted, onStarted, onTick, onEnded }) {
+  const ref = useRef(null)
+
+  const cbRef = useRef({ onStarted, onTick, onEnded })
+  cbRef.current = { onStarted, onTick, onEnded }
+
+  // La progression est relevée à chaque image, et non sur timeupdate, qui ne
+  // bat que quatre fois par seconde : la barre avancerait par à-coups.
+  useEffect(() => {
+    let raf = 0
+    const tick = () => {
+      const el = ref.current
+      if (el && !el.paused) cbRef.current.onTick?.(el.currentTime)
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [])
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (playing) el.play().catch(() => {})
+    else el.pause()
+  }, [playing, src])
+
+  useEffect(() => {
+    const el = ref.current
+    if (el) el.muted = muted
+  }, [muted])
+
+  return (
+    <div className="hero-video hero-video--file" aria-hidden="true">
+      <video
+        ref={ref}
+        src={src}
+        muted={muted}
+        autoPlay
+        playsInline
+        preload="auto"
+        tabIndex={-1}
+        onPlaying={() => cbRef.current.onStarted?.()}
+        onEnded={() => cbRef.current.onEnded?.()}
+        onError={() => cbRef.current.onEnded?.()}
+      />
+    </div>
+  )
+}
+
+// ─── Lien YouTube du distributeur ─────────────────────────────────────────────
+function YoutubeTrailer({ videoId, playing, muted, onStarted, onTick, onEnded }) {
   const hostRef   = useRef(null)
   const playerRef = useRef(null)
   const apiReady  = useYouTubeApi(true)
@@ -220,11 +298,11 @@ function HeroSynopsis({ text, title, lang, onExpand }) {
 }
 
 // ─── Carrousel ────────────────────────────────────────────────────────────────
-export default function HeroSlider({ films, loading, synopses, onSelectFilm }) {
+export default function HeroSlider({ films, loading, synopses, trailers, onSelectFilm }) {
   const { t, lang } = useI18n()
   const reducedMotion = usePrefersReducedMotion()
 
-  const slides = pickHeroFilms(films)
+  const slides = pickHeroFilms(films, trailers)
   const count  = slides.length
 
   const [index, setIndex]           = useState(0)
@@ -233,6 +311,14 @@ export default function HeroSlider({ films, loading, synopses, onSelectFilm }) {
   const [videoLive, setVideoLive]   = useState(false)  // le trailer a démarré → on efface la couverture
   const [progress, setProgress]     = useState(0)      // 0 → 1
   const [fullscreen, setFullscreen] = useState(false)
+  // Bande annonce ouverte en grand depuis le bouton de la slide. Réservée aux
+  // fichiers déposés : une vidéo YouTube s'ouvre chez YouTube, comme avant.
+  const [openTrailer, setOpenTrailer] = useState(null)
+
+  // Le carrousel se tait pendant qu'une bande annonce est ouverte en grand :
+  // deux vidéos qui se parlent dessus, et une slide qui défile sous la modale
+  // pour laisser en sortant un autre film que celui qu'on regardait.
+  const lecture = playing && !openTrailer
 
   const rootRef = useRef(null)
 
@@ -257,8 +343,8 @@ export default function HeroSlider({ films, loading, synopses, onSelectFilm }) {
   // Slides sans bande annonce : minuterie simple. Avec bande annonce, c'est
   // TrailerPlayer qui pilote la progression via onTick.
   useEffect(() => {
-    if (!count || !playing || reducedMotion) return
-    if (active?.videoId) return
+    if (!count || !lecture || reducedMotion) return
+    if (active?.trailer) return
     const started = Date.now()
     const id = setInterval(() => {
       const ratio = (Date.now() - started) / IMAGE_SLIDE_MS
@@ -266,7 +352,7 @@ export default function HeroSlider({ films, loading, synopses, onSelectFilm }) {
       else setProgress(ratio)
     }, 100)
     return () => clearInterval(id)
-  }, [count, playing, reducedMotion, active?.videoId, index, next])
+  }, [count, lecture, reducedMotion, active?.trailer, index, next])
 
   const handleTick = useCallback(seconds => {
     const ratio = (seconds * 1000) / VIDEO_SLIDE_MS
@@ -344,7 +430,7 @@ export default function HeroSlider({ films, loading, synopses, onSelectFilm }) {
 
   if (!count) return null
 
-  const showVideo = playing && !reducedMotion && !!active.videoId
+  const showVideo = lecture && !reducedMotion && !!active.trailer
 
   return (
     <section
@@ -357,8 +443,8 @@ export default function HeroSlider({ films, loading, synopses, onSelectFilm }) {
     >
       <div className="hero-viewport">
         <div className="hero-track" style={{ transform: `translate3d(-${index * 100}%, 0, 0)` }}>
-          {slides.map(({ film, videoId }, i) => {
-            const cover     = coverImage(film, videoId)
+          {slides.map(({ film, trailer }, i) => {
+            const cover     = coverImage(film, trailer)
             const isActive  = i === index
             // Le synopsis résolu dans la langue courante l'emporte sur le texte
             // brut de la fiche Veezi, qui n'est pas toujours dans la bonne langue.
@@ -391,8 +477,8 @@ export default function HeroSlider({ films, loading, synopses, onSelectFilm }) {
 
                 {isActive && showVideo && (
                   <TrailerPlayer
-                    videoId={videoId}
-                    playing={playing}
+                    trailer={trailer}
+                    playing={lecture}
                     muted={muted}
                     onStarted={() => setVideoLive(true)}
                     onTick={handleTick}
@@ -422,10 +508,21 @@ export default function HeroSlider({ films, loading, synopses, onSelectFilm }) {
                     >
                       {t('hero.book')}
                     </button>
-                    {videoId && (
+                    {/* Un fichier déposé se regarde sur place, avec le son et
+                        les commandes ; un lien YouTube s'ouvre chez YouTube. */}
+                    {trailer?.kind === 'fichier' && (
+                      <button
+                        type="button"
+                        className="hero-cta hero-cta--ghost"
+                        onClick={() => setOpenTrailer({ film, trailer })}
+                      >
+                        {t('film.trailer')}
+                      </button>
+                    )}
+                    {trailer?.kind === 'youtube' && (
                       <a
                         className="hero-cta hero-cta--ghost"
-                        href={`https://www.youtube.com/watch?v=${videoId}`}
+                        href={trailer.url}
                         target="_blank"
                         rel="noreferrer"
                       >
@@ -449,7 +546,7 @@ export default function HeroSlider({ films, loading, synopses, onSelectFilm }) {
           >
             {playing ? <IconPause /> : <IconPlay />}
           </button>
-          {active.videoId && (
+          {active.trailer && (
             <button
               type="button"
               className="hero-ctrl"
@@ -499,6 +596,15 @@ export default function HeroSlider({ films, loading, synopses, onSelectFilm }) {
             />
           ))}
         </div>
+      )}
+
+      {openTrailer && (
+        <TrailerModal
+          trailer={openTrailer.trailer}
+          title={openTrailer.film.Title}
+          poster={openTrailer.film.BackdropImageUrl || openTrailer.film.FilmPosterUrl}
+          onClose={() => setOpenTrailer(null)}
+        />
       )}
     </section>
   )

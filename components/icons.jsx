@@ -291,6 +291,15 @@ export const IconDoc = p => (
   </Icon>
 )
 
+// Bandes annonces : la fenêtre de projection et son triangle de lecture. Une
+// bobine de film aurait dit « cinéma » là où il faut dire « vidéo ».
+export const IconFilm = p => (
+  <Icon {...p}>
+    <rect x="3" y="5" width="18" height="14" rx="2" />
+    <path d="M10 9.4l4.6 2.6-4.6 2.6z" />
+  </Icon>
+)
+
 export const IconPrinter = p => (
   <Icon {...p}>
     <path d="M7 9.4V4.2h10v5.2" />

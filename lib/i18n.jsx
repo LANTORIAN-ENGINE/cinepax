@@ -888,6 +888,7 @@ const DICT = {
       clients: 'Clients',
       messages: 'Messages',
       pricing: 'Tarification',
+      trailers: 'Bandes annonces',
       legal: 'Mentions légales',
       settings: 'Vente en ligne',
       publicSite: 'Site public',
@@ -935,6 +936,80 @@ const DICT = {
       errSave: 'L’enregistrement a échoué.',
       errMigration:
         'La table des réglages n’existe pas encore. Exécuter le script SQL dans Supabase :',
+    },
+
+    // /admin/bandes-annonces — la vidéo que le cinéma pose lui-même
+    adminTrailers: {
+      title:    'Bandes annonces',
+      subtitle: 'Déposer la vidéo d’un film au lieu du lien YouTube saisi dans Veezi.',
+
+      tab: {
+        affiche:       'À l’affiche',
+        prochainement: 'Prochainement',
+        posees:        'Déposées',
+        manquantes:    'Sans vidéo',
+        tous:          'Tous',
+      },
+      search: 'Chercher un film…',
+      empty:  'Aucun film dans cette liste.',
+
+      onScreen:     'À l’affiche',
+      comingSoon:   'Prochainement',
+      disabled:     'Désactivée',
+
+      state: {
+        fichier: 'Vidéo déposée',
+        lien:    'Lien de remplacement',
+        veezi:   'Lien Veezi',
+        aucune:  'Aucune bande annonce',
+      },
+
+      preview: 'Voir',
+      edit:    'Modifier',
+      add:     'Déposer',
+
+      fileTitle: 'Fichier vidéo',
+      fileHint:
+        'MP4, MOV, WebM ou M4V, 200 Mo au plus. Le MP4 en H.264 est le format que lisent tous les navigateurs — un MP4 en HEVC ou un MOV en ProRes se dépose mais reste noir à l’écran.',
+      chooseFile:  'Choisir un fichier',
+      replaceFile: 'Remplacer le fichier',
+      noFile:      'Aucun fichier déposé',
+      dropFile:    'Retirer le fichier',
+      uploading:   'Envoi en cours… {pct} %',
+
+      linkTitle: 'Lien YouTube de remplacement',
+      linkHint:
+        'Utilisé quand aucun fichier n’est déposé. Sert à corriger un lien Veezi absent ou faux, sans rien téléverser.',
+      veeziCurrent: 'Lien de la fiche Veezi : ',
+
+      versions:    'Valable pour toutes les versions du film',
+      versionsOn:  'Les fiches VF, VO et 3D de « {key} » jouent la même bande annonce.',
+      versionsOff: 'Seule cette fiche est concernée. Les autres versions gardent leur lien Veezi.',
+      active:      'Bande annonce active',
+      activeOn:    'Le site joue cette bande annonce.',
+      activeOff:   'Le site retombe sur le lien Veezi. Le fichier déposé est conservé.',
+
+      remove: 'Retirer',
+      cancel: 'Annuler',
+      save:   'Enregistrer',
+      saving: 'Enregistrement…',
+      saved:  'Bande annonce enregistrée. Elle paraît sur le site dans la minute.',
+
+      errLoad:       'Impossible de lire les bandes annonces.',
+      errSave:       'L’enregistrement a échoué.',
+      errDelete:     'Le retrait a échoué.',
+      errFormat:     'Ce format n’est pas accepté. Choisir un MP4, MOV, WebM ou M4V.',
+      errSize:       'Le fichier dépasse {max}.',
+      errTooLarge:   'Le serveur de stockage a refusé le fichier : trop lourd. Relever la limite dans Supabase → Storage → Settings.',
+      errUnplayable: 'Ce navigateur ne sait pas lire ce fichier — les visiteurs non plus. Réencoder en MP4 (H.264 + AAC).',
+      errNetwork:    'L’envoi a été interrompu. Vérifier la connexion et recommencer.',
+      errConfig:     'Le stockage Supabase n’est pas configuré sur ce site.',
+      errUploadLost: 'Le fichier n’est pas arrivé au bout. Recommencer l’envoi.',
+      errLink:       'Ce lien YouTube n’est pas lisible.',
+      errEmpty:      'Déposer un fichier ou saisir un lien.',
+      errVeezi:      'Le catalogue Veezi est injoignable : seuls les films déjà équipés sont listés.',
+      errMigration:
+        'La table des bandes annonces n’existe pas encore. Exécuter le script SQL dans Supabase :',
     },
 
     // /admin/legal — rédaction des documents légaux
@@ -2074,6 +2149,7 @@ const DICT = {
       clients: 'Customers',
       messages: 'Messages',
       pricing: 'Pricing',
+      trailers: 'Trailers',
       legal: 'Legal notices',
       settings: 'Online sales',
       publicSite: 'Public site',
@@ -2120,6 +2196,80 @@ const DICT = {
       errSave: 'Saving failed.',
       errMigration:
         'The settings table does not exist yet. Run the SQL script in Supabase:',
+    },
+
+    // /admin/bandes-annonces — the video the cinema uploads itself
+    adminTrailers: {
+      title:    'Trailers',
+      subtitle: 'Upload a film’s video instead of the YouTube link entered in Veezi.',
+
+      tab: {
+        affiche:       'Now showing',
+        prochainement: 'Coming soon',
+        posees:        'Uploaded',
+        manquantes:    'No video',
+        tous:          'All',
+      },
+      search: 'Search for a film…',
+      empty:  'No film in this list.',
+
+      onScreen:   'Now showing',
+      comingSoon: 'Coming soon',
+      disabled:   'Disabled',
+
+      state: {
+        fichier: 'Uploaded video',
+        lien:    'Replacement link',
+        veezi:   'Veezi link',
+        aucune:  'No trailer',
+      },
+
+      preview: 'Watch',
+      edit:    'Edit',
+      add:     'Upload',
+
+      fileTitle: 'Video file',
+      fileHint:
+        'MP4, MOV, WebM or M4V, 200 MB at most. MP4 with H.264 is the format every browser plays — an HEVC MP4 or a ProRes MOV uploads fine and stays black on screen.',
+      chooseFile:  'Choose a file',
+      replaceFile: 'Replace the file',
+      noFile:      'No file uploaded',
+      dropFile:    'Remove the file',
+      uploading:   'Uploading… {pct}%',
+
+      linkTitle: 'Replacement YouTube link',
+      linkHint:
+        'Used when no file is uploaded. Handy to fix a missing or wrong Veezi link without uploading anything.',
+      veeziCurrent: 'Link on the Veezi record: ',
+
+      versions:    'Applies to every version of the film',
+      versionsOn:  'The dubbed, original and 3D records of “{key}” all play this trailer.',
+      versionsOff: 'Only this record is affected. Other versions keep their Veezi link.',
+      active:      'Trailer active',
+      activeOn:    'The website plays this trailer.',
+      activeOff:   'The website falls back to the Veezi link. The uploaded file is kept.',
+
+      remove: 'Remove',
+      cancel: 'Cancel',
+      save:   'Save',
+      saving: 'Saving…',
+      saved:  'Trailer saved. It appears on the website within the minute.',
+
+      errLoad:       'Could not read the trailers.',
+      errSave:       'Saving failed.',
+      errDelete:     'Removal failed.',
+      errFormat:     'This format is not accepted. Choose an MP4, MOV, WebM or M4V.',
+      errSize:       'The file is larger than {max}.',
+      errTooLarge:   'The storage server rejected the file: too large. Raise the limit in Supabase → Storage → Settings.',
+      errUnplayable: 'This browser cannot play this file — neither can visitors. Re-encode as MP4 (H.264 + AAC).',
+      errNetwork:    'The upload was interrupted. Check the connection and try again.',
+      errConfig:     'Supabase storage is not configured on this site.',
+      errUploadLost: 'The file did not fully arrive. Upload it again.',
+      errLink:       'This YouTube link cannot be read.',
+      errEmpty:      'Upload a file or enter a link.',
+      errVeezi:      'The Veezi catalogue is unreachable: only films already set up are listed.',
+      errMigration:
+        'The trailers table does not exist yet. Run the SQL script in Supabase:',
     },
 
     adminLegal: {

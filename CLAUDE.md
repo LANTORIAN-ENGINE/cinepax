@@ -35,6 +35,7 @@ app/
     image/route.js              — Proxy image → cinepax.mg uniquement
 components/
   SeatMap.jsx       — Plan de salle interactif (layouts hardcodés)
+  BandeAnnonce.jsx  — Lecteur de bande annonce (fichier ou YouTube) + modale
 public/
   logo.jpg, orange.png, mvola.png, visa-mastercard.jpg, favicon.svg, icons.svg
 documentation/
@@ -188,6 +189,80 @@ seule la réponse de Connect fait foi.
 1. URL CDN Veezi (`cdn.eu.veezi.com`) → utilisée directement
 2. URL relative malformée (`https:///...`) → rebasée sur `cinepax.mg`
 3. Autres URL cinepax.mg → proxifiée via `/api/image` (SSRF protégé : domaine `cinepax.mg` uniquement)
+
+## Bandes annonces — le fichier du cinéma passe devant le lien du distributeur
+
+La bande annonce d'un film n'avait qu'une source : `FilmTrailerUrl`, le lien
+YouTube saisi par le distributeur dans Veezi. Le cinéma n'écrit pas dans Veezi,
+le champ est souvent vide, et le lien pointe parfois une vidéo d'un autre pays
+ou devenue privée. `/admin/bandes-annonces` ouvre la seconde source : **un
+fichier vidéo déposé, qui l'emporte**. Rien n'est obligatoire — sans ligne en
+base, le site retombe sur Veezi, exactement comme avant.
+
+- **SQL** : `supabase/migration_bandes_annonces.sql` (table `film_trailers`,
+  bucket `film-trailers`, policies sur `storage.objects`). Idempotent.
+- **Vocabulaire partagé** : `lib/bandesAnnonces.js` — `bandeAnnonce()` tranche,
+  `titreOeuvre()` regroupe les versions, `youtubeId()` y a été remonté depuis
+  `HeroSlider`. Importable client *et* serveur.
+- **Lecture serveur** : `lib/bandesAnnoncesServeur.js` (mémo 30 s), route
+  publique `GET /api/bandes-annonces` (cache 60 s).
+
+### La règle
+
+`bandeAnnonce(film, index)` → fichier déposé, sinon lien de remplacement, sinon
+`FilmTrailerUrl`, sinon `null`. La résolution se fait **par fiche puis par
+œuvre** : Veezi crée une fiche par version (VF, VO, 3D) et elles partagent
+presque toujours la même vidéo — `title_key` permet de déposer le fichier une
+fois pour toutes. `apply_to_versions` décoché restreint la ligne à sa fiche, le
+cas d'une VF et d'une VO qui n'ont pas la même bande annonce. `enabled` décoché
+rend la main à Veezi sans effacer le fichier.
+
+Un `null` n'est pas un état dégradé : le bouton « bande annonce » de la fiche
+film **disparaît** quand il n'y a rien à jouer. Il est longtemps resté à
+l'écran sans action, promettant une vidéo que rien n'ouvrait.
+
+### Où elle s'applique
+
+| Endroit | Effet |
+|---------|-------|
+| `HeroSlider` (accueil) | Un fichier se joue dans un `<video>` en sourdine, un lien YouTube dans l'iframe de l'API. Même surface pour les deux lecteurs — jouer, couper le son, dire où on en est, dire qu'on a fini |
+| `HeroSlider` — bouton « BANDE ANNONCE » | Fichier : `TrailerModal`, sur place, avec le son. Lien : YouTube s'ouvre dans un onglet |
+| `FilmHero` (séances, places, séance refermée) | `TrailerModal` dans les deux cas |
+| `/prochainement` | La fiche joue la vidéo dans son cadre 16/9. La résolution est **côté client** : `/api/films/coming-soon` garde sa réponse une heure en cache (le catalogue Veezi pèse trop pour le cache de données de Next), un dépôt n'attendrait pas une heure pour paraître |
+
+### Le fichier ne passe pas par le serveur
+
+Une fonction Vercel refuse un corps de requête au-delà de **4,5 Mo**, quand une
+bande annonce en pèse cinquante ou cent. Le navigateur de l'administrateur écrit
+donc **directement dans le bucket** avec son jeton de session, en
+`XMLHttpRequest` (le seul moyen d'avoir l'avancement), puis
+`PUT /api/admin/bandes-annonces` enregistre le chemin obtenu.
+
+Conséquence : **les policies sur `storage.objects` sont le seul verrou** — sans
+elles, la clé anon, publique dans le JavaScript du site, suffirait à écrire dans
+le bucket. La route vérifie que le chemin annoncé commence bien par
+`{filmId}/` (un chemin forgé ferait effacer par le service role le fichier d'un
+autre film) et que l'objet existe vraiment avant d'enregistrer son adresse.
+
+Le plafond global du projet Supabase (Storage → Settings, 50 Mo par défaut)
+**l'emporte sur celui du bucket** : sans l'avoir relevé, un fichier de 80 Mo est
+refusé en 413 alors que le bucket l'accepterait.
+
+Le conteneur ne prouve rien : un `.mp4` en HEVC ou un `.mov` en ProRes passent le
+contrôle de type et restent noirs à l'écran. L'écran d'administration demande au
+navigateur de lire le fichier choisi **avant** le dépôt — c'est la seule
+vérification qui dise la vérité.
+
+### Routes
+
+```
+GET                /api/bandes-annonces         public, cache 60 s
+GET|PUT|DELETE     /api/admin/bandes-annonces   après is_admin, service role
+```
+
+Aucune policy d'écriture sur `film_trailers` ; la lecture est publique (une URL
+de bande annonce est faite pour être lue). Si Supabase est injoignable, tout
+retombe sur les liens Veezi — comportement d'avant.
 
 ## Conventions CSS
 

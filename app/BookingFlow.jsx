@@ -13,6 +13,8 @@ import Aide, { AideNote } from '../components/Aide'
 import { useI18n, formatDuration } from '@/lib/i18n'
 import { ratingLabel, ratingTitle, genreLabel } from '@/lib/classification'
 import { filmPoster, filmBackdrop } from '@/lib/images'
+import { bandeAnnonce, indexerBandesAnnonces, INDEX_VIDE } from '@/lib/bandesAnnonces'
+import { TrailerModal } from '@/components/BandeAnnonce'
 import RichText, { parseSynopsis, truncateSynopsis } from '@/lib/synopsis'
 import {
   bookingPath, parseBookingPath, findFilmByParam, homeQuery, parseHomeQuery,
@@ -426,8 +428,9 @@ function RestoringSkeleton({ step }) {
 // l'identique. Le plan de salle — position de défilement, transitions, effets —
 // était ainsi reconstruit à chaque clic sur un siège et à chaque battement de
 // l'horloge des ventes. Le hero ne se referme plus que sur ses props.
-function FilmHero({ film, error, onBack, backLabel, extraMeta, children }) {
+function FilmHero({ film, trailer, error, onBack, backLabel, extraMeta, children }) {
   const { t, lang } = useI18n()
+  const [trailerOpen, setTrailerOpen] = useState(false)
   const backdrop = filmBackdrop(film)
   const poster   = filmPoster(film)
   return (
@@ -473,14 +476,20 @@ function FilmHero({ film, error, onBack, backLabel, extraMeta, children }) {
 
             {extraMeta && <p className="film-hero-extra-meta">{extraMeta}</p>}
 
-            <button className="trailer-btn">
-              <span className="trailer-play-icon">
-                <svg viewBox="0 0 20 20" fill="currentColor" width="10" height="10">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                </svg>
-              </span>
-              {t('film.trailer')}
-            </button>
+            {/* Le bouton n'apparaît que s'il y a quelque chose à jouer : un
+                fichier déposé par le cinéma, ou le lien du distributeur. Il est
+                resté longtemps sans action — un ornement qui promettait une
+                vidéo que rien n'ouvrait. */}
+            {trailer && (
+              <button className="trailer-btn" onClick={() => setTrailerOpen(true)}>
+                <span className="trailer-play-icon">
+                  <svg viewBox="0 0 20 20" fill="currentColor" width="10" height="10">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                  </svg>
+                </span>
+                {t('film.trailer')}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -490,6 +499,15 @@ function FilmHero({ film, error, onBack, backLabel, extraMeta, children }) {
           {children}
         </div>
       </div>
+
+      {trailerOpen && (
+        <TrailerModal
+          trailer={trailer}
+          title={film.Title}
+          poster={backdrop || poster}
+          onClose={() => setTrailerOpen(false)}
+        />
+      )}
     </div>
   )
 }
@@ -518,6 +536,11 @@ export default function BookingFlow({ initialRoute }) {
   // réponse n'est pas là, l'affichage retombe sur le texte brut de la fiche
   // Veezi : rien ne clignote, rien n'attend.
   const [synopses, setSynopses] = useState({})
+  // Bandes annonces déposées par le cinéma, indexées par fiche et par œuvre.
+  // Tant que la réponse n'est pas là — ou si la route échoue — la résolution
+  // retombe sur le lien YouTube de Veezi : le carrousel ne reste jamais muet
+  // à cause de cette requête.
+  const [trailerIndex, setTrailerIndex] = useState(INDEX_VIDE)
   const [allSessions, setAllSessions] = useState([])
   const [selectedFilm, setSelectedFilm] = useState(null)
   const [selectedSession, setSelectedSession] = useState(null)
@@ -771,6 +794,20 @@ export default function BookingFlow({ initialRoute }) {
       })
       .catch(e => setError(e.message))
       .finally(() => { setLoading(false); setDataLoaded(true) })
+  }, [])
+
+  // Bandes annonces posées dans l'administration. Une seule requête, mise en
+  // cache soixante secondes par la route : elle ne dépend ni de la langue ni
+  // du jour sélectionné.
+  useEffect(() => {
+    let annule = false
+    fetch('/api/bandes-annonces')
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (!annule && data?.trailers) setTrailerIndex(indexerBandesAnnonces(data.trailers))
+      })
+      .catch(() => {})
+    return () => { annule = true }
   }, [])
 
   // Synopsis dans la langue affichée. Le serveur cherche d'abord le texte déjà
@@ -1179,6 +1216,7 @@ export default function BookingFlow({ initialRoute }) {
     return (
       <FilmHero
         film={selectedFilm}
+        trailer={bandeAnnonce(selectedFilm, trailerIndex)}
         error={error}
         onBack={backToShowtimes}
         backLabel={t('film.backToShowtimes')}
@@ -1224,6 +1262,7 @@ export default function BookingFlow({ initialRoute }) {
     return (
       <FilmHero
         film={selectedFilm}
+        trailer={bandeAnnonce(selectedFilm, trailerIndex)}
         error={error}
         onBack={() => setStep('sessions')}
         backLabel={t('film.backToShowtimes')}
@@ -1393,6 +1432,7 @@ export default function BookingFlow({ initialRoute }) {
     return (
       <FilmHero
         film={selectedFilm}
+        trailer={bandeAnnonce(selectedFilm, trailerIndex)}
         error={error}
         onBack={() => setStep('films')}
         backLabel={t('film.backToMovies')}
@@ -1482,7 +1522,13 @@ export default function BookingFlow({ initialRoute }) {
   return (
     <>
       {step === 'films' && (
-        <HeroSlider films={heroFilms} loading={loading} synopses={synopses} onSelectFilm={selectFilm} />
+        <HeroSlider
+          films={heroFilms}
+          loading={loading}
+          synopses={synopses}
+          trailers={trailerIndex}
+          onSelectFilm={selectFilm}
+        />
       )}
 
     <div className="page-container">

@@ -99,6 +99,10 @@ export async function GET(request) {
         openingDate: film.OpeningDate,
         poster: film.FilmPosterUrl || film.FilmPosterThumbnailUrl || null,
         backdrop: film.BackdropImageUrl || null,
+        // Lien du distributeur. La bande annonce déposée par le cinéma, elle,
+        // est résolue dans le navigateur (/api/bandes-annonces) : cette
+        // réponse-ci reste une heure en cache, et un dépôt fait à l'instant
+        // n'attendrait pas une heure pour paraître.
         trailerUrl: film.FilmTrailerUrl || null,
         // Synopsis brut : la mise en forme est interprétée à l'affichage.
         synopsis: synopsis.get(String(film.Id))?.texte || film.Synopsis || film.ShortSynopsis || null,

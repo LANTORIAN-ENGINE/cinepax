@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { useI18n } from '@/lib/i18n'
-import { IconGauge, IconTicket, IconUsers, IconTag, IconHome, IconLogOut, IconMenu, IconMail, IconDoc, IconSliders } from '@/components/icons'
+import { IconGauge, IconTicket, IconUsers, IconTag, IconHome, IconLogOut, IconMenu, IconMail, IconDoc, IconSliders, IconFilm } from '@/components/icons'
 import { AdminChromeSkeleton } from '@/components/skeletons'
 
 const NAV = [
@@ -13,6 +13,7 @@ const NAV = [
   { href: '/admin/clients',      labelKey: 'adminNav.clients',      Icon: IconUsers  },
   { href: '/admin/messages',     labelKey: 'adminNav.messages',     Icon: IconMail   },
   { href: '/admin/prix',         labelKey: 'adminNav.pricing',      Icon: IconTag    },
+  { href: '/admin/bandes-annonces', labelKey: 'adminNav.trailers',  Icon: IconFilm   },
   { href: '/admin/legal',        labelKey: 'adminNav.legal',        Icon: IconDoc    },
   { href: '/admin/parametres',   labelKey: 'adminNav.settings',     Icon: IconSliders },
 ]
