@@ -2639,20 +2639,39 @@ export function translate(lang, key, vars) {
 }
 
 // Durée d'un film, exprimée en minutes par Veezi. Le client la veut lue comme
-// une horloge — « 1 h 45 » plutôt que « 105 mins » — les minutes sur deux
+// une horloge — « 1h45 » plutôt que « 105 mins » — les minutes sur deux
 // chiffres. En dessous d'une heure il ne reste que les minutes, au singulier
-// (« 45 min »), et une heure pleine se passe des minutes (« 2 h »).
+// (« 45 min »), et une heure pleine se passe des minutes (« 2h »).
+//
+// Le « h » est collé à son nombre, et c'est un choix, pas un oubli. La
+// typographie française met une espace insécable devant un symbole d'unité —
+// « 48 h ouvrées », comme le dit la page Contact, où quarante-huit heures sont
+// une quantité. Une durée de film n'est pas une quantité : c'est une lecture
+// d'horloge, et l'affichage des horaires du cinéma la donne déjà collée
+// (« 17h00 à 23h00 », lib/contenu.js). Cette fonction était le seul endroit du
+// site à écrire l'heure autrement.
+//
+// Deux effets, au-delà de l'accord : dans une ligne de méta serrée
+// (« TOUS PUBLICS · 1h45 · Animation »), les deux espaces perdues rendaient la
+// durée aussi large qu'un genre ; et un nombre séparé de son unité peut se
+// couper en fin de ligne — « 1 » d'un côté, « h 45 » de l'autre.
+//
+// La règle vaut aussi pour le délai de fermeture des ventes, qui passe par
+// ici : « la vente s'arrête 1h30 avant la séance ».
 export function formatDuration(minutes, lang = 'fr') {
   const total = Math.round(Number(minutes))
   if (!Number.isFinite(total) || total <= 0) return ''
 
   const hours = Math.floor(total / 60)
   const mins  = total % 60
+  const h     = translate(lang, 'home.hourShort')
 
+  // Les minutes seules gardent leur espace : « min » est une abréviation, pas
+  // un symbole d'horloge, et « 45min » se lirait comme une coquille.
   if (!hours) return `${mins} ${translate(lang, 'home.mins')}`
   return mins
-    ? `${hours} ${translate(lang, 'home.hourShort')} ${String(mins).padStart(2, '0')}`
-    : `${hours} ${translate(lang, 'home.hourShort')}`
+    ? `${hours}${h}${String(mins).padStart(2, '0')}`
+    : `${hours}${h}`
 }
 
 // ─── Contexte React ───────────────────────────────────────────────────────────
