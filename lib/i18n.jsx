@@ -2639,7 +2639,7 @@ export function translate(lang, key, vars) {
 }
 
 // Durée d'un film, exprimée en minutes par Veezi. Le client la veut lue comme
-// une horloge — « 1h45 » plutôt que « 105 mins » — les minutes sur deux
+// une horloge — « 1h 45 » plutôt que « 105 mins » — les minutes sur deux
 // chiffres. En dessous d'une heure il ne reste que les minutes, au singulier
 // (« 45 min »), et une heure pleine se passe des minutes (« 2h »).
 //
@@ -2648,16 +2648,13 @@ export function translate(lang, key, vars) {
 // « 48 h ouvrées », comme le dit la page Contact, où quarante-huit heures sont
 // une quantité. Une durée de film n'est pas une quantité : c'est une lecture
 // d'horloge, et l'affichage des horaires du cinéma la donne déjà collée
-// (« 17h00 à 23h00 », lib/contenu.js). Cette fonction était le seul endroit du
-// site à écrire l'heure autrement.
+// (« 17h00 à 23h00 », lib/contenu.js).
 //
-// Deux effets, au-delà de l'accord : dans une ligne de méta serrée
-// (« TOUS PUBLICS · 1h45 · Animation »), les deux espaces perdues rendaient la
-// durée aussi large qu'un genre ; et un nombre séparé de son unité peut se
-// couper en fin de ligne — « 1 » d'un côté, « h 45 » de l'autre.
-//
-// La règle vaut aussi pour le délai de fermeture des ventes, qui passe par
-// ici : « la vente s'arrête 1h30 avant la séance ».
+// L'espace revient en revanche **après** le « h », avant les minutes. Elle n'y
+// sépare pas un nombre de son unité : elle sépare deux grandeurs, l'heure et
+// les minutes, et c'est le seul endroit où le regard doit pouvoir se poser.
+// « 1h45 » se lit d'un bloc, « 1h 45 » donne deux temps — celui qu'on retient
+// et celui qu'on ajoute.
 export function formatDuration(minutes, lang = 'fr') {
   const total = Math.round(Number(minutes))
   if (!Number.isFinite(total) || total <= 0) return ''
@@ -2670,7 +2667,7 @@ export function formatDuration(minutes, lang = 'fr') {
   // un symbole d'horloge, et « 45min » se lirait comme une coquille.
   if (!hours) return `${mins} ${translate(lang, 'home.mins')}`
   return mins
-    ? `${hours}${h}${String(mins).padStart(2, '0')}`
+    ? `${hours}${h}\u00a0${String(mins).padStart(2, '0')}`
     : `${hours}${h}`
 }
 
