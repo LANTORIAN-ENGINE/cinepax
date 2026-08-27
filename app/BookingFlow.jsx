@@ -11,7 +11,7 @@ import AchatBand from '../components/AchatBand'
 import FinalSaleNotice from '../components/FinalSaleNotice'
 import Aide, { AideNote } from '../components/Aide'
 import { useI18n, formatDuration } from '@/lib/i18n'
-import { ratingLabel, ratingTitle, genreLabel } from '@/lib/classification'
+import { ratingLabel, ratingTitle, ratingRestricts, genreLabel } from '@/lib/classification'
 import { filmPoster, filmBackdrop } from '@/lib/images'
 import { bandeAnnonce, indexerBandesAnnonces, INDEX_VIDE } from '@/lib/bandesAnnonces'
 import { TrailerModal } from '@/components/BandeAnnonce'
@@ -1682,6 +1682,7 @@ export default function BookingFlow({ initialRoute }) {
                 const short = truncateSynopsis(synopsis, 180)
                 const needsTruncation = short.truncated
                 const displayedSynopsis = isExpanded ? synopsis : short.paragraphs
+                const classification = ratingLabel(film.Rating, t)
 
                 function toggleExpand(e) {
                   e.stopPropagation()
@@ -1724,11 +1725,23 @@ export default function BookingFlow({ initialRoute }) {
                           {film.Title}
                         </h2>
 
+                        {/* Deux faits de nature différente, longtemps rendus
+                            pareils et cousus par une barre : « -12 ans | 1h 42 ».
+                            L'un dit qui peut entrer, l'autre combien de temps on
+                            reste — et le premier se lisait comme un nombre dans
+                            une suite. La classification prend la forme d'une
+                            pastille, la durée reste du texte, et la barre
+                            disparaît : deux objets n'ont plus besoin d'être
+                            séparés. */}
                         <p className="film-meta">
-                          {ratingLabel(film.Rating, t) && (
-                            <span title={ratingTitle(film.Rating, t)}>{ratingLabel(film.Rating, t)}</span>
+                          {classification && (
+                            <span
+                              className={`film-rating ${ratingRestricts(film.Rating) ? 'film-rating--age' : ''}`}
+                              title={ratingTitle(film.Rating, t)}
+                            >
+                              {classification}
+                            </span>
                           )}
-                          {ratingLabel(film.Rating, t) && film.Duration && <span> | </span>}
                           {film.Duration && <span>{formatDuration(film.Duration, lang)}</span>}
                         </p>
 
